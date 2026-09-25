@@ -1014,7 +1014,7 @@ async function flush(){
   if(q.length) setSend("", "先生に送信中…");
   for(const entry of q){
     try{
-      const r = await fetch(GAS_URL, {method:"POST", credentials:"omit", body:JSON.stringify(entry)});
+      const r = await fetch(GAS_URL + "?action=log&payload=" + encodeURIComponent(JSON.stringify(entry)), {credentials:"omit"});
       const j = await r.json();
       if(!j.ok) throw new Error(j.error||"ng");
       setOutbox(outbox().filter(x=>x.id!==entry.id));
