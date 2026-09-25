@@ -88,7 +88,7 @@ async function load(){
   if(!/^https:\/\//.test(GAS_URL)){ st.error="GAS_URL が設定されていません(teacher.html の上の方)。"; return render(); }
   st.loading = true; st.error=""; render();
   try{
-    const r = await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"report", key:st.key, days:st.days})});
+    const r = await fetch(`${GAS_URL}?action=report&key=${encodeURIComponent(st.key)}&days=${st.days}`, {credentials:"omit"});
     const j = await r.json();
     if(!j.ok){ st.error = j.error==="key" ? "合言葉がちがいます。" : "読み込めませんでした("+j.error+")"; st.data=null; }
     else { st.data = j; try{ localStorage.setItem("marutan-teacher-key", st.key); }catch(e){} }
