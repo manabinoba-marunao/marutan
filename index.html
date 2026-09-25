@@ -1011,10 +1011,10 @@ async function flush(){
   if(flushing || !/^https:\/\//.test(GAS_URL)) { if(!/^https:\/\//.test(GAS_URL)) setSend("ng","送信先が設定されていません"); return; }
   flushing = true;
   let q = outbox(), failed = false;
-  if(q.length) setSend("", "先生に送信中…");
+  if(q.length) setSend("", "先生に送信中…(このまま閉じても、次に開いたときに送り直します)");
   for(const entry of q){
     try{
-      const r = await fetch(GAS_URL + "?action=log&payload=" + encodeURIComponent(JSON.stringify(entry)), {credentials:"omit"});
+      const ctl = new AbortController(); setTimeout(()=>ctl.abort(), 45000); const r = await fetch(GAS_URL + "?action=log&payload=" + encodeURIComponent(JSON.stringify(entry)), {credentials:"omit", signal:ctl.signal});
       const j = await r.json();
       if(!j.ok) throw new Error(j.error||"ng");
       setOutbox(outbox().filter(x=>x.id!==entry.id));
