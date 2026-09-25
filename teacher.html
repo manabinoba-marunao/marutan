@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>マル単 先生用</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --accent-soft:#DCEBEA;
+  --marker:#F6D55C; --ok:#2C7A4B; --warn:#B07A12; --ng:#B63E32; --ng-soft:#F7E0DC;
+  --en:"Literata", Georgia, serif;
+  --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111A1D; --surface:#18252A; --ink:#E7EEEC; --muted:#9AAAAE; --line:#2B3B40;
+    --accent:#5FB3AE; --accent-ink:#0B1517; --accent-soft:#1F3A3C;
+    --marker:#8A7424; --ok:#6CC990; --warn:#E0B04A; --ng:#EE8A7E; --ng-soft:#43231F;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ja);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand small{display:block;font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.brand h1{margin:0;font-size:24px}
+.brand h1 span{font-size:14px;font-weight:500;color:var(--muted);margin-left:8px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.link{border:none;background:none;padding:2px 4px;color:var(--accent);text-decoration:underline}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:0 0 8px}
+h2{font-size:17px;margin:0 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.kpi b{display:block;font-family:var(--en);font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.en{font-family:var(--en);font-weight:700}
+td.wrap{white-space:normal;min-width:160px}
+tr.pick{cursor:pointer}
+tr.pick:hover{background:var(--accent-soft)}
+tr.on{background:var(--accent-soft)}
+.rate{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.meter{width:60px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.note{font-size:12px;color:var(--muted)}
+.err{color:var(--ng);font-size:13px}
+.empty{color:var(--muted);font-size:14px;padding:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* Code.gs をデプロイして出たURLを貼る(生徒用 index.html と同じもの) */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xvC8QygZLhPrVkjAYdH5TMsxNlGkRq0zjcF23_yunkXsMmQj4BV0vD/exec";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st = {key:"", days:7, data:null, loading:false, error:"", student:null};
+try{ st.key = localStorage.getItem("marutan-teacher-key") || ""; }catch(e){}
+
+const pad = n => String(n).padStart(2,"0");
+const fmtDate = t => { const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const rateColor = r => r>=80 ? "var(--ok)" : r>=60 ? "var(--warn)" : "var(--ng)";
+const rateCell = r => `<span class="rate">${r}%<span class="meter"><i style="width:${r}%;background:${rateColor(r)}"></i></span></span>`;
+
+async function load(){
+  if(!/^https:\/\//.test(GAS_URL)){ st.error="GAS_URL が設定されていません(teacher.html の上の方)。"; return render(); }
+  st.loading = true; st.error=""; render();
+  try{
+    const r = await fetch(`${GAS_URL}?action=report&key=${encodeURIComponent(st.key)}&days=${st.days}`);
+    const j = await r.json();
+    if(!j.ok){ st.error = j.error==="key" ? "合言葉がちがいます。" : "読み込めませんでした("+j.error+")"; st.data=null; }
+    else { st.data = j; try{ localStorage.setItem("marutan-teacher-key", st.key); }catch(e){} }
+  }catch(e){ st.error = "読み込めませんでした。通信状態とGASのURLを確認してください。"; }
+  st.loading = false; render();
+}
+
+/* sessions: [ts,id,name,label,mode,limit,answered,correct,rate,seconds,wrongText]
+   wrongs:   [ts,id,name,en,ja,set] */
+function summarize(){
+  const S = st.data.sessions, W = st.data.wrongs;
+  const byName = {};
+  for(const s of S){
+    const n = String(s[2]);
+    const o = byName[n] ||= {name:n, times:0, answered:0, correct:0, last:0, secs:0};
+    o.times++; o.answered += +s[6]||0; o.correct += +s[7]||0; o.secs += +s[9]||0; o.last = Math.max(o.last, s[0]);
+  }
+  const students = Object.values(byName).sort((a,b)=>b.last-a.last);
+  return {students, S, W};
+}
+function topWrong(W, name){
+  const m = {};
+  for(const w of W){ if(name && String(w[2])!==name) continue;
+    const k = w[3]; const o = m[k] ||= {en:w[3], ja:w[4], n:0, who:new Set(), set:w[5]}; o.n++; o.who.add(String(w[2])); }
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+
+function render(){
+  const app = $("#app");
+  let h = `<header><div class="brand"><small>学びの場マル直</small><h1>マル単<span>先生用</span></h1></div>
+    ${st.data?`<button class="link" data-act="lock">合言葉を入れ直す</button>`:""}</header>`;
+  if(!st.data){
+    h += `<section class="panel"><h2>合言葉を入れてください</h2>
+      <form id="keyForm" class="row"><input type="password" id="key" value="${esc(st.key)}" placeholder="合言葉" autocomplete="current-password" style="flex:1;min-width:200px">
+      <button class="primary" type="submit">${st.loading?"読み込み中…":"見る"}</button></form>
+      ${st.error?`<p class="err">${esc(st.error)}</p>`:""}
+      <p class="note">合言葉は Code.gs の TEACHER_KEY で決めたものです。</p></section>`;
+    return app.innerHTML = h;
+  }
+  const {students, S, W} = summarize();
+  const totA = students.reduce((a,s)=>a+s.answered,0), totC = students.reduce((a,s)=>a+s.correct,0);
+  h += `<div class="bar"><div class="row">${[[1,"24時間"],[7,"7日"],[30,"30日"],[0,"全期間"]].map(([d,l])=>`<button aria-pressed="${st.days===d}" data-act="days" data-d="${d}">${l}</button>`).join("")}</div>
+    <button data-act="reload">${st.loading?"読み込み中…":"最新にする"}</button></div>
+    ${st.error?`<p class="err">${esc(st.error)}</p>`:""}
+    <div class="kpis">
+      <div class="kpi"><b>${students.length}</b><span>取り組んだ生徒</span></div>
+      <div class="kpi"><b>${S.length}</b><span>取り組み回数</span></div>
+      <div class="kpi"><b>${totA}</b><span>解いた問題(合計)</span></div>
+      <div class="kpi"><b>${totA?Math.round(totC/totA*100):0}%</b><span>全体の正答率</span></div>
+    </div>`;
+
+  const sel = st.student && students.find(s=>s.name===st.student) ? st.student : null;
+  const studentTable = students.length ? `<div class="tbl"><table><thead><tr><th>名前</th><th class="num">回数</th><th class="num">解いた問題</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
+    ${students.map(s=>{const r=s.answered?Math.round(s.correct/s.answered*100):0;return `<tr class="pick ${sel===s.name?"on":""}" data-act="student" data-n="${esc(s.name)}"><td><b>${esc(s.name)}</b></td><td class="num">${s.times}</td><td class="num">${s.answered}</td><td class="num">${rateCell(r)}</td><td class="num">${fmtDate(s.last)}</td></tr>`}).join("")}
+    </tbody></table></div><p class="note">名前をクリックすると、その生徒の記録が右(スマホでは下)に出ます。</p>` : `<p class="empty">この期間の記録はまだありません。</p>`;
+
+  let right;
+  if(sel){
+    const mine = S.filter(s=>String(s[2])===sel).sort((a,b)=>b[0]-a[0]);
+    const tw = topWrong(W, sel).slice(0,30);
+    right = `<section class="panel"><div class="bar"><h2 style="margin:0">${esc(sel)} さん</h2><button class="link" data-act="student" data-n="">全体にもどる</button></div>
+      <p class="label" style="margin-top:14px">取り組みの記録</p>
+      <div class="tbl"><table><thead><tr><th>日時</th><th>セット</th><th>形式</th><th class="num">正解/解いた</th></tr></thead><tbody>
+      ${mine.map(s=>`<tr><td>${fmtDate(s[0])}</td><td class="wrap">${esc(s[3])}<br><span class="pill">${esc(s[4])}</span></td><td>${esc(s[5])}</td><td class="num">${s[7]}/${s[6]}<br>${rateCell(+s[8]||0)}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="label" style="margin-top:16px">よくまちがえる語</p>
+      ${tw.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th class="num">×</th></tr></thead><tbody>
+      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
+    </section>`;
+  } else {
+    const tw = topWrong(W).slice(0,25);
+    right = `<section class="panel"><h2>みんながまちがえた語</h2>
+      ${tw.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th class="num">人数</th><th class="num">×</th></tr></thead><tbody>
+      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.who.size}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
+    </section>`;
+  }
+  h += `<div class="grid"><section class="panel"><h2>生徒ごとの記録</h2>${studentTable}</section>${right}</div>`;
+  app.innerHTML = h;
+}
+
+document.addEventListener("submit", e=>{ if(e.target.id!=="keyForm") return; e.preventDefault(); st.key=$("#key").value.trim(); if(st.key) load(); });
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a==="days"){ st.days=+b.dataset.d; load(); }
+  else if(a==="reload") load();
+  else if(a==="student"){ st.student=b.dataset.n||null; render(); }
+  else if(a==="lock"){ st.data=null; st.key=""; try{localStorage.removeItem("marutan-teacher-key");}catch(e){} render(); }
+});
+render();
+if(st.key) load();
+</script>
+</body>
+</html>

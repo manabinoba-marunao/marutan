@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>マル単</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --accent-soft:#DCEBEA;
+  --marker:#F6D55C; --ok:#2C7A4B; --ok-soft:#DDF0E3; --ng:#B63E32; --ng-soft:#F7E0DC;
+  --en:"Literata", Georgia, "Times New Roman", serif;
+  --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111A1D; --surface:#18252A; --ink:#E7EEEC; --muted:#9AAAAE; --line:#2B3B40;
+    --accent:#5FB3AE; --accent-ink:#0B1517; --accent-soft:#1F3A3C;
+    --marker:#8A7424; --ok:#6CC990; --ok-soft:#1C3A28; --ng:#EE8A7E; --ng-soft:#43231F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111A1D; --surface:#18252A; --ink:#E7EEEC; --muted:#9AAAAE; --line:#2B3B40;
+  --accent:#5FB3AE; --accent-ink:#0B1517; --accent-soft:#1F3A3C;
+  --marker:#8A7424; --ok:#6CC990; --ok-soft:#1C3A28; --ng:#EE8A7E; --ng-soft:#43231F;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ja);font-size:15px;line-height:1.7;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand small{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.brand h1{margin:0;font-size:26px;font-weight:700;letter-spacing:.04em;line-height:1.3}
+.brand .tagline{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat3{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.stat3 b{display:block;font-family:var(--en);font-size:32px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat3 span{font-size:12px;color:var(--muted)}
+.progress.time i{background:var(--marker)}
+#tleft{font-weight:700;color:var(--ink)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.who b{color:var(--ink)}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.link{border:none;background:none;padding:4px 6px;color:var(--accent);text-decoration:underline}
+button:disabled{opacity:.45;cursor:not-allowed}
+input[type=text],textarea{font:inherit;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:0 0 8px}
+h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
+.names{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{border:none;border-radius:0;background:none;padding:8px 12px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;padding:4px 12px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}
+.sets{display:flex;flex-direction:column;gap:8px}
+.ghead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700;font-size:14px;margin:6px 0 6px}
+.ghead + .sets{margin-bottom:12px}
+.set{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.set.on{border-color:var(--accent);background:var(--accent-soft)}
+.set input{width:20px;height:20px;accent-color:var(--accent)}
+.set .t{font-weight:700;line-height:1.4}
+.set .m{font-size:12px;color:var(--muted)}
+.set .stat{text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.set .stat .due{color:var(--ng);font-weight:700}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-right:6px;vertical-align:1px}
+.tag.sample{border-color:var(--marker);background:var(--marker);color:var(--ink)}
+.bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.startbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.startbar .sum{margin-right:auto;font-size:13px;color:var(--muted)}
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.card .dir{font-size:12px;letter-spacing:.1em;color:var(--muted)}
+.card .q{font-size:clamp(26px,7vw,38px);font-weight:700;line-height:1.3;word-break:break-word}
+.card .q.en{font-family:var(--en)}
+.card .q mark{background:linear-gradient(transparent 58%,var(--marker) 58%);color:inherit;padding:0 .1em}
+.card .pos{font-size:13px;color:var(--muted)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.choices{grid-template-columns:1fr}}
+.choice{text-align:left;padding:14px 16px;border-radius:12px;display:flex;gap:12px;align-items:center;min-height:58px;line-height:1.4}
+.choice .k{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.choice.en{font-family:var(--en);font-size:17px}
+.choice:disabled{opacity:1;cursor:default}
+.choice:disabled:not(.right):not(.wrong){opacity:.55}
+.choice.right{background:var(--ok-soft);border-color:var(--ok)}
+.choice.right .k{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.choice.wrong{background:var(--ng-soft);border-color:var(--ng)}
+.choice.wrong .k{background:var(--ng);border-color:var(--ng);color:var(--surface)}
+.feedback{border-radius:12px;padding:14px 16px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.feedback .v{font-weight:700}
+.feedback.ok .v{color:var(--ok)} .feedback.ng .v{color:var(--ng)}
+.feedback .w{font-family:var(--en);font-size:18px;font-weight:700}
+.ex{font-family:var(--en);font-size:15px;color:var(--ink);border-left:3px solid var(--marker);padding-left:10px;line-height:1.6}
+.ex b{background:linear-gradient(transparent 60%,var(--marker) 60%)}
+.ex-src{font-size:12px;color:var(--muted)}
+/* result */
+.score{display:flex;align-items:baseline;gap:10px}
+.score .n{font-family:var(--en);font-size:56px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score .d{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.05em}
+td.en{font-family:var(--en);font-weight:700;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl{overflow-x:auto}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+.note{font-size:12px;color:var(--muted)}
+.kbd{font-size:12px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+html{color-scheme:light}
+body{margin:0}
+[hidden]{display:none!important}
+.send{font-size:12px;color:var(--muted)}
+.send.ok{color:var(--ok)} .send.ng{color:var(--ng)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============================================================
+   GAS のウェブアプリURL(Code.gs をデプロイして出たURLを貼る)
+   ============================================================ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xvC8QygZLhPrVkjAYdH5TMsxNlGkRq0zjcF23_yunkXsMmQj4BV0vD/exec";
+
+/* ============================================================
+   単語セット — 長文ごとに1セット。Claudeが PDF から追加していく。
+   level: 表示用タグ / course: 生徒がしぼり込む区分
+   ex: 本文からの例文。**で囲んだ部分を強調表示
+   ============================================================ */
+const SETS = [
+  {
+    id: "kt0919-1", course: "共通テスト", group: "実戦創作問題",
+    title: "第1問 音楽フェスのボランティア募集", source: "p.4–5",
+    words: [
+      {en:"organize", pos:"動", ja:"〜を企画・運営する", ex:"Murakami Music Store has agreed to help the city **organize** an international music festival."},
+      {en:"take place", pos:"熟", ja:"行われる・開催される", ex:"The festival will **take place** from October 23 to October 25."},
+      {en:"at the moment", pos:"熟", ja:"今のところ・現在", ex:"**At the moment**, we are looking for local volunteers."},
+      {en:"prepare for", pos:"熟", ja:"〜の準備をする", ex:"to help us **prepare for** the festival"},
+      {en:"attend", pos:"動", ja:"〜に出席する", ex:"Volunteers will need to **attend** the following meetings."},
+      {en:"budget", pos:"名", ja:"予算", ex:"the **budget** for the organizing committee"},
+      {en:"committee", pos:"名", ja:"委員会", ex:"the budget for the organizing **committee**"},
+      {en:"lend", pos:"動", ja:"〜を貸す", ex:"parks we can ask to **lend** us space for mini concerts"},
+      {en:"attract", pos:"動", ja:"〜を引きつける・呼び寄せる", ex:"how to **attract** musicians from around the world"},
+      {en:"advertising", pos:"名", ja:"広告(活動)", ex:"Planning of **advertising**."},
+      {en:"effort", pos:"名", ja:"努力・取り組み", ex:"Report on results of our **efforts**."},
+      {en:"have room for", pos:"熟", ja:"〜が入る余地がある", ex:"our meeting space only **has room for** 25 people"},
+      {en:"purpose", pos:"名", ja:"目的", ex:"The **purpose** of this notice is ..."},
+      {en:"notice", pos:"名", ja:"お知らせ・掲示", ex:"The purpose of this **notice** is ..."},
+      {en:"recommend", pos:"動", ja:"〜を勧める", ex:"to **recommend** that people support local musicians"},
+      {en:"performance", pos:"名", ja:"公演・演奏", ex:"discuss possible places for **performances**"},
+      {en:"collect", pos:"動", ja:"〜を集める", ex:"suggest ways to **collect** money for an event"}
+    ]
+  },
+  {
+    id: "kt0919-2", course: "共通テスト", group: "実戦創作問題",
+    title: "第2問 週末の宿題禁止ルール", source: "p.6–8",
+    words: [
+      {en:"suggest", pos:"動", ja:"〜を提案する", ex:"A new rule has been **suggested** for schools in the town of Quezon City."},
+      {en:"illegal", pos:"形", ja:"違法な・禁じられた", ex:"The rule will make it **illegal** for teachers to give students homework on the weekends."},
+      {en:"fair", pos:"形", ja:"公平な・正当な", ex:"It does not seem **fair** to claim that well-meaning teachers are doing something wrong."},
+      {en:"claim", pos:"動", ja:"〜だと主張する", ex:"It does not seem fair to **claim** that well-meaning teachers are doing something wrong."},
+      {en:"well-meaning", pos:"形", ja:"善意の", ex:"**well-meaning** teachers"},
+      {en:"after all", pos:"熟", ja:"何しろ・結局のところ", ex:"**After all**, they probably just want their students to succeed."},
+      {en:"succeed", pos:"動", ja:"成功する", ex:"they probably just want their students to **succeed**"},
+      {en:"affect", pos:"動", ja:"〜に影響を与える", ex:"It is **affecting** their family time."},
+      {en:"when it comes to", pos:"熟", ja:"〜のことになると", ex:"**When it comes to** homework, you may not get what you expect."},
+      {en:"in favor of", pos:"熟", ja:"〜に賛成して", ex:"The people **in favor of** the rule also pointed out Finland's success."},
+      {en:"point out", pos:"熟", ja:"〜を指摘する", ex:"The people in favor of the rule also **pointed out** Finland's success."},
+      {en:"currently", pos:"副", ja:"現在", ex:"they are **currently** rated number six in the world"},
+      {en:"unusual", pos:"形", ja:"珍しい・普通でない", ex:"it is **unusual** for teachers to assign homework on the weekends"},
+      {en:"assign", pos:"動", ja:"(課題など)を課す・割り当てる", ex:"it is unusual for teachers to **assign** homework on the weekends"},
+      {en:"provide", pos:"動", ja:"〜を用意する・提供する", ex:"schools will have to **provide** special lockers"},
+      {en:"argument", pos:"名", ja:"主張・論拠", ex:"The **argument** about family time is very important."},
+      {en:"restriction", pos:"名", ja:"制限", ex:"Perhaps a **restriction** on the amount of homework ..."},
+      {en:"ban", pos:"名", ja:"禁止", ex:"rather than a complete **ban** would be better"},
+      {en:"rather than", pos:"熟", ja:"〜よりむしろ", ex:"a restriction ... **rather than** a complete ban would be better"},
+      {en:"compare A to B", pos:"熟", ja:"AをBと比べる", ex:"Why they only **compare** Quezon City **to** Finland."},
+      {en:"oppose", pos:"動", ja:"〜に反対する", ex:"The other team will **oppose** the debate topic."},
+      {en:"responsibility", pos:"名", ja:"責任(感)", ex:"homework may teach us other things such as **responsibility**"},
+      {en:"opposite", pos:"名", ja:"反対(のこと)", ex:"the effect of some actions may be the **opposite** of what you imagine"},
+      {en:"grateful", pos:"形", ja:"感謝している", ex:"we should be **grateful** for whatever people do for us"}
+    ]
+  },
+  {
+    id: "kt0919-3", course: "共通テスト", group: "実戦創作問題",
+    title: "第3問 オーストラリア留学と車の座席", source: "p.9–10",
+    words: [
+      {en:"exchange student", pos:"名", ja:"交換留学生", ex:"Akari Nakashima (**Exchange Student**)"},
+      {en:"be worried that", pos:"熟", ja:"〜ではないかと心配する", ex:"I **was worried that** my English would not be good enough."},
+      {en:"abroad", pos:"副", ja:"海外へ・海外で", ex:"It was my first trip **abroad**."},
+      {en:"panic", pos:"動", ja:"パニックになる・うろたえる", ex:"I was almost **panicking**."},
+      {en:"as soon as", pos:"熟", ja:"〜するとすぐに", ex:"**as soon as** I met my host family, I knew everything would be OK"},
+      {en:"patiently", pos:"副", ja:"辛抱強く", ex:"They spoke slowly and waited **patiently** while I tried to speak English."},
+      {en:"notice", pos:"動", ja:"〜に気づく", ex:"I **noticed** that my host mother, who was driving, looked annoyed."},
+      {en:"annoyed", pos:"形", ja:"いらいらした・むっとした", ex:"my host mother, who was driving, looked **annoyed**"},
+      {en:"beside", pos:"前", ja:"〜のそばに・隣に", ex:"I'm sure you ride **beside** family members."},
+      {en:"not only A but also B", pos:"熟", ja:"AだけでなくBも", ex:"**Not only** did she accept me as a family member, **but** she was **also** not really angry at me."},
+      {en:"accept", pos:"動", ja:"〜を受け入れる", ex:"she **accepted** me as a family member"},
+      {en:"cultural", pos:"形", ja:"文化の", ex:"It was just a **cultural** difference."},
+      {en:"thanks to", pos:"熟", ja:"〜のおかげで", ex:"**Thanks to** our long talks in the car, my English is getting better and better."},
+      {en:"concerned", pos:"形", ja:"心配して", ex:"Akari's feelings changed in the following order: **concerned** → ..."},
+      {en:"relieved", pos:"形", ja:"ほっとした・安心した", ex:"nervous → **relieved** → surprised → confused → pleased"},
+      {en:"confused", pos:"形", ja:"困惑した・混乱した", ex:"nervous → relieved → surprised → **confused** → pleased"},
+      {en:"treat A like B", pos:"熟", ja:"AをBのように扱う", ex:"Akari was **treating** her **like** a driver rather than a family member"},
+      {en:"improve", pos:"動", ja:"向上する・〜を改善する", ex:"Akari's English has **improved** because of her long rides to school."}
+    ]
+  },
+  {
+    id: "kt0919-4", course: "共通テスト", group: "実戦創作問題",
+    title: "第4問 自然と心身の健康(エッセイ)", source: "p.11–12",
+    words: [
+      {en:"cherish", pos:"動", ja:"〜を大切にする", ex:"Green spaces ... have long been **cherished** for their ability to provide an escape from urban life."},
+      {en:"escape", pos:"名", ja:"逃れる手段・息抜き", ex:"to provide an **escape** from urban life"},
+      {en:"urban", pos:"形", ja:"都会の", ex:"an escape from **urban** life"},
+      {en:"promote", pos:"動", ja:"〜を促進する", ex:"These natural settings **promote** mental and physical well-being."},
+      {en:"mental", pos:"形", ja:"精神の・心の", ex:"**mental** and physical well-being"},
+      {en:"physical", pos:"形", ja:"身体の", ex:"mental and **physical** well-being"},
+      {en:"well-being", pos:"名", ja:"(心身の)健康・幸福", ex:"These natural settings promote mental and physical **well-being**."},
+      {en:"explore", pos:"動", ja:"〜を探究する・詳しく調べる", ex:"This essay **explores** this connection."},
+      {en:"make the most of", pos:"熟", ja:"〜を最大限に活用する", ex:"how we can **make the most of** nature's healing powers"},
+      {en:"infrastructure", pos:"名", ja:"インフラ・社会基盤", ex:"eco-friendly **infrastructure** like bicycle paths"},
+      {en:"depend on", pos:"熟", ja:"〜に頼る", ex:"which help us **depend** less **on** transportation like cars and buses"},
+      {en:"enhance", pos:"動", ja:"〜を高める・向上させる", ex:"Not only do they **enhance** well-being ..."},
+      {en:"access", pos:"名", ja:"利用(する機会)・接近", ex:"by providing easy **access** to green spaces"},
+      {en:"citizen", pos:"名", ja:"市民", ex:"things that we as private **citizens** can do"},
+      {en:"arrange", pos:"動", ja:"〜を手配する・準備する", ex:"One way to do this is to **arrange** events."},
+      {en:"satisfaction", pos:"名", ja:"満足(感)", ex:"can be a lot of fun and provide personal **satisfaction**"},
+      {en:"take part in", pos:"熟", ja:"〜に参加する", ex:"volunteer groups ... **taking part in** these kinds of activities"},
+      {en:"in conclusion", pos:"熟", ja:"結論として", ex:"**In conclusion**, it is up to us."},
+      {en:"it is up to A", pos:"熟", ja:"Aしだいだ・Aの責任だ", ex:"In conclusion, **it is up to** us."},
+      {en:"contribute to", pos:"熟", ja:"〜に貢献する・〜の一因となる", ex:"**contribute to** their maintenance"},
+      {en:"maintenance", pos:"名", ja:"維持・管理", ex:"contribute to their **maintenance**"},
+      {en:"nevertheless", pos:"副", ja:"それにもかかわらず", ex:""},
+      {en:"for instance", pos:"熟", ja:"たとえば", ex:""}
+    ]
+  },
+  {
+    id: "kt0919-5", course: "共通テスト", group: "実戦創作問題",
+    title: "第5問 映画レビューと男女の偏り", source: "p.13–15",
+    words: [
+      {en:"rely on", pos:"熟", ja:"〜に頼る", ex:"more and more people **rely on** online reviews"},
+      {en:"purchase", pos:"動", ja:"〜を購入する", ex:"to decide what products they will **purchase**"},
+      {en:"evidence", pos:"名", ja:"証拠", ex:"There is a lot of **evidence** that shows that online reviews are influencing what we buy."},
+      {en:"influence", pos:"動", ja:"〜に影響を与える", ex:"online reviews are **influencing** what we buy"},
+      {en:"therefore", pos:"副", ja:"したがって", ex:"and **therefore**, what manufacturers make"},
+      {en:"manufacturer", pos:"名", ja:"製造業者・メーカー", ex:"what **manufacturers** make"},
+      {en:"imbalance", pos:"名", ja:"不均衡・偏り", ex:"This **imbalance** is a problem."},
+      {en:"tend to", pos:"熟", ja:"〜する傾向がある", ex:"men **tend to** prefer science fiction and horror films"},
+      {en:"prefer", pos:"動", ja:"〜のほうを好む", ex:"men tend to **prefer** science fiction and horror films"},
+      {en:"naturally", pos:"副", ja:"当然・自然に", ex:"**Naturally**, men will have a lower opinion of films that they are not interested in."},
+      {en:"mistakenly", pos:"副", ja:"誤って", ex:"Some women may **mistakenly** believe that films in their favorite genre are of poor quality."},
+      {en:"quality", pos:"名", ja:"質・品質", ex:"films in their favorite genre are of poor **quality**"},
+      {en:"recognize", pos:"動", ja:"〜を認める・認識する", ex:"We ... have to **recognize** that this trend is based on false data."},
+      {en:"be based on", pos:"熟", ja:"〜に基づいている", ex:"this trend **is based on** false data"},
+      {en:"represent", pos:"動", ja:"〜を表す・代表する", ex:"to make movie reviews **represent** the opinions of women more"},
+      {en:"otherwise", pos:"副", ja:"さもないと", ex:"**Otherwise**, we may see some genres disappear completely."},
+      {en:"draw attention to", pos:"熟", ja:"〜に注意を向けさせる", ex:"for **drawing attention to** a problem that exists in the movie industry"},
+      {en:"decline", pos:"名", ja:"減少・衰退", ex:"the one with the most rapid rate of **decline**"},
+      {en:"rapid", pos:"形", ja:"急速な", ex:"the most **rapid** rate of decline"},
+      {en:"career", pos:"名", ja:"(職業上の)経歴・仕事", ex:"my **career** depends on getting as many people as possible to see my movies"},
+      {en:"equal", pos:"形", ja:"等しい・同数の", ex:"an **equal** number of reviews by men and by women"},
+      {en:"reward", pos:"動", ja:"〜に報酬を与える", ex:"Another idea would be to **reward** women for writing reviews."},
+      {en:"in return for", pos:"熟", ja:"〜のお返しに", ex:"free previews of films **in return for** writing reviews"}
+    ]
+  },
+  {
+    id: "kt0919-6", course: "共通テスト", group: "実戦創作問題",
+    title: "第6問 スタン・リーの生涯", source: "p.16–18",
+    words: [
+      {en:"produce", pos:"動", ja:"〜を制作する・生産する", ex:"the ones **produced** by Marvel Entertainment have been the most popular"},
+      {en:"be responsible for", pos:"熟", ja:"〜を担当する・〜の原因となる", ex:"he **was** partly **responsible for** the creation of all these characters"},
+      {en:"creation", pos:"名", ja:"創造・生み出すこと", ex:"the **creation** of all these characters"},
+      {en:"youth", pos:"名", ja:"若いころ", ex:"In his **youth**, he had many jobs."},
+      {en:"competition", pos:"名", ja:"コンテスト・競争", ex:"Lee entered an essay **competition** sponsored by a major newspaper."},
+      {en:"sponsor", pos:"動", ja:"〜を後援する・主催する", ex:"an essay competition **sponsored** by a major newspaper"},
+      {en:"in a row", pos:"熟", ja:"連続で", ex:"He won the competition for three weeks **in a row**."},
+      {en:"take up", pos:"熟", ja:"(仕事・趣味)を始める", ex:"The newspaper suggested that he **take up** writing professionally."},
+      {en:"replace", pos:"動", ja:"〜の後任になる・取って代わる", ex:"Lee was asked to **replace** him."},
+      {en:"despite", pos:"前", ja:"〜にもかかわらず", ex:"**Despite** his young age, he was embarrassed to be involved with writing comic books."},
+      {en:"embarrassed", pos:"形", ja:"恥ずかしい・気まずい", ex:"he was **embarrassed** to be involved with writing comic books at first"},
+      {en:"be involved with", pos:"熟", ja:"〜に関わる", ex:"he was embarrassed to **be involved with** writing comic books"},
+      {en:"eventually", pos:"副", ja:"最終的に・やがて", ex:"He **eventually** returned from the war."},
+      {en:"take over", pos:"熟", ja:"(仕事など)を引き継ぐ", ex:"until 1972, when he **took over** as the publisher"},
+      {en:"rival", pos:"名", ja:"競争相手", ex:"its main **rival** DC Comics"},
+      {en:"weakness", pos:"名", ja:"弱点・弱さ", ex:"Lee's heroes had **weaknesses**."},
+      {en:"overcome", pos:"動", ja:"〜を克服する", ex:"All of his heroes had to **overcome** their emotional weaknesses."},
+      {en:"emotional", pos:"形", ja:"感情の・精神的な", ex:"their **emotional** weaknesses and personal problems"},
+      {en:"meaningful", pos:"形", ja:"意味のある・意義深い", ex:"This made them **meaningful** to college students and adults."},
+      {en:"management", pos:"名", ja:"経営・管理", ex:"Lee left the **management** of Marvel Comics to his former assistant."},
+      {en:"former", pos:"形", ja:"前の・元の", ex:"his **former** assistant"},
+      {en:"organization", pos:"名", ja:"団体・組織", ex:"he started an **organization** to help improve people's creative skills"},
+      {en:"establish", pos:"動", ja:"〜を設立する", ex:"Lee **established** an organization to support creative people."},
+      {en:"privacy", pos:"名", ja:"私生活・プライバシー", ex:"put the highest value on his **privacy**"}
+    ]
+  },
+  {
+    id: "kt0919-7", course: "共通テスト", group: "実戦創作問題",
+    title: "第7問 ノルウェーの電気自動車と石油", source: "p.19–24",
+    words: [
+      {en:"percentage", pos:"名", ja:"割合", ex:"it has a larger **percentage** of electric vehicles than any other country"},
+      {en:"vehicle", pos:"名", ja:"乗り物・車両", ex:"electric **vehicles**"},
+      {en:"policy", pos:"名", ja:"政策・方針", ex:"The increase is simply a result of a government **policy**."},
+      {en:"tax", pos:"動", ja:"〜に課税する", ex:"Norway started **taxing** vehicles powered by gasoline and diesel."},
+      {en:"furthermore", pos:"副", ja:"さらに", ex:"**Furthermore**, drivers of electric cars have been receiving discounts."},
+      {en:"fee", pos:"名", ja:"料金", ex:"discounts on the **fees** charged to use certain highways and ferries"},
+      {en:"significant", pos:"形", ja:"著しい・重要な", ex:"have seen a **significant** drop in sales"},
+      {en:"satisfy", pos:"動", ja:"(条件など)を満たす", ex:"Hybrid vehicles do not **satisfy** the government requirement."},
+      {en:"requirement", pos:"名", ja:"必要条件・要件", ex:"the government **requirement**"},
+      {en:"release", pos:"動", ja:"〜を発売する・公開する", ex:"planning to **release** electric vehicles in Norway"},
+      {en:"meanwhile", pos:"副", ja:"その一方で・その間に", ex:"**Meanwhile**, Norway's four main cities have been working to reduce the number of cars."},
+      {en:"encourage", pos:"動", ja:"〜するよう促す・励ます", ex:"They have been **encouraging** people to walk and cycle instead."},
+      {en:"achieve", pos:"動", ja:"〜を達成する", ex:"To **achieve** this, the city of Oslo has removed over 4,000 parking spots."},
+      {en:"remarkable", pos:"形", ja:"目覚ましい・注目すべき", ex:"These efforts have had **remarkable** success."},
+      {en:"afford", pos:"動", ja:"〜を買う(持つ)余裕がある", ex:"making it easier for people to **afford** electric vehicles"},
+      {en:"conflict with", pos:"熟", ja:"〜と対立する・矛盾する", ex:"... **conflicts with** these traffic reduction efforts"},
+      {en:"resource", pos:"名", ja:"資源", ex:"The sale of these **resources** has made Norwegians ... some of the richest people in the world."},
+      {en:"relatively", pos:"副", ja:"比較的", ex:"the population of Norway is **relatively** small"},
+      {en:"progressive", pos:"形", ja:"進歩的な", ex:"Norway's very **progressive** attitude"},
+      {en:"inspire", pos:"動", ja:"〜を奮い立たせる・〜する気にさせる", ex:"will probably **inspire** other nations to promote policies"},
+      {en:"critic", pos:"名", ja:"批判する人・批評家", ex:"Some **critics** point out that ..."},
+      {en:"investment", pos:"名", ja:"投資", ex:"the country increased its **investment** in oil mining by 13 percent"},
+      {en:"be concerned about", pos:"熟", ja:"〜を心配している・気にかけている", ex:"if Norway **was** truly **concerned about** the environment"},
+      {en:"profit", pos:"名", ja:"利益", ex:"by making a **profit** from the sale of oil"},
+      {en:"pollution", pos:"名", ja:"汚染・公害", ex:"**Pollution** does not recognize national borders."},
+      {en:"border", pos:"名", ja:"国境・境界", ex:"Pollution does not recognize national **borders**."}
+    ]
+  },
+  {
+    id: "kt0919-8", course: "共通テスト", group: "実戦創作問題",
+    title: "第8問 学校の始業時刻を遅らせるべきか", source: "p.25–30",
+    words: [
+      {en:"preserve", pos:"動", ja:"〜を守る・保存する", ex:"I firmly believe in **preserving** traditional school start times."},
+      {en:"discipline", pos:"名", ja:"規律・しつけ", ex:"teaching **discipline** and responsibility"},
+      {en:"adhere to", pos:"熟", ja:"〜を守る・〜に従う", ex:"learning to **adhere to** schedules"},
+      {en:"adapt to", pos:"熟", ja:"〜に適応する", ex:"and **adapt to** challenges is equally important"},
+      {en:"psychologist", pos:"名", ja:"心理学者", ex:"As a **psychologist**, I strongly believe ..."},
+      {en:"beneficial", pos:"形", ja:"有益な", ex:"later school start times would be **beneficial**"},
+      {en:"biological", pos:"形", ja:"生物学的な", ex:"teenagers' **biological** clocks are set for later sleep patterns"},
+      {en:"overall", pos:"形", ja:"全体的な", ex:"health, and **overall** well-being"},
+      {en:"suit", pos:"動", ja:"〜に合う", ex:"adapting school start times to better **suit** teenagers' needs"},
+      {en:"routine", pos:"名", ja:"日課・決まった手順", ex:"our daily **routines** and responsibilities"},
+      {en:"struggle to", pos:"熟", ja:"〜しようと苦労する", ex:"I **struggle to** learn in early morning classes."},
+      {en:"priority", pos:"名", ja:"優先事項", ex:"my **priority** is practicality"},
+      {en:"essential", pos:"形", ja:"不可欠な・非常に重要な", ex:"it's **essential** to balance that with the operational aspects"},
+      {en:"efficiently", pos:"副", ja:"効率よく", ex:"running a school **efficiently**"},
+      {en:"evaluate", pos:"動", ja:"〜を評価する・検討する", ex:"We should carefully **evaluate** all the difficulties and costs."},
+      {en:"keep A in mind", pos:"熟", ja:"Aを心に留めておく", ex:"while **keeping** the students' welfare **in mind**"},
+      {en:"welfare", pos:"名", ja:"幸福・福祉", ex:"the students' **welfare**"},
+      {en:"imply", pos:"動", ja:"〜をほのめかす・暗に示す", ex:"Author A **implies** that ..."},
+      {en:"be accustomed to", pos:"熟", ja:"〜に慣れている", ex:"making them **accustomed to** early starts"},
+      {en:"numerous", pos:"形", ja:"多数の", ex:"offers **numerous** advantages for students"},
+      {en:"evident", pos:"形", ja:"明らかな", ex:"One of the most **evident** benefits is improved academic performance."},
+      {en:"alert", pos:"形", ja:"頭がさえた・注意深い", ex:"A later start time makes them more **alert** and better at thinking."},
+      {en:"be sensitive to", pos:"熟", ja:"〜に敏感だ・影響を受けやすい", ex:"Teenagers **are** particularly **sensitive to** stress."},
+      {en:"anxiety", pos:"名", ja:"不安", ex:"a later start time will reduce stress and **anxiety**"},
+      {en:"associated with", pos:"熟", ja:"〜と関連した", ex:"various benefits **associated with** later school start times"}
+    ]
+  },
+  // ===== 英検5級 =====
+  {id:"ek5-1", course:"英検", group:"英検5級", title:"5級 よく出る単語①", source:"マル直オリジナル", words:[
+    "visit|動|〜を訪れる|I **visit** my grandmother every Sunday.",
+    "study|動|〜を勉強する|I **study** English after school.",
+    "practice|動|〜を練習する|Ken **practices** the piano every day.",
+    "watch|動|〜を(じっと)見る|We **watch** TV after dinner.",
+    "cook|動|〜を料理する|My father **cooks** dinner on Saturdays.",
+    "clean|動|〜をそうじする|Please **clean** your room.",
+    "wash|動|〜を洗う|**Wash** your hands before lunch.",
+    "open|動|〜を開ける|Can you **open** the window?",
+    "close|動|〜を閉める|Please **close** the door.",
+    "live|動|住む|I **live** in Tomioka.",
+    "breakfast|名|朝食|I eat rice for **breakfast**.",
+    "library|名|図書館|I read books in the **library**.",
+    "station|名|駅|The **station** is near my house.",
+    "kitchen|名|台所|Mom is in the **kitchen**.",
+    "vacation|名|休暇|We go to the sea in summer **vacation**.",
+    "weekend|名|週末|What do you do on **weekends**?",
+    "birthday|名|誕生日|Happy **birthday**, Yuki!",
+    "subject|名|教科|My favorite **subject** is math.",
+    "season|名|季節|Spring is my favorite **season**.",
+    "classmate|名|同級生|Aki is my **classmate**."
+  ]},
+  {id:"ek5-2", course:"英検", group:"英検5級", title:"5級 よく出る単語②", source:"マル直オリジナル", words:[
+    "hungry|形|おなかがすいた|I'm **hungry**. Let's eat.",
+    "tired|形|疲れた|I'm **tired** after soccer practice.",
+    "busy|形|忙しい|My mother is **busy** today.",
+    "famous|形|有名な|He is a **famous** singer.",
+    "tall|形|背が高い|My brother is very **tall**.",
+    "long|形|長い|She has **long** hair.",
+    "cold|形|寒い・冷たい|It's **cold** today.",
+    "hot|形|暑い・熱い|It's very **hot** in August.",
+    "new|形|新しい|This is my **new** bike.",
+    "sometimes|副|ときどき|I **sometimes** play tennis with my father.",
+    "usually|副|ふつうは・たいてい|I **usually** get up at six.",
+    "often|副|よく・しばしば|We **often** go to the park.",
+    "always|副|いつも|She **always** helps me.",
+    "together|副|いっしょに|Let's go **together**.",
+    "very|副|とても|This cake is **very** good.",
+    "here|副|ここに|Come **here**, please.",
+    "tomorrow|名|明日|See you **tomorrow**.",
+    "every day|熟|毎日|I walk my dog **every day**.",
+    "after school|熟|放課後に|We play soccer **after school**.",
+    "at home|熟|家で|I study **at home** in the evening."
+  ]},
+  {id:"ek5-3", course:"英検", group:"英検5級", title:"5級 熟語・会話表現", source:"マル直オリジナル", words:[
+    "get up|熟|起きる|I **get up** at 6:30.",
+    "go to bed|熟|寝る|I **go to bed** at ten.",
+    "go home|熟|家に帰る|Let's **go home** now.",
+    "look at|熟|〜を見る|**Look at** this picture.",
+    "listen to|熟|〜を聞く|I **listen to** music every night.",
+    "sit down|熟|座る|Please **sit down**.",
+    "stand up|熟|立ち上がる|**Stand up**, please.",
+    "come in|熟|中に入る|**Come in**, please.",
+    "a lot of|熟|たくさんの|I have **a lot of** books.",
+    "in the morning|熟|午前中に・朝に|I run **in the morning**.",
+    "go shopping|熟|買い物に行く|Let's **go shopping** this afternoon.",
+    "have a good time|熟|楽しく過ごす|We **had a good time** at the party.",
+    "How about 〜?|熟|〜はどうですか|**How about** this blue one?",
+    "Here you are.|熟|はい、どうぞ(物を渡すとき)|Can I have the salt? — **Here you are.**",
+    "You're welcome.|熟|どういたしまして|Thank you. — **You're welcome.**"
+  ]},
+
+  // ===== 英検4級 =====
+  {id:"ek4-1", course:"英検", group:"英検4級", title:"4級 よく出る単語①", source:"マル直オリジナル", words:[
+    "arrive|動|到着する|The bus **arrived** at ten.",
+    "borrow|動|〜を借りる|Can I **borrow** your pen?",
+    "forget|動|〜を忘れる|Don't **forget** your umbrella.",
+    "remember|動|〜を覚えている・思い出す|I **remember** his name.",
+    "leave|動|〜を出発する・置いていく|The train **leaves** at seven.",
+    "bring|動|〜を持ってくる|Please **bring** your lunch.",
+    "begin|動|始まる|School **begins** at 8:30.",
+    "finish|動|〜を終える|I **finished** my homework.",
+    "send|動|〜を送る|I **sent** a letter to my aunt.",
+    "invite|動|〜を招待する|She **invited** me to her party.",
+    "travel|動|旅行する|We **traveled** to Kyoto last year.",
+    "hospital|名|病院|My grandfather is in the **hospital**.",
+    "museum|名|博物館・美術館|We went to the art **museum**.",
+    "airport|名|空港|We met him at the **airport**.",
+    "festival|名|祭り|The summer **festival** was fun.",
+    "trip|名|旅行|How was your school **trip**?",
+    "restaurant|名|レストラン|Let's eat at an Italian **restaurant**.",
+    "concert|名|コンサート|I went to a **concert** last night.",
+    "hobby|名|趣味|My **hobby** is taking pictures.",
+    "idea|名|考え|That's a good **idea**."
+  ]},
+  {id:"ek4-2", course:"英検", group:"英検4級", title:"4級 よく出る単語②", source:"マル直オリジナル", words:[
+    "sick|形|病気の|I was **sick** yesterday.",
+    "free|形|ひまな・無料の|Are you **free** this afternoon?",
+    "interesting|形|おもしろい・興味深い|This book is **interesting**.",
+    "expensive|形|高価な|This watch is too **expensive**.",
+    "cheap|形|安い|These shoes were **cheap**.",
+    "important|形|大切な|Sleep is **important** for students.",
+    "popular|形|人気のある|Soccer is **popular** in Brazil.",
+    "different|形|違った・異なる|We have **different** ideas.",
+    "same|形|同じ|We are in the **same** class.",
+    "early|副|早く|I got up **early** this morning.",
+    "late|副|遅く|He came to school **late**.",
+    "soon|副|すぐに|The bus will come **soon**.",
+    "ago|副|(今から)〜前に|I came here two years **ago**.",
+    "abroad|副|海外へ|I want to go **abroad** someday.",
+    "later|副|あとで|See you **later**.",
+    "enough|形|十分な|We have **enough** time.",
+    "outside|副|外で|Let's play **outside**.",
+    "hard|副|一生けんめいに|She studies **hard**.",
+    "again|副|もう一度|Please say it **again**.",
+    "still|副|まだ|I'm **still** hungry."
+  ]},
+  {id:"ek4-3", course:"英検", group:"英検4級", title:"4級 熟語・会話表現", source:"マル直オリジナル", words:[
+    "look for|熟|〜をさがす|I'm **looking for** my key.",
+    "wait for|熟|〜を待つ|Please **wait for** me.",
+    "take a picture|熟|写真をとる|Let's **take a picture** here.",
+    "be late for|熟|〜に遅れる|Don't **be late for** school.",
+    "be good at|熟|〜が得意だ|Mika **is good at** swimming.",
+    "be interested in|熟|〜に興味がある|I'm **interested in** Japanese history.",
+    "be able to|熟|〜することができる|He will **be able to** come tomorrow.",
+    "want to|熟|〜したい|I **want to** be a doctor.",
+    "have to|熟|〜しなければならない|I **have to** clean my room.",
+    "for example|熟|たとえば|I like fruit, **for example**, apples.",
+    "at first|熟|最初は|**At first**, I didn't like natto.",
+    "on the way|熟|途中で|I met Ken **on the way** to school.",
+    "a little|熟|少し|I can speak English **a little**.",
+    "Why don't we 〜?|熟|(いっしょに)〜しませんか|**Why don't we** go to the movies?",
+    "Would you like 〜?|熟|〜はいかがですか|**Would you like** some tea?"
+  ]},
+
+  // ===== 英検3級 =====
+  {id:"ek3-1", course:"英検", group:"英検3級", title:"3級 よく出る単語①", source:"マル直オリジナル", words:[
+    "decide|動|〜を決める|I **decided** to join the tennis club.",
+    "believe|動|〜を信じる|I can't **believe** it!",
+    "explain|動|〜を説明する|Can you **explain** this word?",
+    "return|動|戻る・〜を返す|Please **return** the book by Friday.",
+    "carry|動|〜を運ぶ|Can you help me **carry** this box?",
+    "choose|動|〜を選ぶ|**Choose** one from these cards.",
+    "introduce|動|〜を紹介する|Let me **introduce** my friend.",
+    "worry|動|心配する|Don't **worry** about it.",
+    "prepare|動|〜を準備する|Mom is **preparing** dinner.",
+    "save|動|〜をたくわえる・救う|I'm **saving** money for a new bike.",
+    "share|動|〜を分け合う・共有する|Let's **share** this pizza.",
+    "win|動|〜に勝つ|Our team **won** the game.",
+    "lose|動|〜をなくす・負ける|I **lost** my wallet.",
+    "future|名|未来・将来|What do you want to be in the **future**?",
+    "information|名|情報|You can get **information** on the website.",
+    "experience|名|経験|It was a great **experience**.",
+    "event|名|行事・イベント|The school **event** starts at nine.",
+    "contest|名|コンテスト|She won the speech **contest**.",
+    "environment|名|環境|We should protect the **environment**.",
+    "culture|名|文化|I want to learn about Japanese **culture**."
+  ]},
+  {id:"ek3-2", course:"英検", group:"英検3級", title:"3級 よく出る単語②", source:"マル直オリジナル", words:[
+    "careful|形|注意深い|Be **careful** on the stairs.",
+    "dangerous|形|危険な|Swimming here is **dangerous**.",
+    "necessary|形|必要な|Is it **necessary** to bring lunch?",
+    "possible|形|可能な|Is it **possible** to change the date?",
+    "useful|形|役に立つ|This dictionary is very **useful**.",
+    "comfortable|形|快適な|This chair is **comfortable**.",
+    "delicious|形|とてもおいしい|The curry was **delicious**.",
+    "excited|形|わくわくした|I'm **excited** about the trip.",
+    "surprised|形|驚いた|I was **surprised** at the news.",
+    "nervous|形|緊張した|I was **nervous** before the test.",
+    "foreign|形|外国の|I want to visit **foreign** countries.",
+    "own|形|自分自身の|I want my **own** room.",
+    "already|副|すでに|I've **already** finished lunch.",
+    "yet|副|(否定文で)まだ・(疑問文で)もう|Have you done your homework **yet**?",
+    "ever|副|今までに|Have you **ever** been to Tokyo?",
+    "almost|副|ほとんど|It's **almost** five o'clock.",
+    "suddenly|副|突然|**Suddenly**, it started to rain.",
+    "instead|副|その代わりに|I didn't go out. I stayed home **instead**.",
+    "anyway|副|とにかく|**Anyway**, let's start.",
+    "finally|副|ついに・最後に|We **finally** reached the top."
+  ]},
+  {id:"ek3-3", course:"英検", group:"英検3級", title:"3級 熟語・会話表現", source:"マル直オリジナル", words:[
+    "take care of|熟|〜の世話をする|I **take care of** my little sister.",
+    "look forward to|熟|〜を楽しみに待つ|I'm **looking forward to** seeing you.",
+    "be afraid of|熟|〜をこわがる|My dog **is afraid of** thunder.",
+    "be proud of|熟|〜を誇りに思う|I'm **proud of** my team.",
+    "be famous for|熟|〜で有名だ|Tomioka **is famous for** its silk mill.",
+    "get to|熟|〜に着く|How can I **get to** the station?",
+    "get off|熟|(乗り物)を降りる|**Get off** the bus at the next stop.",
+    "take part in|熟|〜に参加する|I **took part in** the volunteer event.",
+    "grow up|熟|成長する・育つ|I **grew up** in Gunma.",
+    "give up|熟|〜をあきらめる|Don't **give up** your dream.",
+    "each other|熟|おたがい|They help **each other**.",
+    "at last|熟|ついに|**At last**, spring came.",
+    "such as|熟|〜のような|I like sports **such as** tennis and baseball.",
+    "in front of|熟|〜の前に|Let's meet **in front of** the library.",
+    "as soon as possible|熟|できるだけ早く|Please call me **as soon as possible**."
+  ]},
+  // ===== 英検準2級 =====
+  {id:"ekp2-1", course:"英検", group:"英検準2級", title:"準2級 よく出る単語①", source:"マル直オリジナル", words:[
+    "improve|動|〜を改善する・上達させる|I want to **improve** my English.",
+    "increase|動|増える・〜を増やす|The number of tourists has **increased**.",
+    "reduce|動|〜を減らす|We should **reduce** plastic waste.",
+    "protect|動|〜を守る|Trees **protect** the soil from rain.",
+    "provide|動|〜を提供する|The city **provides** free buses for old people.",
+    "allow|動|〜を許す|Phones are not **allowed** in class.",
+    "avoid|動|〜を避ける|**Avoid** eating too much sugar.",
+    "suggest|動|〜を提案する|She **suggested** a new plan.",
+    "offer|動|〜を申し出る・提供する|He **offered** to help me.",
+    "develop|動|〜を発達させる・開発する|The company **developed** a new game.",
+    "require|動|〜を必要とする|This job **requires** a lot of skill.",
+    "receive|動|〜を受け取る|I **received** an email from him.",
+    "produce|動|〜を生産する|This farm **produces** vegetables.",
+    "solve|動|〜を解決する|We need to **solve** this problem.",
+    "public|形|公共の|Use **public** transportation.",
+    "local|形|地元の|We buy vegetables from **local** farmers.",
+    "healthy|形|健康的な|Eat **healthy** food.",
+    "traditional|形|伝統的な|Kimono is **traditional** Japanese clothing.",
+    "recently|副|最近|I **recently** started jogging.",
+    "however|副|しかしながら|It was cold. **However**, we went swimming."
+  ]},
+  {id:"ekp2-2", course:"英検", group:"英検準2級", title:"準2級 よく出る単語②", source:"マル直オリジナル", words:[
+    "customer|名|客|The shop has many **customers**.",
+    "employee|名|従業員|The company has 50 **employees**.",
+    "price|名|価格|The **price** of rice went up.",
+    "product|名|製品|This **product** is made in Japan.",
+    "advice|名|助言|Thank you for your **advice**.",
+    "research|名|研究・調査|**Research** shows that sleep is important.",
+    "result|名|結果|The **result** of the test was good.",
+    "reason|名|理由|Tell me the **reason**.",
+    "amount|名|量|Reduce the **amount** of sugar.",
+    "energy|名|エネルギー|Solar **energy** is clean.",
+    "population|名|人口|The **population** of the town is falling.",
+    "government|名|政府|The **government** made a new law.",
+    "technology|名|科学技術|**Technology** changes our lives.",
+    "chance|名|機会|This is a good **chance** to practice English.",
+    "effect|名|効果・影響|Music has a good **effect** on our minds.",
+    "patient|名|患者|The doctor sees 30 **patients** a day.",
+    "century|名|世紀|This temple was built in the 15th **century**.",
+    "neighbor|名|近所の人|Our **neighbor** gave us some apples.",
+    "article|名|記事|I read an **article** about space.",
+    "instead of|熟|〜の代わりに|Drink water **instead of** juice."
+  ]},
+  {id:"ekp2-3", course:"英検", group:"英検準2級", title:"準2級 熟語", source:"マル直オリジナル", words:[
+    "be likely to|熟|〜しそうだ|It **is likely to** rain tonight.",
+    "be used to 〜ing|熟|〜することに慣れている|I **am used to** getting up early.",
+    "get along with|熟|〜と仲良くやる|I **get along with** my classmates.",
+    "come up with|熟|〜を思いつく|She **came up with** a good idea.",
+    "make sure|熟|〜を確かめる・必ず〜する|**Make sure** you lock the door.",
+    "find out|熟|〜を知る・調べる|I **found out** the truth.",
+    "turn down|熟|〜を断る・(音量)を下げる|He **turned down** the offer.",
+    "put off|熟|〜を延期する|The game was **put off** because of rain.",
+    "run out of|熟|〜を使い果たす|We **ran out of** milk.",
+    "because of|熟|〜のために(原因)|The train stopped **because of** the snow.",
+    "thanks to|熟|〜のおかげで|**Thanks to** you, I passed the test.",
+    "according to|熟|〜によれば|**According to** the news, the store will close.",
+    "in fact|熟|実は・実際に|**In fact**, he is my cousin.",
+    "on time|熟|時間どおりに|The bus came **on time**.",
+    "these days|熟|最近|**These days**, many people use smartphones."
+  ]},
+
+  // ===== 英検準2級プラス =====
+  {id:"ekp2p-1", course:"英検", group:"英検準2級プラス", title:"準2級プラス よく出る単語①", source:"マル直オリジナル", words:[
+    "encourage|動|〜を励ます・促す|My coach **encouraged** me to try again.",
+    "consider|動|〜をよく考える|Please **consider** my idea.",
+    "include|動|〜を含む|The price **includes** breakfast.",
+    "compare|動|〜を比較する|**Compare** these two pictures.",
+    "support|動|〜を支える・支持する|My family always **supports** me.",
+    "expect|動|〜を予期する・期待する|I **expect** him to come soon.",
+    "prevent|動|〜を防ぐ|Washing hands **prevents** colds.",
+    "attract|動|〜を引きつける|The festival **attracts** many visitors.",
+    "remove|動|〜を取り除く|**Remove** your shoes here.",
+    "replace|動|〜を取り替える|We **replaced** the old computer.",
+    "communicate|動|意思を伝え合う|We **communicate** by email.",
+    "depend|動|頼る・〜次第である|It **depends** on the weather.",
+    "rise|動|上がる|Prices are **rising**.",
+    "recommend|動|〜を勧める|I **recommend** this book.",
+    "disappear|動|消える|Many small shops have **disappeared**.",
+    "necessary|形|必要な|Water is **necessary** for life.",
+    "serious|形|深刻な・まじめな|Pollution is a **serious** problem.",
+    "various|形|さまざまな|The store sells **various** kinds of tea.",
+    "available|形|利用できる・手に入る|Free Wi-Fi is **available** here.",
+    "convenient|形|便利な|This app is very **convenient**."
+  ]},
+  {id:"ekp2p-2", course:"英検", group:"英検準2級プラス", title:"準2級プラス よく出る単語②", source:"マル直オリジナル", words:[
+    "benefit|名|利益・恩恵|Exercise has many **benefits**.",
+    "survey|名|調査|The **survey** showed that students sleep too little.",
+    "solution|名|解決策|We need a **solution** to this problem.",
+    "opinion|名|意見|What's your **opinion**?",
+    "situation|名|状況|The **situation** is getting better.",
+    "resident|名|住民|**Residents** cleaned the park.",
+    "facility|名|施設|The town built a new sports **facility**.",
+    "shortage|名|不足|There is a **shortage** of nurses.",
+    "waste|名|ごみ・無駄|Food **waste** is a big problem.",
+    "species|名|(生物の)種|This **species** of bird is rare.",
+    "volunteer|名|ボランティア|**Volunteers** helped after the flood.",
+    "skill|名|技能|Cooking is a useful **skill**.",
+    "challenge|名|難題・挑戦|Learning a new language is a **challenge**.",
+    "income|名|収入|Many families have a low **income**.",
+    "rule|名|規則|Follow the school **rules**.",
+    "effective|形|効果的な|This is an **effective** way to study.",
+    "environmental|形|環境の|**Environmental** problems are growing.",
+    "physical|形|身体の|**Physical** exercise is good for you.",
+    "average|形|平均の|The **average** age is 40.",
+    "actually|副|実際は|**Actually**, I don't like coffee."
+  ]},
+  {id:"ekp2p-3", course:"英検", group:"英検準2級プラス", title:"準2級プラス 熟語", source:"マル直オリジナル", words:[
+    "take advantage of|熟|〜を利用する|**Take advantage of** this chance.",
+    "deal with|熟|〜に対処する|We must **deal with** the problem.",
+    "focus on|熟|〜に集中する|**Focus on** your studies.",
+    "rely on|熟|〜に頼る|Many people **rely on** smartphones.",
+    "be aware of|熟|〜に気づいている|Are you **aware of** the danger?",
+    "be responsible for|熟|〜に責任がある|Who **is responsible for** this?",
+    "be based on|熟|〜に基づいている|The movie **is based on** a true story.",
+    "result in|熟|〜という結果になる|The mistake **resulted in** a big loss.",
+    "keep up with|熟|〜に遅れずについていく|It's hard to **keep up with** the news.",
+    "look after|熟|〜の世話をする|She **looks after** her grandfather.",
+    "as a result|熟|その結果|**As a result**, sales increased.",
+    "in addition|熟|加えて|**In addition**, the hotel has a pool.",
+    "on the other hand|熟|一方で|**On the other hand**, cars cause pollution.",
+    "more and more|熟|ますます多くの|**More and more** people work from home.",
+    "a variety of|熟|さまざまな|The shop sells **a variety of** goods."
+  ]},
+  // ===== 英検2級 =====
+  {id:"ek2-1", course:"英検", group:"英検2級", title:"2級 よく出る単語①", source:"マル直オリジナル", words:[
+    "achieve|動|〜を達成する|She **achieved** her goal.",
+    "affect|動|〜に影響を与える|Lack of sleep **affects** your health.",
+    "claim|動|〜だと主張する|Some scientists **claim** that coffee is healthy.",
+    "determine|動|〜を決定する|Your effort **determines** your future.",
+    "estimate|動|〜と見積もる|Experts **estimate** that the cost will double.",
+    "maintain|動|〜を維持する|It's hard to **maintain** old buildings.",
+    "obtain|動|〜を得る|You can **obtain** the form online.",
+    "participate|動|参加する|Over 100 students **participated** in the event.",
+    "reveal|動|〜を明らかにする|The study **revealed** a surprising fact.",
+    "survive|動|生き残る|Few animals can **survive** in the desert.",
+    "promote|動|〜を促進する|The city **promotes** tourism.",
+    "adopt|動|〜を採用する|Many schools have **adopted** tablets.",
+    "demand|名|需要・要求|**Demand** for electric cars is growing.",
+    "evidence|名|証拠|There is no **evidence** for the story.",
+    "policy|名|政策・方針|The company changed its **policy**.",
+    "crop|名|作物|Rice is the main **crop** here.",
+    "decline|名|減少|There has been a **decline** in birth rates.",
+    "impact|名|影響|Tourism has a big **impact** on the town.",
+    "profit|名|利益|The shop made a large **profit**.",
+    "ancient|形|古代の|They found **ancient** tools."
+  ]},
+  {id:"ek2-2", course:"英検", group:"英検2級", title:"2級 よく出る単語②", source:"マル直オリジナル", words:[
+    "accurate|形|正確な|The data is not **accurate**.",
+    "efficient|形|効率のよい|This machine is more **efficient**.",
+    "financial|形|財政の・金銭的な|The company had **financial** problems.",
+    "rare|形|まれな・珍しい|This plant is very **rare**.",
+    "significant|形|重要な・著しい|There was a **significant** change.",
+    "enormous|形|巨大な|The project cost an **enormous** amount.",
+    "native|形|原産の・生まれた土地の|This fish is **native** to Japan.",
+    "independent|形|独立した|She wants to be **independent**.",
+    "urban|形|都市の|**Urban** areas are crowded.",
+    "anxious|形|心配して・切望して|I'm **anxious** about the exam.",
+    "harmful|形|有害な|Smoking is **harmful** to health.",
+    "moreover|副|さらに|The room is cheap. **Moreover**, it is clean.",
+    "therefore|副|したがって|He was sick. **Therefore**, he stayed home.",
+    "gradually|副|徐々に|The weather **gradually** got warmer.",
+    "eventually|副|最終的に|He **eventually** became a doctor.",
+    "instance|名|例|This is one **instance** of the problem.",
+    "variety|名|多様性・種類|There is a wide **variety** of food.",
+    "resource|名|資源|Water is a precious **resource**.",
+    "method|名|方法|This is a new **method** of teaching.",
+    "stress|名|ストレス|Exercise reduces **stress**."
+  ]},
+  {id:"ek2-3", course:"英検", group:"英検2級", title:"2級 熟語", source:"マル直オリジナル", words:[
+    "account for|熟|〜を説明する・(割合)を占める|Tourists **account for** half of the visitors.",
+    "carry out|熟|〜を実行する|They **carried out** a survey.",
+    "figure out|熟|〜を理解する・解決する|I can't **figure out** this problem.",
+    "point out|熟|〜を指摘する|The teacher **pointed out** my mistake.",
+    "stand for|熟|〜を表す|UN **stands for** United Nations.",
+    "turn out|熟|〜だとわかる|The rumor **turned out** to be false.",
+    "make up for|熟|〜を埋め合わせる|I studied hard to **make up for** lost time.",
+    "be concerned about|熟|〜を心配している|People **are concerned about** the economy.",
+    "be capable of|熟|〜する能力がある|He **is capable of** running a company.",
+    "contribute to|熟|〜に貢献する・〜の一因となる|Cars **contribute to** air pollution.",
+    "in terms of|熟|〜の点で|**In terms of** price, this one is better.",
+    "regardless of|熟|〜に関係なく|Anyone can join **regardless of** age.",
+    "in spite of|熟|〜にもかかわらず|**In spite of** the rain, the game continued.",
+    "for the first time|熟|初めて|I went abroad **for the first time**.",
+    "by chance|熟|偶然に|I met her **by chance**."
+  ]},
+
+  // ===== 英検準1級 =====
+  {id:"ekp1-1", course:"英検", group:"英検準1級", title:"準1級 よく出る単語①", source:"マル直オリジナル", words:[
+    "abandon|動|〜を捨てる・断念する|They **abandoned** the plan.",
+    "accelerate|動|〜を加速させる|The new law **accelerated** growth.",
+    "compensate|動|〜を補償する・埋め合わせる|The company **compensated** the victims.",
+    "deteriorate|動|悪化する|His health **deteriorated** quickly.",
+    "enforce|動|(法律など)を施行する|Police **enforce** traffic laws.",
+    "exaggerate|動|〜を誇張する|Don't **exaggerate** the problem.",
+    "undermine|動|〜を徐々に弱める|The scandal **undermined** trust in the government.",
+    "alleviate|動|〜を和らげる|This medicine **alleviates** pain.",
+    "hamper|動|〜を妨げる|Heavy snow **hampered** the rescue.",
+    "implement|動|〜を実行する|The school **implemented** a new system.",
+    "diminish|動|減少する・〜を減らす|The risk has **diminished**.",
+    "withstand|動|〜に耐える|The building can **withstand** earthquakes.",
+    "surpass|動|〜を上回る|Sales **surpassed** expectations.",
+    "advocate|動|〜を主張する・支持する|He **advocates** free education.",
+    "scrutinize|動|〜を綿密に調べる|The report was **scrutinized** by experts.",
+    "consensus|名|(意見の)一致|They reached a **consensus**.",
+    "incentive|名|動機・奨励策|Tax cuts are an **incentive** to invest.",
+    "controversy|名|論争|The plan caused **controversy**.",
+    "drawback|名|欠点|The main **drawback** is the cost.",
+    "legislation|名|法律・立法|New **legislation** was passed."
+  ]},
+  {id:"ekp1-2", course:"英検", group:"英検準1級", title:"準1級 よく出る単語②", source:"マル直オリジナル", words:[
+    "substantial|形|かなりの|There was a **substantial** increase in costs.",
+    "inevitable|形|避けられない|Change is **inevitable**.",
+    "reluctant|形|気が進まない|He was **reluctant** to talk.",
+    "vulnerable|形|弱い・被害を受けやすい|Old people are **vulnerable** to heat.",
+    "comprehensive|形|包括的な|We need a **comprehensive** plan.",
+    "feasible|形|実行可能な|Is the plan **feasible**?",
+    "prominent|形|著名な・目立つ|She is a **prominent** scientist.",
+    "obsolete|形|時代遅れの|This technology is **obsolete**.",
+    "sustainable|形|持続可能な|We need **sustainable** energy.",
+    "tentative|形|仮の・暫定的な|We made a **tentative** schedule.",
+    "adverse|形|不利な・有害な|The drug has few **adverse** effects.",
+    "ambiguous|形|あいまいな|His answer was **ambiguous**.",
+    "arbitrary|形|恣意的な・勝手な|The rule seems **arbitrary**.",
+    "meticulous|形|細心の|She is **meticulous** about details.",
+    "predominantly|副|主に・圧倒的に|The town is **predominantly** rural.",
+    "notably|副|特に・著しく|Prices rose, **notably** for food.",
+    "subsequently|副|その後|He **subsequently** left the company.",
+    "nevertheless|副|それにもかかわらず|It was risky. **Nevertheless**, they tried.",
+    "hypothesis|名|仮説|Scientists tested the **hypothesis**.",
+    "surveillance|名|監視|Cameras are used for **surveillance**."
+  ]},
+  {id:"ekp1-3", course:"英検", group:"英検準1級", title:"準1級 熟語", source:"マル直オリジナル", words:[
+    "brush up on|熟|〜を磨き直す|I need to **brush up on** my French.",
+    "come down with|熟|(病気)にかかる|I **came down with** a cold.",
+    "do away with|熟|〜を廃止する|They **did away with** the old rule.",
+    "fall through|熟|(計画が)だめになる|Our plan **fell through**.",
+    "live up to|熟|(期待)に応える|The movie didn't **live up to** my expectations.",
+    "look into|熟|〜を調査する|The police are **looking into** the case.",
+    "phase out|熟|〜を段階的に廃止する|The company will **phase out** gas cars.",
+    "rule out|熟|〜を除外する|We can't **rule out** that possibility.",
+    "set aside|熟|〜を取っておく・脇に置く|**Set aside** some money for emergencies.",
+    "stem from|熟|〜から生じる|The problem **stems from** poor planning.",
+    "weed out|熟|〜を取り除く|The test **weeds out** weak candidates.",
+    "at stake|熟|危機にひんして・かかって|Many jobs are **at stake**.",
+    "in the long run|熟|長い目で見れば|It will save money **in the long run**.",
+    "on the verge of|熟|今にも〜しそうで|The species is **on the verge of** extinction.",
+    "in light of|熟|〜を考慮して|**In light of** the data, we changed our plan."
+  ]}
+];
+
+/* 語は "en|品詞|意味|例文" の1行形式でも書ける */
+SETS.forEach(s=>{ s.words = s.words.map(w=>{ if(typeof w!=="string") return w; const [en,pos,ja,ex=""]=w.split("|"); return {en,pos,ja,ex}; }); });
+/* ============================================================ */
+const MASTER_STREAK = 2;      // 要復習から外れるまでの連続正解数
+const STORE_KEY = "marunao-tango-v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const wkey = (sid, w) => sid + "::" + w.en;
+const allWords = SETS.flatMap(s => s.words.map(w => ({...w, sid:s.id, key:wkey(s.id,w), setTitle:s.title})));
+const byKey = Object.fromEntries(allWords.map(w => [w.key, w]));
+
+let mem = {users:{}, last:null};
+function load(){ try{ const r = localStorage.getItem(STORE_KEY); if(r) mem = JSON.parse(r); }catch(e){} mem.users ||= {}; }
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
+load();
+
+const ui = {view:"home", tab:"sets", course:"すべて", group:"すべて", selected:new Set(), mode:"en2ja", limit:"n10"};
+let timerId = null;
+let quiz = null;
+
+function user(){ return ui.name ? (mem.users[ui.name] ||= {rec:{}}) : null; }
+function rec(key){ const u = user(); return (u.rec[key] ||= {c:0, w:0, streak:0, due:false}); }
+function isDue(key){ const r = user()?.rec[key]; return !!(r && r.due); }
+function isMastered(key){ const r = user()?.rec[key]; return !!(r && r.c>0 && !r.due); }
+
+/* ---------- views ---------- */
+function render(){
+  const app = $("#app");
+  if(!ui.name) return app.innerHTML = viewLogin();
+  if(ui.view==="quiz") return app.innerHTML = viewQuiz();
+  if(ui.view==="result") return app.innerHTML = viewResult();
+  app.innerHTML = viewHome();
+}
+
+function header(){
+  return `<header class="top">
+    <div class="brand"><small>学びの場マル直</small><h1>マル単</h1><span class="tagline">丸単やって、丸を増やそう</span></div>
+    ${ui.name ? `<div class="who"><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button></div>`:""}
+  </header>`;
+}
+
+function viewLogin(){
+  const names = Object.keys(mem.users);
+  return header() + `<section class="panel">
+    <h2>名前を入れてはじめよう</h2>
+    <p class="note" style="margin:0 0 10px">名前ごとに、正解・まちがいの記録を分けて残します。</p>
+    <form id="loginForm" class="row">
+      <input type="text" id="nameInput" placeholder="例:たろう" maxlength="20" autocomplete="off" style="flex:1;min-width:180px">
+      <button class="primary" type="submit">はじめる</button>
+    </form>
+    ${names.length ? `<p class="label" style="margin-top:16px">この端末で使ったことのある名前</p>
+      <div class="names">${names.map(n=>`<button data-act="pick" data-name="${esc(n)}">${esc(n)}</button>`).join("")}</div>`:""}
+  </section>`;
+}
+
+function setStats(s){
+  const keys = s.words.map(w=>wkey(s.id,w));
+  const due = keys.filter(isDue).length, done = keys.filter(isMastered).length;
+  return {due, done, total:keys.length};
+}
+
+function viewHome(){
+  const courses = ["すべて", ...new Set(SETS.map(s=>s.course))];
+  const inCourse = SETS.filter(s => ui.course==="すべて" || s.course===ui.course);
+  const groups = [...new Set(inCourse.map(s=>s.group))];
+  if(ui.group!=="すべて" && !groups.includes(ui.group)) ui.group="すべて";
+  const list = inCourse.filter(s => ui.group==="すべて" || s.group===ui.group);
+  const shown = [...new Set(list.map(s=>s.group))];
+  const dueAll = allWords.filter(w=>isDue(w.key));
+  const selWords = allWords.filter(w=>ui.selected.has(w.sid));
+  const selDue = selWords.filter(w=>isDue(w.key));
+  const tabs = `<div class="tabs" role="tablist">
+      <button role="tab" aria-selected="${ui.tab==="sets"}" data-act="tab" data-tab="sets">セットを選ぶ</button>
+      <button role="tab" aria-selected="${ui.tab==="review"}" data-act="tab" data-tab="review">要復習リスト（${dueAll.length}）</button>
+      <button role="tab" aria-selected="${ui.tab==="data"}" data-act="tab" data-tab="data">記録の引っ越し</button>
+    </div>`;
+
+  let body = "";
+  if(ui.tab==="sets"){
+    body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
+      <div><p class="label">区分</p><div class="filters">${courses.map(c=>`<button class="chip" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>
+      ${groups.length>1?`<div><p class="label">教材・級</p><div class="filters">${["すべて",...groups].map(g=>`<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}</button>`).join("")}</div></div>`:""}
+      <div><p class="label">長文セット（いくつでも選べます）</p>
+      ${shown.map(g=>{const gs=list.filter(s=>s.group===g);const allOn=gs.every(s=>ui.selected.has(s.id));return `
+      <div class="ghead"><span>${esc(g)}</span><button class="link" data-act="selgroup" data-g="${esc(g)}">${allOn?"選択を外す":"まとめて選ぶ"}</button></div>
+      <div class="sets">${gs.map(s=>{const st=setStats(s);const on=ui.selected.has(s.id);return `
+        <label class="set ${on?"on":""}">
+          <input type="checkbox" data-act="sel" data-id="${esc(s.id)}" ${on?"checked":""}>
+          <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
+            <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
+            <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
+          <div class="stat">${st.total}語<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}</div>
+        </label>`}).join("")}</div>`}).join("") || `<p class="empty">この区分のセットはまだありません。</p>`}</div>
+      <div class="opts">
+        <div><p class="label">出題の向き</p><div class="seg">
+          ${[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
+        </div></div>
+        <div><p class="label">問題数</p><div class="seg">
+          ${[["n10","10問"],["n20","20問"],["all","ぜんぶ"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
+        </div></div>
+        <div><p class="label">時間チャレンジ(時間内は何問でも)</p><div class="seg">
+          ${[["t180","3分"],["t300","5分"],["t600","10分"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
+        </div></div>
+      </div>
+      <div class="startbar">
+        <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}語から出題`:"セットを選んでください"}</span>
+        <button data-act="start" data-only="due" ${selDue.length?"":"disabled"}>まちがえた語だけ（${selDue.length}）</button>
+        <button class="primary" data-act="start" ${selWords.length?"":"disabled"}>テスト開始</button>
+      </div>
+    </section>`;
+  } else if(ui.tab==="review"){
+    body = `<section class="panel">
+      <h2>要復習リスト</h2>
+      <p class="note" style="margin:0 0 10px">まちがえた語がここに入ります。${MASTER_STREAK}回続けて正解するとリストから外れます。</p>
+      ${dueAll.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th>セット</th><th style="text-align:right">×</th></tr></thead><tbody>
+        ${dueAll.sort((a,b)=>rec(b.key).w-rec(a.key).w).map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}</td><td class="note">${esc(w.setTitle)}</td><td class="num">${rec(w.key).w}</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="startbar" style="margin-top:14px"><button class="primary" data-act="start" data-only="dueAll">要復習の語をぜんぶ解く（${dueAll.length}）</button></div>`
+      :`<p class="empty">いまは要復習の語はありません。</p>`}
+    </section>`;
+  } else {
+    body = `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <h2>記録の引っ越し</h2>
+      <p class="note" style="margin:0">記録はこの端末のブラウザに保存されています。別の端末(教室のPCと自分のスマホなど)で続けるときは、ここで「記録コード」をコピーして、もう一方の端末で貼り付けてください。</p>
+      <div class="row"><button data-act="export">${esc(ui.name)} さんの記録コードをコピー</button><span class="note" id="copyMsg"></span></div>
+      <textarea id="codeBox" rows="3" placeholder="ここに記録コードを貼り付け"></textarea>
+      <div class="row"><button data-act="import">貼り付けたコードを読み込む</button><span class="note" id="importMsg"></span></div>
+    </section>`;
+  }
+  return header() + tabs + body;
+}
+
+/* ---------- quiz ---------- */
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function makeQuestion(w){
+  const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : ui.mode;
+  const field = dir==="en2ja" ? "ja" : "en";
+  // 同じセット・同じ品詞を優先して、紛らわしい選択肢をつくる
+  const pool = allWords.filter(x=>x.key!==w.key && x[field]!==w[field]);
+  const rank = x => (x.sid===w.sid?2:0) + (x.pos===w.pos?1:0) + Math.random();
+  const seen = new Set([w[field]]); const distract = [];
+  for(const x of pool.sort((a,b)=>rank(b)-rank(a))){ if(!seen.has(x[field])){ seen.add(x[field]); distract.push(x); } if(distract.length===3) break; }
+  return {w, dir, choices: shuffle([w, ...distract]), picked:null};
+}
+
+function startQuiz(words, label, limit=ui.limit){
+  stopTimer();
+  let list = shuffle(words);
+  const timed = limit.startsWith("t");
+  if(limit.startsWith("n")){ const n=+limit.slice(1); if(list.length>n) list=list.slice(0,n); }
+  sendState = ["",""];
+  quiz = {label, pool:words, qs:list.map(makeQuestion), i:0, wrong:[], timed, startedAt:Date.now()};
+  if(timed){
+    quiz.sec = +limit.slice(1); quiz.endAt = Date.now()+quiz.sec*1000;
+    timerId = setInterval(tick, 250);
+  }
+  ui.view = "quiz"; render();
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+function fmt(ms){ const t=Math.max(0,Math.ceil(ms/1000)); return Math.floor(t/60)+":"+String(t%60).padStart(2,"0"); }
+function tick(){
+  if(!quiz || !quiz.timed) return stopTimer();
+  const rem = quiz.endAt - Date.now();
+  const el=$("#tleft"), bar=$("#tbar");
+  if(el) el.textContent = fmt(rem);
+  if(bar) bar.style.width = Math.max(0,rem/(quiz.sec*1000)*100)+"%";
+  if(rem<=0) finish();
+}
+function finish(){ stopTimer(); logQuiz(); ui.view="result"; render(); }
+
+/* ---------- 先生への送信 ---------- */
+const OUTBOX_KEY = "marutan-outbox";
+let sendState = ["",""];
+function outbox(){ try{ return JSON.parse(localStorage.getItem(OUTBOX_KEY)||"[]"); }catch(e){ return []; } }
+function setOutbox(a){ try{ localStorage.setItem(OUTBOX_KEY, JSON.stringify(a)); }catch(e){} }
+function logQuiz(){
+  if(!quiz || quiz.logged) return;
+  quiz.logged = true;
+  const done = quiz.qs.filter(q=>q.picked!==null);
+  if(!done.length) return;
+  const wrong = [...new Map(quiz.wrong.map(w=>[w.key,w])).values()].map(w=>({en:w.en, ja:w.ja, set:w.setTitle}));
+  const entry = {
+    action:"log", id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+    ts: Date.now(), name: ui.name, label: quiz.label,
+    mode: ({en2ja:"英→日",ja2en:"日→英",mix:"まぜる"})[ui.mode],
+    limit: quiz.timed ? (quiz.sec/60)+"分チャレンジ" : done.length+"問",
+    answered: done.length, correct: done.length - quiz.wrong.length,
+    seconds: Math.round((Date.now()-quiz.startedAt)/1000), wrong
+  };
+  setOutbox([...outbox(), entry]);
+  flush();
+}
+let flushing = false;
+async function flush(){
+  if(flushing || !/^https:\/\//.test(GAS_URL)) { if(!/^https:\/\//.test(GAS_URL)) setSend("ng","送信先が設定されていません"); return; }
+  flushing = true;
+  let q = outbox(), failed = false;
+  if(q.length) setSend("", "先生に送信中…");
+  for(const entry of q){
+    try{
+      const r = await fetch(GAS_URL, {method:"POST", body:JSON.stringify(entry)});
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||"ng");
+      setOutbox(outbox().filter(x=>x.id!==entry.id));
+    }catch(e){ failed = true; break; }
+  }
+  flushing = false;
+  if(q.length) setSend(failed?"ng":"ok", failed ? "送信できませんでした。次に開いたときにもう一度送ります" : "先生に送信しました");
+}
+function setSend(cls, msg){ sendState = [cls,msg]; const el=$("#sendMsg"); if(el){ el.className="send "+cls; el.textContent=msg; } }
+
+function viewQuiz(){
+  const q = quiz.qs[quiz.i], n = quiz.qs.length, en = q.dir==="en2ja";
+  const f = en ? "ja" : "en";
+  const choices = q.choices.map((c,k)=>{
+    let cls = "choice" + (en?"":" en");
+    if(q.picked!==null){ if(c.key===q.w.key) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
+    return `<button class="${cls}" data-act="answer" data-k="${k}" ${q.picked!==null?"disabled":""}><span class="k">${k+1}</span><span>${esc(c[f])}</span></button>`;
+  }).join("");
+  let fb = "";
+  if(q.picked!==null){
+    const ok = q.choices[q.picked].key===q.w.key;
+    const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+    fb = `<div class="feedback ${ok?"ok":"ng"}">
+      <span class="v">${ok?"正解！":"まちがい"}</span>
+      <span><span class="w">${esc(q.w.en)}</span>　<span class="note">${esc(q.w.pos||"")}</span>　${esc(q.w.ja)}</span>
+      ${q.w.ex?`<div class="ex">${ex}</div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:""}
+    </div>
+    <div class="startbar"><button class="primary" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button></div>`;
+  }
+  return header() + `
+    ${quiz.timed
+      ? `<div class="qhead"><span>${esc(quiz.label)}</span><span>${quiz.i+1}問目　残り <span id="tleft">${fmt(quiz.endAt-Date.now())}</span></span></div>
+         <div class="progress time"><i id="tbar" style="width:${Math.max(0,(quiz.endAt-Date.now())/(quiz.sec*1000)*100)}%"></i></div>`
+      : `<div class="qhead"><span>${esc(quiz.label)}</span><span>${quiz.i+1} / ${n}</span></div>
+         <div class="progress"><i style="width:${(quiz.i/n)*100}%"></i></div>`}
+    <div class="card">
+      <span class="dir">${en?"この英語の意味は？":"この意味の英語は？"}</span>
+      <span class="q ${en?"en":""}">${en?`<mark>${esc(q.w.en)}</mark>`:esc(q.w.ja)}</span>
+      ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
+    </div>
+    <div class="choices">${choices}</div>
+    ${fb}
+    <p class="kbd">キーボードの 1〜4 で選択、Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
+}
+function posName(p){ return ({"名":"名詞","動":"動詞","形":"形容詞","副":"副詞","熟":"熟語・表現","前":"前置詞","接":"接続詞"})[p]||p; }
+
+function answer(k){
+  const q = quiz.qs[quiz.i]; if(q.picked!==null) return;
+  q.picked = k;
+  const ok = q.choices[k].key===q.w.key, r = rec(q.w.key);
+  if(ok){ r.c++; r.streak++; if(r.streak>=MASTER_STREAK) r.due=false; }
+  else { r.w++; r.streak=0; r.due=true; quiz.wrong.push(q.w);
+    if(quiz.timed) quiz.qs.splice(quiz.i+4, 0, makeQuestion(q.w)); }
+  save(); render();
+  setTimeout(()=>$("#nextBtn")?.focus(),0);
+}
+function next(){
+  if(quiz.timed && quiz.i+1>=quiz.qs.length){
+    let more = shuffle(quiz.pool);
+    if(more.length>1 && more[0].key===quiz.qs[quiz.i].w.key) more.push(more.shift());
+    quiz.qs.push(...more.map(makeQuestion));
+  }
+  if(quiz.i+1<quiz.qs.length){ quiz.i++; render(); } else finish();
+}
+
+function viewResult(){
+  const n = quiz.qs.filter(q=>q.picked!==null).length, ok = n - quiz.wrong.length;
+  const rate = n ? Math.round(ok/n*100) : 0;
+  const uniq = [...new Map(quiz.wrong.map(w=>[w.key,w])).values()];
+  return header() + `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <p class="label" style="margin:0">${esc(quiz.label)}${quiz.timed?`・${quiz.sec/60}分チャレンジ`:""}</p>
+    <div class="stats">
+      <div class="stat3"><b>${n}</b><span>解いた問題</span></div>
+      <div class="stat3"><b>${ok}</b><span>正解</span></div>
+      <div class="stat3"><b>${rate}<small style="font-size:16px">%</small></b><span>正答率</span></div>
+    </div>
+    ${uniq.length?`<div><p class="label">まちがえた語</p><div class="tbl"><table><tbody>
+      ${uniq.map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}</td></tr>`).join("")}</tbody></table></div></div>`
+      :`<p style="margin:0">${n?"全問正解です。":"1問も解かないうちに時間になりました。"}</p>`}
+    <div class="startbar">
+      <span class="sum" style="margin-right:auto"><span id="sendMsg" class="send ${sendState[0]||""}">${esc(sendState[1]||"")}</span></span>
+      <button data-act="home">セット選択にもどる</button>
+      ${uniq.length?`<button class="primary" data-act="retry">まちがえた ${uniq.length} 語をもう一度</button>`:""}
+    </div>
+  </section>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener("submit", e=>{
+  if(e.target.id!=="loginForm") return;
+  e.preventDefault();
+  const v = $("#nameInput").value.trim(); if(!v) return;
+  ui.name = v; mem.users[v] ||= {rec:{}}; mem.last = v; save(); render();
+});
+document.addEventListener("change", e=>{
+  const t = e.target; if(t.dataset.act!=="sel") return;
+  t.checked ? ui.selected.add(t.dataset.id) : ui.selected.delete(t.dataset.id); render();
+});
+document.addEventListener("click", async e=>{
+  const b = e.target.closest("button[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; save(); render(); }
+  else if(a==="logout"){ stopTimer(); ui.name=null; ui.view="home"; render(); }
+  else if(a==="tab"){ ui.tab=b.dataset.tab; render(); }
+  else if(a==="course"){ ui.course=b.dataset.c; ui.group="すべて"; render(); }
+  else if(a==="group"){ ui.group=b.dataset.g; render(); }
+  else if(a==="selgroup"){ const gs=SETS.filter(s=>s.group===b.dataset.g&&(ui.course==="すべて"||s.course===ui.course)); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
+  else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
+  else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
+  else if(a==="start"){
+    const only=b.dataset.only;
+    if(only==="dueAll") startQuiz(allWords.filter(w=>isDue(w.key)),"要復習の語");
+    else { const ws=allWords.filter(w=>ui.selected.has(w.sid)&&(only!=="due"||isDue(w.key)));
+      const titles=SETS.filter(s=>ui.selected.has(s.id)).map(s=>s.title);
+      const gs=[...new Set(SETS.filter(s=>ui.selected.has(s.id)).map(s=>s.group))];
+      startQuiz(ws,(only==="due"?"まちがえた語：":"")+(titles.length>1?`${gs.join("・")} ${titles.length}セット`:titles[0])); }
+  }
+  else if(a==="answer") answer(+b.dataset.k);
+  else if(a==="next") next();
+  else if(a==="quit"||a==="home"){ stopTimer(); if(a==="quit") logQuiz(); ui.view="home"; quiz=null; render(); }
+  else if(a==="retry"){ const ws=[...new Map(quiz.wrong.map(w=>[w.key,w])).values()]; startQuiz(ws,"まちがえた語をもう一度","all"); }
+  else if(a==="export"){
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify({n:ui.name,r:user().rec}))));
+    const box=$("#codeBox"); box.value=code;
+    try{ await navigator.clipboard.writeText(code); $("#copyMsg").textContent="コピーしました"; }
+    catch(err){ box.select(); $("#copyMsg").textContent="下の欄のコードを選択しました。コピーしてください"; }
+  }
+  else if(a==="import"){
+    try{ const d=JSON.parse(decodeURIComponent(escape(atob($("#codeBox").value.trim()))));
+      if(!d.n||!d.r) throw 0;
+      const cur=(mem.users[d.n] ||= {rec:{}});
+      for(const [k,r] of Object.entries(d.r)){ const c=cur.rec[k]; if(!c || (r.c+r.w)>(c.c+c.w)) cur.rec[k]=r; }
+      ui.name=d.n; save(); ui.tab="sets"; render();
+    }catch(err){ $("#importMsg").textContent="コードを読み込めませんでした。全部コピーできているか確認してください"; }
+  }
+});
+document.addEventListener("keydown", e=>{
+  if(ui.view!=="quiz") return;
+  const q=quiz.qs[quiz.i];
+  if(q.picked===null && /^[1-4]$/.test(e.key) && +e.key<=q.choices.length) answer(+e.key-1);
+  else if(q.picked!==null && e.key==="Enter" && document.activeElement?.id!=="nextBtn"){ e.preventDefault(); next(); }
+});
+render();
+flush();
+</script>
+</body>
+</html>
