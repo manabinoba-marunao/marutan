@@ -140,6 +140,19 @@ body{margin:0}
 [hidden]{display:none!important}
 .send{font-size:12px;color:var(--muted)}
 .send.ok{color:var(--ok)} .send.ng{color:var(--ng)}
+/* 教科 */
+.subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px}
+.subj{position:relative;padding:10px 6px;font-weight:700;font-size:15px;border-radius:12px}
+.subj[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.subj i{position:absolute;top:-7px;right:-5px;font-style:normal;font-size:11px;line-height:18px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--ng);color:#fff;font-variant-numeric:tabular-nums}
+.card .q.long{font-size:clamp(18px,4.6vw,22px);font-weight:500;line-height:1.6;text-align:left}
+.card .q.sent{font-size:clamp(20px,5.4vw,26px);font-weight:500;line-height:1.7}
+.card .ctx{font-size:15px;color:var(--muted);margin-top:4px}
+.card .ctx b{color:var(--ink);background:linear-gradient(transparent 60%,var(--marker) 60%)}
+.choice.big{font-size:22px;font-weight:700;justify-content:flex-start}
+.feedback .w.jw{font-family:var(--ja)}
+.ex.jx{font-family:var(--ja)}
+td.jw{font-weight:700;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1748,18 +1761,129 @@ const SETS = [
     "take over|熟|〜を引き継ぐ|She **took over** the family business.",
     "by and large|熟|全体的に|**By and large**, the plan worked.",
     "on account of|熟|〜のために(理由)|The event was canceled **on account of** rain."
+  ]},
+
+  /* ============================================================
+     ここから英語以外の教科。subject で教科を指定する。
+     1行の書き方は英語と同じ "表|種類|裏|例文・解説|まちがい選択肢"
+       国語(漢字): 表=漢字 / 裏=読み(ひらがな) / 例文の **〜** が問題の漢字
+                   「書き」では例文の **〜** がカタカナになって出題される
+       数学・理科・社会: 表=用語 / 裏=意味・説明
+       5つ目(まちがい選択肢)は任意。「,」区切りで書くと、答えが「表」の問題でその選択肢を使う
+     ============================================================ */
+  {id:"kk-sample-1", subject:"国語", course:"中学", group:"漢字 読み・書き", title:"よく出る漢字 ①", source:"サンプル", sample:true, words:[
+    "訪問||ほうもん|友人の家を**訪問**する。",
+    "貿易||ぼうえき|外国との**貿易**がさかんだ。",
+    "批評||ひひょう|映画を**批評**する。",
+    "納得||なっとく|説明を聞いて**納得**した。",
+    "穏やか||おだやか|**穏やか**な天気が続く。",
+    "著しい||いちじるしい|**著しい**成長をとげる。",
+    "促す||うながす|注意を**促す**。",
+    "専門||せんもん|**専門**の知識を学ぶ。|専問,専聞,専紋",
+    "寄与||きよ|社会の発展に**寄与**する。",
+    "抑える||おさえる|感情を**抑える**。",
+    "往復||おうふく|駅まで**往復**する。|往複,往腹,住復",
+    "貢献||こうけん|チームの勝利に**貢献**する。",
+    "厳か||おごそか|**厳か**な雰囲気の式典。",
+    "賄う||まかなう|会費で費用を**賄う**。",
+    "慎重||しんちょう|**慎重**に判断する。",
+    "率いる||ひきいる|チームを**率いる**。",
+    "縮小||しゅくしょう|計画を**縮小**する。",
+    "施設||しせつ|公共の**施設**を利用する。|施接,旅設,施説",
+    "険しい||けわしい|**険しい**山道を登る。",
+    "蓄える||たくわえる|力を**蓄える**。"
+  ]},
+  {id:"sg-sample-1", subject:"数学", course:"中1", group:"数と式・関数", title:"中1 数と式・関数の用語", source:"サンプル", sample:true, words:[
+    "自然数||正の整数のこと(1, 2, 3, …)",
+    "絶対値||数直線上で、ある数と0との距離",
+    "符号||数の前につく＋や−の記号",
+    "素数||1とその数自身のほかに約数をもたない、1より大きい自然数",
+    "累乗||同じ数をいくつかかけ合わせたもの",
+    "指数||累乗で、かけ合わせた個数を右上に小さく書いた数",
+    "逆数||2つの数の積が1になるとき、一方の数に対するもう一方の数",
+    "項||式の中で、加法の記号＋で結ばれたひとつひとつ",
+    "係数||文字をふくむ項で、数の部分",
+    "一次式||一次の項だけ、または一次の項と数の項の和で表される式",
+    "等式||等号＝を使って、2つの数量が等しい関係を表した式",
+    "不等式||不等号を使って、2つの数量の大小関係を表した式",
+    "方程式||文字に特定の値を代入したときだけ成り立つ等式",
+    "解||方程式を成り立たせる文字の値",
+    "移項||等式の一方の辺の項を、符号を変えて他方の辺に移すこと",
+    "比例||y が x の関数で、y = ax の式で表される関係",
+    "反比例||y が x の関数で、y = a/x の式で表される関係",
+    "比例定数||y = ax や y = a/x の式の a",
+    "変域||変数のとりうる値の範囲",
+    "座標||点の位置を (x, y) の数の組で表したもの"
+  ]},
+  {id:"rk-sample-1", subject:"理科", course:"中1", group:"植物・身のまわりの物質", title:"中1 植物と物質の用語", source:"サンプル", sample:true, words:[
+    "柱頭||めしべの先端で、花粉がつく部分",
+    "胚珠||子房の中にあり、受粉後に種子になる部分",
+    "子房||めしべのもとのふくらんだ部分で、受粉後に果実になる",
+    "受粉||花粉がめしべの柱頭につくこと",
+    "裸子植物||胚珠がむき出しになっている種子植物",
+    "被子植物||胚珠が子房の中にある種子植物",
+    "双子葉類||子葉が2枚の被子植物",
+    "単子葉類||子葉が1枚の被子植物",
+    "胞子||シダ植物やコケ植物がなかまをふやすためのもの",
+    "有機物||炭素をふくみ、燃やすと二酸化炭素が発生する物質",
+    "無機物||有機物以外の物質",
+    "密度||物質1cm³あたりの質量",
+    "融点||固体がとけて液体になるときの温度",
+    "沸点||液体が沸騰して気体になるときの温度",
+    "蒸留||液体を沸騰させ、出てくる気体を冷やして再び液体にして集める方法",
+    "溶質||水溶液にとけている物質",
+    "溶媒||溶質をとかしている液体",
+    "質量パーセント濃度||溶質の質量が溶液全体の質量の何%にあたるかを表したもの",
+    "再結晶||固体の物質をいったん水にとかし、再び結晶としてとり出すこと",
+    "状態変化||温度によって物質の状態が固体・液体・気体と変わること"
+  ]},
+  {id:"sk-sample-1", subject:"社会", course:"中1", group:"地理・歴史", title:"中1 世界の地理と古代の用語", source:"サンプル", sample:true, words:[
+    "緯線||赤道と平行に引かれた、同じ緯度を結んだ線",
+    "経線||北極と南極を結んだ、同じ経度を結んだ線",
+    "本初子午線||イギリスのロンドンを通る経度0度の経線",
+    "排他的経済水域||沿岸から200海里以内で、水産資源や鉱産資源を沿岸国が利用できる水域",
+    "時差||2つの地点の標準時の差",
+    "標準時子午線||その国の標準時の基準となる経線(日本は東経135度)",
+    "三大洋||太平洋・大西洋・インド洋",
+    "六大陸||ユーラシア・アフリカ・北アメリカ・南アメリカ・オーストラリア・南極の6つの大陸",
+    "季節風||季節によって向きが変わる風(モンスーン)",
+    "焼畑農業||森林を焼いた灰を肥料にして作物をつくる農業",
+    "遊牧||水や草を求めて、家畜とともに移動しながら生活すること",
+    "縄文土器||縄目のような文様がつけられた、厚手で黒っぽい土器",
+    "貝塚||縄文時代の人々が捨てた貝がらなどが積もった遺跡",
+    "稲作||大陸から伝わり、弥生時代に各地に広まった米づくり",
+    "卑弥呼||3世紀ごろ邪馬台国を治めた女王",
+    "古墳||3世紀後半から各地につくられた、王や豪族の墓",
+    "前方後円墳||前が四角く、後ろが円形の古墳",
+    "渡来人||朝鮮半島などから日本に移り住み、技術や文化を伝えた人々",
+    "十七条の憲法||聖徳太子(厩戸皇子)が役人の心構えを示したもの",
+    "冠位十二階||家柄にとらわれず、才能や功績のある人を役人に取り立てる制度"
   ]}
 ];
 
-/* 語は "en|品詞|意味|例文" の1行形式でも書ける */
-SETS.forEach(s=>{ s.words = s.words.map(w=>{ if(typeof w!=="string") return w; const [en,pos,ja,ex=""]=w.split("|"); return {en,pos,ja,ex}; }); });
+/* 語は "表|種類|裏|例文|まちがい選択肢" の1行形式でも書ける(英語なら 表=英語 / 裏=日本語) */
+SETS.forEach(s=>{ s.subject ||= "英語"; s.words = s.words.map(w=>{ if(typeof w!=="string") return w; const [en,pos,ja,ex="",alt=""]=w.split("|"); return {en,pos,ja,ex, alt: alt?alt.split(",").map(x=>x.trim()).filter(Boolean):null}; }); });
+
+/* 教科ごとの表示ことば。en2ja = 表→裏、ja2en = 裏→表 */
+const TERM_SUBJ = {front:"用語", back:"意味", q:{en2ja:"この用語の意味は？", ja2en:"この説明にあてはまる用語は？"},
+  modes:[["en2ja","用語 → 意味"],["ja2en","意味 → 用語"],["mix","まぜる"]], setLabel:"セット", groupLabel:"単元", exLabel:"補足"};
+const SUBJ = {
+  "英語": {front:"英語", back:"意味", q:{en2ja:"この英語の意味は？", ja2en:"この意味の英語は？"},
+    modes:[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]], setLabel:"長文セット", groupLabel:"教材・級", en:true, speak:true, logMode:{en2ja:"英→日",ja2en:"日→英",mix:"まぜる"}},
+  "国語": {front:"漢字", back:"読み", q:{en2ja:"この漢字の読みは？", ja2en:"カタカナの部分を漢字で書くと？"},
+    modes:[["en2ja","読み"],["ja2en","書き"],["mix","まぜる"]], setLabel:"セット", groupLabel:"単元", kanji:true, exLabel:"例文"},
+  "数学": TERM_SUBJ, "理科": TERM_SUBJ, "社会": TERM_SUBJ
+};
+const SUBJECTS = Object.keys(SUBJ).filter(k => SETS.some(s=>s.subject===k));
+const sj = name => SUBJ[name] || TERM_SUBJ;
+const toKata = s => String(s).replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0)+0x60));
 /* ============================================================ */
 const MASTER_STREAK = 2;      // 要復習から外れるまでの連続正解数
 const STORE_KEY = "marunao-tango-v1";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const wkey = (sid, w) => sid + "::" + w.en;
-const allWords = SETS.flatMap(s => s.words.map(w => ({...w, sid:s.id, key:wkey(s.id,w), setTitle:s.title})));
+const allWords = SETS.flatMap(s => s.words.map(w => ({...w, sid:s.id, key:wkey(s.id,w), setTitle:s.title, subject:s.subject})));
 const byKey = Object.fromEntries(allWords.map(w => [w.key, w]));
 
 let mem = {users:{}, last:null};
@@ -1767,7 +1891,7 @@ function load(){ try{ const r = localStorage.getItem(STORE_KEY); if(r) mem = JSO
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
 load();
 
-const ui = {view:"home", tab:"sets", course:"すべて", group:"すべて", selected:new Set(), mode:"en2ja", limit:"n10"};
+const ui = {view:"home", tab:"sets", subject:(SUBJ[mem.subject]&&SETS.some(s=>s.subject===mem.subject))?mem.subject:"英語", course:"すべて", group:"すべて", selected:new Set(), mode:"en2ja", limit:"n10"};
 let timerId = null;
 let quiz = null;
 
@@ -1813,8 +1937,11 @@ function setStats(s){
 }
 
 function viewHome(){
-  const courses = ["すべて", ...new Set(SETS.map(s=>s.course))];
-  const inCourse = SETS.filter(s => ui.course==="すべて" || s.course===ui.course);
+  const S = sj(ui.subject);
+  const inSubj = SETS.filter(s => s.subject===ui.subject);
+  const courses = ["すべて", ...new Set(inSubj.map(s=>s.course))];
+  if(!courses.includes(ui.course)) ui.course="すべて";
+  const inCourse = inSubj.filter(s => ui.course==="すべて" || s.course===ui.course);
   const groups = [...new Set(inCourse.map(s=>s.group))];
   if(ui.group!=="すべて" && !groups.includes(ui.group)) ui.group="すべて";
   const list = inCourse.filter(s => ui.group==="すべて" || s.group===ui.group);
@@ -1831,9 +1958,10 @@ function viewHome(){
   let body = "";
   if(ui.tab==="sets"){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
-      <div><p class="label">区分</p><div class="filters">${courses.map(c=>`<button class="chip" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>
-      ${groups.length>1?`<div><p class="label">教材・級</p><div class="filters">${["すべて",...groups].map(g=>`<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}</button>`).join("")}</div></div>`:""}
-      <div><p class="label">長文セット（いくつでも選べます）</p>
+      <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
+      ${courses.length>2?`<div><p class="label">区分</p><div class="filters">${courses.map(c=>`<button class="chip" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`:""}
+      ${groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${["すべて",...groups].map(g=>`<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}</button>`).join("")}</div></div>`:""}
+      <div><p class="label">${esc(S.setLabel)}（いくつでも選べます）</p>
       ${shown.map(g=>{const gs=list.filter(s=>s.group===g);const allOn=gs.every(s=>ui.selected.has(s.id));return `
       <div class="ghead"><span>${esc(g)}</span><button class="link" data-act="selgroup" data-g="${esc(g)}">${allOn?"選択を外す":"まとめて選ぶ"}</button></div>
       <div class="sets">${gs.map(s=>{const st=setStats(s);const on=ui.selected.has(s.id);return `
@@ -1842,11 +1970,11 @@ function viewHome(){
           <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
             <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
             <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
-          <div class="stat">${st.total}語<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}</div>
+          <div class="stat">${st.total}${S.en?"語":"問"}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}</div>
         </label>`}).join("")}</div>`}).join("") || `<p class="empty">この区分のセットはまだありません。</p>`}</div>
       <div class="opts">
         <div><p class="label">出題の向き</p><div class="seg">
-          ${[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
+          ${S.modes.map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
         </div></div>
         <div><p class="label">問題数</p><div class="seg">
           ${[["n10","10問"],["n20","20問"],["all","ぜんぶ"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
@@ -1856,7 +1984,7 @@ function viewHome(){
         </div></div>
       </div>
       <div class="startbar">
-        <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}語から出題`:"セットを選んでください"}</span>
+        <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}${S.en?"語":"問"}から出題`:"セットを選んでください"}</span>
         <button data-act="start" data-only="due" ${selDue.length?"":"disabled"}>まちがえた語だけ（${selDue.length}）</button>
         <button class="primary" data-act="start" ${selWords.length?"":"disabled"}>テスト開始</button>
       </div>
@@ -1865,8 +1993,8 @@ function viewHome(){
     body = `<section class="panel">
       <h2>要復習リスト</h2>
       <p class="note" style="margin:0 0 10px">まちがえた語がここに入ります。${MASTER_STREAK}回続けて正解するとリストから外れます。</p>
-      ${dueAll.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th>セット</th><th style="text-align:right">×</th></tr></thead><tbody>
-        ${dueAll.sort((a,b)=>rec(b.key).w-rec(a.key).w).map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}</td><td class="note">${esc(w.setTitle)}</td><td class="num">${rec(w.key).w}</td></tr>`).join("")}
+      ${dueAll.length?`<div class="tbl"><table><thead><tr><th>問題</th><th>答え</th><th>セット</th><th style="text-align:right">×</th></tr></thead><tbody>
+        ${dueAll.sort((a,b)=>rec(b.key).w-rec(a.key).w).map(w=>`<tr><td class="${sj(w.subject).en?"en":"jw"}">${esc(w.en)}</td><td>${esc(w.ja)}</td><td class="note"><span class="tag">${esc(w.subject)}</span>${esc(w.setTitle)}</td><td class="num">${rec(w.key).w}</td></tr>`).join("")}
         </tbody></table></div>
         <div class="startbar" style="margin-top:14px"><button class="primary" data-act="start" data-only="dueAll">要復習の語をぜんぶ解く（${dueAll.length}）</button></div>`
       :`<p class="empty">いまは要復習の語はありません。</p>`}
@@ -1889,11 +2017,14 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.flo
 function makeQuestion(w){
   const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : ui.mode;
   const field = dir==="en2ja" ? "ja" : "en";
-  // 同じセット・同じ品詞を優先して、紛らわしい選択肢をつくる
-  const pool = allWords.filter(x=>x.key!==w.key && x[field]!==w[field]);
+  const distract = [];
+  const seen = new Set([w[field]]);
+  // 答えが「表」の問題で、手書きのまちがい選択肢があれば優先して使う
+  if(field==="en" && w.alt) for(const a of shuffle(w.alt)){ if(!seen.has(a) && distract.length<3){ seen.add(a); distract.push({en:a, ja:"", key:"alt::"+a}); } }
+  // 同じ教科の中から、同じセット・同じ品詞を優先して紛らわしい選択肢をつくる
+  const pool = allWords.filter(x=>x.subject===w.subject && x.key!==w.key && x[field]!==w[field]);
   const rank = x => (x.sid===w.sid?2:0) + (x.pos===w.pos?1:0) + Math.random();
-  const seen = new Set([w[field]]); const distract = [];
-  for(const x of pool.sort((a,b)=>rank(b)-rank(a))){ if(!seen.has(x[field])){ seen.add(x[field]); distract.push(x); } if(distract.length===3) break; }
+  for(const x of pool.sort((a,b)=>rank(b)-rank(a))){ if(distract.length>=3) break; if(!seen.has(x[field])){ seen.add(x[field]); distract.push(x); } }
   return {w, dir, choices: shuffle([w, ...distract]), picked:null};
 }
 
@@ -1932,11 +2063,15 @@ function logQuiz(){
   quiz.logged = true;
   const done = quiz.qs.filter(q=>q.picked!==null);
   if(!done.length) return;
-  const wrong = [...new Map(quiz.wrong.map(w=>[w.key,w])).values()].map(w=>({en:w.en, ja:w.ja, set:w.setTitle}));
+  const subjs = [...new Set(quiz.pool.map(w=>w.subject))];
+  const onlyEn = subjs.length===1 && subjs[0]==="英語";
+  // 先生ページ・スプレッドシートはそのまま使えるよう、教科は見出しとセット名に入れて送る
+  const wrong = [...new Map(quiz.wrong.map(w=>[w.key,w])).values()].map(w=>({en:w.en, ja:w.ja, set: w.subject==="英語" ? w.setTitle : `${w.subject}｜${w.setTitle}`}));
+  const modeName = subjs.length===1 ? (sj(subjs[0]).modes.find(m=>m[0]===ui.mode)||[,ui.mode])[1] : ({en2ja:"表→裏",ja2en:"裏→表",mix:"まぜる"})[ui.mode];
   const entry = {
     action:"log", id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
-    ts: Date.now(), name: ui.name, label: quiz.label,
-    mode: ({en2ja:"英→日",ja2en:"日→英",mix:"まぜる"})[ui.mode],
+    ts: Date.now(), name: ui.name, label: onlyEn ? quiz.label : `【${subjs.join("・")}】${quiz.label}`,
+    mode: onlyEn ? ({en2ja:"英→日",ja2en:"日→英",mix:"まぜる"})[ui.mode] : modeName,
     limit: quiz.timed ? (quiz.sec/60)+"分チャレンジ" : done.length+"問",
     answered: done.length, correct: done.length - quiz.wrong.length,
     seconds: Math.round((Date.now()-quiz.startedAt)/1000), wrong
@@ -1963,22 +2098,35 @@ async function flush(){
 }
 function setSend(cls, msg){ sendState = [cls,msg]; const el=$("#sendMsg"); if(el){ el.className="send "+cls; el.textContent=msg; } }
 
+function exHtml(w){ return esc(w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>"); }
 function viewQuiz(){
-  const q = quiz.qs[quiz.i], n = quiz.qs.length, en = q.dir==="en2ja";
-  const f = en ? "ja" : "en";
+  const q = quiz.qs[quiz.i], n = quiz.qs.length, fwd = q.dir==="en2ja";
+  const S = sj(q.w.subject);
+  const f = fwd ? "ja" : "en";
+  const enChoice = S.en && !fwd;
   const choices = q.choices.map((c,k)=>{
-    let cls = "choice" + (en?"":" en");
+    let cls = "choice" + (enChoice?" en":"") + (S.kanji && !fwd ? " big":"");
     if(q.picked!==null){ if(c.key===q.w.key) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
     return `<button class="${cls}" data-act="answer" data-k="${k}" ${q.picked!==null?"disabled":""}><span class="k">${k+1}</span><span>${esc(c[f])}</span></button>`;
   }).join("");
+  // 問題文
+  let qText, qCls = "q", ctx = "";
+  if(fwd){
+    qText = `<mark>${esc(q.w.en)}</mark>`; if(S.en) qCls += " en";
+    if(S.kanji && q.w.ex) ctx = `<span class="ctx">${exHtml(q.w)}</span>`;
+  } else if(S.kanji){
+    qText = q.w.ex ? esc(q.w.ex).replace(/\*\*(.+?)\*\*/g, ()=>`<mark>${esc(toKata(q.w.ja))}</mark>`) : `<mark>${esc(toKata(q.w.ja))}</mark>`;
+    qCls += " sent";
+  } else {
+    qText = esc(q.w.ja); if([...q.w.ja].length>14) qCls += " long";
+  }
   let fb = "";
   if(q.picked!==null){
     const ok = q.choices[q.picked].key===q.w.key;
-    const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
     fb = `<div class="feedback ${ok?"ok":"ng"}">
       <span class="v">${ok?"正解！":"まちがい"}</span>
-      <span>${sayBtn("word","発音を聞く")} <span class="w">${esc(q.w.en)}</span>　<span class="note">${esc(q.w.pos||"")}</span>　${esc(q.w.ja)}</span>
-      ${q.w.ex?`<div class="exrow">${sayBtn("ex","例文を聞く")}<div class="ex">${ex}</div></div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:""}
+      <span>${S.speak?sayBtn("word","発音を聞く")+" ":""}<span class="w ${S.en?"":"jw"}">${esc(q.w.en)}</span>　${q.w.pos?`<span class="note">${esc(q.w.pos)}</span>　`:""}${esc(q.w.ja)}</span>
+      ${q.w.ex?`<div class="exrow">${S.speak?sayBtn("ex","例文を聞く"):""}<div class="ex ${S.en?"":"jx"}">${exHtml(q.w)}</div></div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:`<div class="ex-src">出典:${esc(q.w.setTitle)}</div>`}
     </div>
     <div class="startbar"><button class="primary" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button></div>`;
   }
@@ -1989,10 +2137,11 @@ function viewQuiz(){
       : `<div class="qhead"><span>${esc(quiz.label)}</span><span>${quiz.i+1} / ${n}</span></div>
          <div class="progress"><i style="width:${(quiz.i/n)*100}%"></i></div>`}
     <div class="card">
-      <span class="dir">${en?"この英語の意味は？":"この意味の英語は？"}</span>
-      <span class="q ${en?"en":""}">${en?`<mark>${esc(q.w.en)}</mark>`:esc(q.w.ja)}</span>
-      ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
-      ${en?sayBtn("word","発音を聞く"):""}
+      <span class="dir">${esc(S.q[q.dir])}</span>
+      <span class="${qCls}">${qText}</span>
+      ${ctx}
+      ${q.w.pos && S.en?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
+      ${fwd && S.speak?sayBtn("word","発音を聞く"):""}
     </div>
     <div class="choices">${choices}</div>
     ${fb}
@@ -2048,8 +2197,8 @@ function viewResult(){
       <div class="stat3"><b>${ok}</b><span>正解</span></div>
       <div class="stat3"><b>${rate}<small style="font-size:16px">%</small></b><span>正答率</span></div>
     </div>
-    ${uniq.length?`<div><p class="label">まちがえた語</p><div class="tbl"><table><tbody>
-      ${uniq.map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}</td></tr>`).join("")}</tbody></table></div></div>`
+    ${uniq.length?`<div><p class="label">まちがえた問題</p><div class="tbl"><table><tbody>
+      ${uniq.map(w=>`<tr><td class="${sj(w.subject).en?"en":"jw"}">${esc(w.en)}</td><td>${esc(w.ja)}</td></tr>`).join("")}</tbody></table></div></div>`
       :`<p style="margin:0">${n?"全問正解です。":"1問も解かないうちに時間になりました。"}</p>`}
     <div class="startbar">
       <span class="sum" style="margin-right:auto"><span id="sendMsg" class="send ${sendState[0]||""}">${esc(sendState[1]||"")}</span></span>
@@ -2076,9 +2225,10 @@ document.addEventListener("click", async e=>{
   if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; save(); render(); }
   else if(a==="logout"){ stopTimer(); ui.name=null; ui.view="home"; render(); }
   else if(a==="tab"){ ui.tab=b.dataset.tab; render(); }
+  else if(a==="subject"){ if(ui.subject!==b.dataset.s){ ui.subject=b.dataset.s; ui.course="すべて"; ui.group="すべて"; ui.selected.clear(); ui.mode="en2ja"; mem.subject=ui.subject; save(); } render(); }
   else if(a==="course"){ ui.course=b.dataset.c; ui.group="すべて"; render(); }
   else if(a==="group"){ ui.group=b.dataset.g; render(); }
-  else if(a==="selgroup"){ const gs=SETS.filter(s=>s.group===b.dataset.g&&(ui.course==="すべて"||s.course===ui.course)); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
+  else if(a==="selgroup"){ const gs=SETS.filter(s=>s.subject===ui.subject&&s.group===b.dataset.g&&(ui.course==="すべて"||s.course===ui.course)); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
   else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
   else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
   else if(a==="start"){
