@@ -113,6 +113,11 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .feedback .v{font-weight:700}
 .feedback.ok .v{color:var(--ok)} .feedback.ng .v{color:var(--ng)}
 .feedback .w{font-family:var(--en);font-size:18px;font-weight:700}
+.say{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;color:var(--accent);vertical-align:middle;flex:none}
+.say:active{background:var(--accent-soft)}
+.card .say{width:44px;height:44px;margin-top:4px}
+.exrow{display:flex;gap:8px;align-items:flex-start}
+.exrow .ex{flex:1}
 .ex{font-family:var(--en);font-size:15px;color:var(--ink);border-left:3px solid var(--marker);padding-left:10px;line-height:1.6}
 .ex b{background:linear-gradient(transparent 60%,var(--marker) 60%)}
 .ex-src{font-size:12px;color:var(--muted)}
@@ -1972,8 +1977,8 @@ function viewQuiz(){
     const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
     fb = `<div class="feedback ${ok?"ok":"ng"}">
       <span class="v">${ok?"正解！":"まちがい"}</span>
-      <span><span class="w">${esc(q.w.en)}</span>　<span class="note">${esc(q.w.pos||"")}</span>　${esc(q.w.ja)}</span>
-      ${q.w.ex?`<div class="ex">${ex}</div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:""}
+      <span>${sayBtn("word","発音を聞く")} <span class="w">${esc(q.w.en)}</span>　<span class="note">${esc(q.w.pos||"")}</span>　${esc(q.w.ja)}</span>
+      ${q.w.ex?`<div class="exrow">${sayBtn("ex","例文を聞く")}<div class="ex">${ex}</div></div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:""}
     </div>
     <div class="startbar"><button class="primary" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button></div>`;
   }
@@ -1987,10 +1992,29 @@ function viewQuiz(){
       <span class="dir">${en?"この英語の意味は？":"この意味の英語は？"}</span>
       <span class="q ${en?"en":""}">${en?`<mark>${esc(q.w.en)}</mark>`:esc(q.w.ja)}</span>
       ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
+      ${en?sayBtn("word","発音を聞く"):""}
     </div>
     <div class="choices">${choices}</div>
     ${fb}
     <p class="kbd">キーボードの 1〜4 で選択、Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
+}
+/* ---------- 発音(端末の読み上げ機能) ---------- */
+const canSpeak = typeof window!=="undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+function sayBtn(kind, label){ return canSpeak ? `<button class="say" data-act="say" data-kind="${kind}" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>` : ""; }
+let enVoice = null;
+function pickVoice(){ try{ const vs = speechSynthesis.getVoices(); enVoice = vs.find(v=>/^en[-_]US/i.test(v.lang) && /Samantha|Google|Natural|Premium|Enhanced/i.test(v.name)) || vs.find(v=>/^en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null; }catch(e){} }
+if(canSpeak){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text, isWord){
+  if(!canSpeak || !text) return;
+  let t = text.replace(/\*\*/g,"").replace(/[〜～]/g," ");
+  if(isWord) t = t.replace(/\bA\b|\bB\b/g,"something");
+  t = t.replace(/\s+/g," ").trim();
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "en-US"; u.rate = 0.9; if(enVoice) u.voice = enVoice;
+    speechSynthesis.speak(u);
+  }catch(e){}
 }
 function posName(p){ return ({"名":"名詞","動":"動詞","形":"形容詞","副":"副詞","熟":"熟語・表現","前":"前置詞","接":"接続詞"})[p]||p; }
 
@@ -2066,6 +2090,7 @@ document.addEventListener("click", async e=>{
       startQuiz(ws,(only==="due"?"まちがえた語：":"")+(titles.length>1?`${gs.join("・")} ${titles.length}セット`:titles[0])); }
   }
   else if(a==="answer") answer(+b.dataset.k);
+  else if(a==="say" && quiz){ const w = quiz.qs[quiz.i].w; b.dataset.kind==="ex" ? speak(w.ex, false) : speak(w.en, true); }
   else if(a==="next") next();
   else if(a==="quit"||a==="home"){ stopTimer(); if(a==="quit") logQuiz(); ui.view="home"; quiz=null; render(); }
   else if(a==="retry"){ const ws=[...new Map(quiz.wrong.map(w=>[w.key,w])).values()]; startQuiz(ws,"まちがえた語をもう一度","all"); }
