@@ -140,6 +140,16 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .formrow .fc b{font-family:var(--en);font-size:18px}
 .formrow .fc.hl{background:var(--marker)}
 .formrow .arr{color:var(--muted)}
+.card.ans{text-align:left;align-items:stretch;gap:8px;padding:18px 18px 16px}
+.card.ans .v{font-weight:800;font-size:18px}
+.card.ans.ok{border-color:var(--ok);background:var(--ok-soft)} .card.ans.ok .v{color:var(--ok)}
+.card.ans.ng{border-color:var(--ng);background:var(--ng-soft)} .card.ans.ng .v{color:var(--ng)}
+.card.ans .wrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card.ans .w{font-family:var(--en);font-size:24px;font-weight:700}
+.card.ans .ja{font-size:17px;font-weight:700}
+.card.ans .say{width:38px;height:38px;margin:0;background:var(--surface)}
+.card.ans .ex{background:var(--surface);border-radius:0 8px 8px 0;padding:6px 10px}
+.nextbig{align-self:stretch;padding:14px;font-size:17px;margin-top:4px}
 /* result */
 .score{display:flex;align-items:baseline;gap:10px}
 .score .n{font-family:var(--en);font-size:56px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
@@ -404,6 +414,181 @@ const SETS = [
       {en:"associated with", pos:"熟", ja:"〜と関連した", ex:"various benefits **associated with** later school start times"}
     ]
   },
+  // ===== 共通テスト 2025年度(令和7年度)本試験 リーディング =====
+  {id:"kt2025-1", course:"共通テスト", group:"2025年度 本試験", title:"第1問 淡水水槽の飾り付けガイド", source:"令和7年度 本試験", words:[
+    "decorate|動|飾る|**Decorate** Your Freshwater Aquarium",
+    "aquarium|名|水槽|planning to buy a small **aquarium**",
+    "freshwater|形|淡水の|Decorate Your **Freshwater** Aquarium",
+    "pamphlet|名|パンフレット|You found this helpful **pamphlet**",
+    "artificial|形|人工の|Natural and **artificial** decorations are necessary",
+    "decoration|名|飾り|Natural and artificial **decorations** are necessary",
+    "necessary|形|必要な|decorations are **necessary** to keep fish",
+    "cover|動|覆う|should **cover** 50-70% of the area",
+    "hide|動|隠れる|others want places to **hide**",
+    "solid|形|固い|need **solid** objects such as small rocks",
+    "shallow|形|浅い|from slow-moving or **shallow** water prefer soft objects",
+    "harmful|形|有害な|make sure there is nothing **harmful** on them",
+    "avoid|動|避ける|**Avoid** any plastic or rubber items",
+    "rubber|名|ゴム|Avoid any plastic or **rubber** items",
+    "edge|名|ふち・端|Leave space around the **edges** of the tank",
+    "room|名|空間・余地|Fish need **room** to move",
+    "position|動|配置する|**Position** decorations"
+  ]},
+  {id:"kt2025-2", course:"共通テスト", group:"2025年度 本試験", title:"第2問 空飛ぶ乗り物のフォーラム(ブログ)", source:"令和7年度 本試験", words:[
+    "transportation|名|交通・輸送|Modern **transportation** problems and solutions were discussed",
+    "forum|名|討論会|attended a **forum** in northern Japan",
+    "electrically|副|電気で|should be **electrically** powered in general",
+    "emission|名|排出|zero-**emission** technologies",
+    "pollution|名|汚染|Air **pollution** can be reduced",
+    "reduce|動|減らす|Air pollution can be **reduced**",
+    "emergency|名|緊急事態|**emergency** services would be improved",
+    "ambulance|名|救急車|Flying **ambulances** would be faster in large cities",
+    "improve|動|改善する|emergency services would be **improved**",
+    "safety|名|安全|from a **safety** point of view",
+    "accident|名|事故|to avoid **accidents** in the air",
+    "develop|動|開発する|some countries are already **developing** this technology",
+    "operate|動|運行する|**operating** costs of flying taxis are too high",
+    "prediction|名|予測|speaker's **prediction** turns out to be correct",
+    "turn out|熟|〜だとわかる|**turns out** to be correct",
+    "audience|名|聴衆|someone in the **audience** asked",
+    "disagree|動|意見が異なる|they **disagreed** about the timing",
+    "available|形|利用できる|would soon be **available** around the world"
+  ]},
+  {id:"kt2025-3", course:"共通テスト", group:"2025年度 本試験", title:"第3問 バンドのコンテスト(物語)", source:"令和7年度 本試験", words:[
+    "contest|名|コンテスト|Ultimate Music **Contest**",
+    "capable|形|有能な|We are **capable** musicians.",
+    "classically-trained|形|クラシックの訓練を受けた|**classically-trained** pianist",
+    "perform|動|演奏する|regularly **performs** in front of audiences",
+    "regularly|副|定期的に|**regularly** performs in front of audiences",
+    "follower|名|フォロワー|has a huge number of **followers**",
+    "rehearsal|名|リハーサル|until our **rehearsal** time was up",
+    "pressure|名|プレッシャー|I felt additional **pressure** about the contest",
+    "additional|形|さらなる|I felt **additional** pressure",
+    "rhythm|名|リズム|slightly out of **rhythm**",
+    "slightly|副|わずかに|**slightly** out of rhythm",
+    "figure out|熟|理解する・解決する|I couldn't **figure it out**",
+    "notice|動|気づく|Although it was hard to **notice**",
+    "show off|熟|見せびらかす|Each of us is **showing off**",
+    "reaction|名|反応|waited for everyone's **reaction**",
+    "discovery|名|発見|I explained my **discovery**",
+    "shift|動|移る・変わる|our focus **shifted**",
+    "regret|動|後悔する|**regretting** that we had entered it"
+  ]},
+  {id:"kt2025-4", course:"共通テスト", group:"2025年度 本試験", title:"第4問 スローライフのエッセイ", source:"令和7年度 本試験", words:[
+    "stressful|形|ストレスの多い|this fast pace of living can be **stressful**",
+    "pace|名|ペース|this fast **pace** of living",
+    "meaningful|形|意味のある|things that are truly **meaningful** to you",
+    "focused|形|集中した|being completely **focused** on these things",
+    "quality|名|質|improve the **quality** of your work",
+    "belongings|名|持ち物|to own fewer **belongings**",
+    "possession|名|所有物|reducing **possessions** and buying only necessary items",
+    "consume|動|消費する|more than they can **consume**",
+    "recommend|動|勧める|Slow-lifers would **recommend** reducing possessions",
+    "manner|名|態度・作法|your communication style and **manner**",
+    "impolite|形|失礼な|which may appear **impolite**",
+    "negatively|副|悪く・否定的に|affect relationships **negatively**",
+    "affect|動|影響する|**affect** relationships negatively",
+    "face-to-face|形|対面の|during **face-to-face** conversations",
+    "significant|形|重要な|people and events that were **significant**",
+    "fulfillment|名|充実感|you can find **fulfillment** in daily tasks",
+    "reflect on|熟|〜をふり返る|to **reflect on** your day",
+    "nonessential|形|不要な|Avoid having **nonessential** items",
+    "rewarding|形|やりがいのある|a better and more **rewarding** life",
+    "aspect|名|側面|The final **aspect** of slow living"
+  ]},
+  {id:"kt2025-5", course:"共通テスト", group:"2025年度 本試験", title:"第5問 地域企業向け会議の計画(メール)", source:"令和7年度 本試験", words:[
+    "conference|名|会議|organize a special **conference** for local businesses",
+    "organize|動|企画する|**organize** a special conference",
+    "representative|名|代表者|I am very happy to be the **representative**",
+    "promote|動|促進する|this event is to **promote** the local economy",
+    "economy|名|経済|promote the local **economy**",
+    "civil servant|名|公務員|work as a **civil servant**",
+    "registration|名|登録|The **registration** will close seven days before",
+    "venue|名|会場|worked really well as a **venue**",
+    "capacity|名|収容人数|a good **capacity** for this type",
+    "reserve|動|予約する|I can **reserve** it for free",
+    "for free|熟|無料で|I can reserve it **for free**",
+    "permit|名|許可証|without having a **permit**",
+    "committee|名|委員会|being on a **committee** like this",
+    "anxious|形|不安な|I am rather **anxious**",
+    "attach|動|添付する|I have **attached** a diagram",
+    "diagram|名|図|I have attached a **diagram**",
+    "arrangement|名|配置|the debate seating **arrangements**",
+    "moderator|名|司会者|desk for the **moderator** in the center",
+    "rethink|動|考え直す|we need to **rethink** it",
+    "set up|熟|設置する|to **set up** the stage for the debate"
+  ]},
+  {id:"kt2025-6", course:"共通テスト", group:"2025年度 本試験", title:"第6問 ヒーロー物語へのフィードバック", source:"令和7年度 本試験", words:[
+    "superhero|名|スーパーヒーロー|the world-famous **superhero**",
+    "fame|名|名声|caught up in my own **fame**",
+    "fake|形|偽の|I was a **fake** superhero",
+    "reality show|名|リアリティ番組|a **reality show** about our everyday good deeds",
+    "deed|名|行い|our everyday good **deeds**",
+    "rescue|動|救助する|I was supposed to **rescue** a cat",
+    "be supposed to|熟|〜することになっている|I was **supposed to** rescue a cat",
+    "wander|動|さまよう|**wandered** into a street drain",
+    "crew|名|(仕事の)班・スタッフ|a member of the television **crew**",
+    "onlooker|名|見物人|was cheered by **onlookers**",
+    "vanish|動|消える|who had already **vanished**",
+    "mysterious|形|謎めいた|Melody was **mysterious**",
+    "convince|動|説得する|I'll try to **convince** him to come out",
+    "recreate|動|再現する|could **recreate** any sound",
+    "extraordinary|形|並外れた|a special facility for **extraordinary** children",
+    "facility|名|施設|a special **facility** for extraordinary children",
+    "patrol|動|巡回する|they **patrolled** the park",
+    "recruit|動|勧誘する・採用する|Team Hero eventually **recruited** me",
+    "eventually|副|最終的に|Team Hero **eventually** recruited me",
+    "achievement|名|業績|Because of my **achievements**",
+    "notification|名|通知|My phone buzzed with a **notification**",
+    "foolish|形|ばかげた|how **foolish** I looked"
+  ]},
+  {id:"kt2025-7", course:"共通テスト", group:"2025年度 本試験", title:"第7問 動物の睡眠パターン", source:"令和7年度 本試験", words:[
+    "essential|形|不可欠な|Sleep is **essential** for animals",
+    "consciousness|名|意識|an altered state of **consciousness**",
+    "alter|動|変える|an **altered** state of consciousness",
+    "reset|動|リセットする|a chance to **reset**",
+    "species|名|(生物の)種|differ from **species** to species",
+    "differ|動|異なる|**differ** from species to species",
+    "herbivore|名|草食動物|Large **herbivores** like wild horses",
+    "carnivorous|形|肉食の|Lions are **carnivorous** animals",
+    "relatively|副|比較的|**relatively** few calories",
+    "predator|名|捕食者|difficult for **predators** to find them",
+    "alert|形|油断のない|need to stay **alert**",
+    "attacker|名|攻撃者|keep them away from **attackers**",
+    "shelter|名|すみか・避難所|create **shelters** by digging into the ground",
+    "dig|動|掘る|by **digging** into the ground",
+    "hibernation|名|冬眠|**Hibernation**, which can be observed in black bears",
+    "observe|動|観察する|which can be **observed** in black bears",
+    "inactive|形|活動しない|a long, **inactive** period",
+    "scarce|形|乏しい|when food is **scarce**",
+    "threat|名|脅威|watching out for **threats**",
+    "responsive|形|反応する|a less **responsive** state",
+    "exposed|形|さらされた|may feel **exposed** to danger"
+  ]},
+  {id:"kt2025-8", course:"共通テスト", group:"2025年度 本試験", title:"第8問 宇宙探査の是非(小論文)", source:"令和7年度 本試験", words:[
+    "exploration|名|探査|**exploration** of space requires a lot of research",
+    "invention|名|発明|led to many new **inventions**",
+    "lead to|熟|〜につながる|**led to** many new inventions",
+    "cooperation|名|協力|relies on international **cooperation**",
+    "rely on|熟|〜に頼る|**relies on** international cooperation",
+    "prestige|名|威信・名声|to improve national **prestige**",
+    "commercial|形|商業的な|mostly for **commercial** reasons",
+    "colonize|動|植民地化する|try to **colonize** parts of the moon",
+    "likelihood|名|可能性|the greater the **likelihood**",
+    "aggressive|形|攻撃的な|an **aggressive** alien civilization",
+    "civilization|名|文明|an aggressive alien **civilization**",
+    "fatality|名|死亡(者)|a **fatality** rate of 2.9%",
+    "tolerate|動|容認する|would **tolerate** such a high level",
+    "broadcast|動|放送する・発信する|it is probably dangerous to **broadcast**",
+    "contribute|動|貢献する|has **contributed** hugely to economic growth",
+    "estimate|動|推定する|It is **estimated** that",
+    "emit|動|排出する|one spacecraft launch **emits**",
+    "debris|名|破片・ごみ|The quantity of space **debris**",
+    "obstacle|名|障害|a potential **obstacle** to astronomical observation",
+    "priority|名|優先事項|should not be a **priority**",
+    "conquer|動|征服する|they will seek to **conquer** Earth",
+    "budget|名|予算|annual **budgets**"
+  ]},
   // ===== 共通テスト 2026年度(令和8年度)本試験 リーディング =====
   {id:"kt2026-1", course:"共通テスト", group:"2026年度 本試験", title:"第1問 ダンス大会の衣装の相談", source:"令和8年度 本試験", words:[
     "costume|名|衣装|before we make the final decision about what **costumes** to buy",
@@ -7408,7 +7593,9 @@ function isMastered(key){ const r = user()?.rec[key]; return !!(r && r.c>0 && !r
 function render(){
   const app = $("#app");
   if(!ui.name) return app.innerHTML = viewLogin();
-  if(ui.view==="quiz"){ app.innerHTML = viewQuiz(); const bi=$("#blankIn"); if(bi) setTimeout(()=>bi.focus(),0); return; }
+  if(ui.view==="quiz"){ app.innerHTML = viewQuiz(); const bi=$("#blankIn"); if(bi) setTimeout(()=>bi.focus({preventScroll:true}),0);
+    const c=document.querySelector(".card"); if(c){ const r=c.getBoundingClientRect(); if(r.top<0 || r.top>innerHeight*0.35) window.scrollTo({top:Math.max(0,scrollY+r.top-10)}); }
+    return; }
   if(ui.view==="result") return app.innerHTML = viewResult();
   app.innerHTML = viewHome();
 }
@@ -7629,7 +7816,7 @@ function makeFormQuestion(w){
   return q;
 }
 function formSay(q){ return [q.info.base.replace(" / ",", "), ...q.info.forms.map(f=>f.replace("/",", "))].join(", "); }
-function viewFormCard(q){
+function viewFormCard(q, nextLabel){
   const lab = q.info.labels[q.idx];
   const same = q.info.forms[0]===q.info.forms[1];
   let body;
@@ -7648,18 +7835,20 @@ function viewFormCard(q){
       ${done?(q.typed===q.ans?"":`<p class="note" style="text-align:center;margin:0">あなたの答え:「${esc(q.typed||"")}」</p>`)
         :`<p class="note" style="text-align:center;margin:0">空らんに入る1文字を半角英字で入力</p>`}`;
   }
+  if(q.picked!==null) return formFeedback(q, q.ok, nextLabel) + body;
   return `<div class="card">
       <span class="dir">${q.kind==="spell"?"正しいつづりはどれ？":"空らんに入る1文字は？"}</span>
       <span class="q"><span class="en-b">${esc(q.info.base)}</span> の <b>${lab}</b></span>
       <span class="pos">${esc(q.info.meaning)}${same&&q.info.verb?"":""}</span>
     </div>${body}`;
 }
-function formFeedback(q, ok){
+function formFeedback(q, ok, nextLabel){
   const L = q.info.verb ? ["原形","過去形","過去分詞"] : ["原級","比較級","最上級"];
   const cells = [q.info.base, ...q.info.forms];
-  return `<div class="feedback ${ok?"ok":"ng"}">
-      <span class="v">${ok?"正解！":"まちがい"}　<span class="note">${esc(q.info.meaning)}</span></span>
+  return `<div class="card ans ${ok?"ok":"ng"}">
+      <span class="v">${ok?"正解！":"まちがい"}　<span class="note">${esc(q.info.base)}(${esc(q.info.meaning)})の${q.info.labels[q.idx]}</span></span>
       <div class="formrow">${sayBtn("word","発音を聞く")}${cells.map((c,i)=>`<div class="fc ${i===q.idx+1?"hl":""}"><small>${L[i]}</small><b>${esc(c)}</b></div>`).join('<span class="arr">→</span>')}</div>
+      <button class="primary nextbig" data-act="next" id="nextBtn">${nextLabel}</button>
     </div>`;
 }
 function answerBlank(v){
@@ -7761,31 +7950,28 @@ function viewQuiz(){
     if(q.picked!==null){ if(c.key===q.w.key) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
     return `<button class="${cls}" data-act="answer" data-k="${k}" ${q.picked!==null?"disabled":""}><span class="k">${k+1}</span><span>${esc(c[f])}</span></button>`;
   }).join("");
-  let fb = "";
+  const nextLabel = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
+  let card;
   if(q.picked!==null){
     const ok = q.choices[q.picked].key===q.w.key;
     const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
-    fb = `<div class="feedback ${ok?"ok":"ng"}">
+    card = `<div class="card ans ${ok?"ok":"ng"}">
       <span class="v">${ok?"正解！":"まちがい"}</span>
-      <span>${sayBtn("word","発音を聞く")} <span class="w">${esc(q.w.en)}</span>　<span class="note">${esc(q.w.pos||"")}</span>　${esc(q.w.ja)}</span>
+      <div class="wrow">${sayBtn("word","発音を聞く")}<span class="w">${esc(q.w.en)}</span><span class="note">${esc(q.w.pos||"")}</span></div>
+      <div class="ja">${esc(q.w.ja)}</div>
       ${q.w.ex?`<div class="exrow">${sayBtn("ex","例文を聞く")}<div class="ex">${ex}</div></div><div class="ex-src">出典:${esc(q.w.setTitle)}</div>`:""}
-    </div>
-    <div class="startbar"><button class="primary" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button></div>`;
-  }
-  return header() + `
-    ${quiz.timed
-      ? `<div class="qhead"><span>${esc(quiz.label)}</span><span>${quiz.i+1}問目　残り <span id="tleft">${fmt(quiz.endAt-Date.now())}</span></span></div>
-         <div class="progress time"><i id="tbar" style="width:${Math.max(0,(quiz.endAt-Date.now())/(quiz.sec*1000)*100)}%"></i></div>`
-      : `<div class="qhead"><span>${esc(quiz.label)}</span><span>${quiz.i+1} / ${n}</span></div>
-         <div class="progress"><i style="width:${(quiz.i/n)*100}%"></i></div>`}
-    <div class="card">
+      <button class="primary nextbig" data-act="next" id="nextBtn">${nextLabel}</button>
+    </div>`;
+  } else {
+    card = `<div class="card">
       <span class="dir">${dirLabel(q.w, en)}</span>
       <span class="q ${en?"en":""}">${en?`<mark>${esc(q.w.en)}</mark>`:esc(q.w.ja)}</span>
       ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
       ${en?sayBtn("word","発音を聞く"):""}
-    </div>
+    </div>`;
+  }
+  return header() + quizHead(n) + card + `
     <div class="choices">${choices}</div>
-    ${fb}
     <p class="kbd">キーボードの 1〜4 で選択、Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
 }
 function quizHead(n){
@@ -7796,9 +7982,7 @@ function quizHead(n){
          <div class="progress"><i style="width:${(quiz.i/n)*100}%"></i></div>`;
 }
 function viewFormQuiz(q, n){
-  const fb = q.picked===null ? "" : formFeedback(q, q.ok) +
-    `<div class="startbar"><button class="primary" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button></div>`;
-  return header() + quizHead(n) + viewFormCard(q) + fb +
+  return header() + quizHead(n) + viewFormCard(q, quiz.timed||quiz.i+1<n?"次へ":"結果を見る") +
     `<p class="kbd">${q.kind==="spell"?"キーボードの 1〜4 で選択、":"文字を打つと答え合わせ、"}Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
 }
 /* ---------- 発音(端末の読み上げ機能) ---------- */
@@ -7837,7 +8021,7 @@ function judge(q, ok, k){
   else { r.w++; r.streak=0; r.due=true; quiz.wrong.push(q.w);
     if(quiz.timed) quiz.qs.splice(quiz.i+4, 0, makeQuestion(q.w)); }
   save(); render();
-  setTimeout(()=>$("#nextBtn")?.focus(),0);
+  setTimeout(()=>$("#nextBtn")?.focus({preventScroll:true}),0);
 }
 function next(){
   if(quiz.timed && quiz.i+1>=quiz.qs.length){
