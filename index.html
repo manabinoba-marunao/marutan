@@ -169,6 +169,183 @@ body{margin:0}
 [hidden]{display:none!important}
 .send{font-size:12px;color:var(--muted)}
 .send.ok{color:var(--ok)} .send.ng{color:var(--ng)}
+
+/* ============================================================
+   きせかえ(テーマ)— html[data-skin] で切り替え
+   ============================================================ */
+:root{--head:var(--ja);--r:14px;--rs:10px}
+.brand h1,h2,.score .n,.stat3 b,.dex-head b{font-family:var(--head)}
+.panel{border-radius:var(--r)}
+button,.set,.choice,.stat3,input[type=text],textarea{border-radius:var(--rs)}
+
+/* モノクロ */
+:root[data-skin="mono"]{
+  --bg:#FFFFFF; --surface:#FFFFFF; --ink:#111111; --muted:#666666; --line:#111111;
+  --accent:#111111; --accent-ink:#FFFFFF; --accent-soft:#EDEDED;
+  --marker:#DADADA; --ok:#2E7D4F; --ok-soft:#E5F2EA; --ng:#B3261E; --ng-soft:#F6E3E1;
+  --en:"Inter", "Helvetica Neue", Arial, sans-serif;
+  --ja:"BIZ UDPGothic", "Hiragino Sans", system-ui, sans-serif; --head:var(--ja);
+  --r:4px; --rs:4px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-skin="mono"]:not([data-theme="light"]){
+    --bg:#000000; --surface:#0B0B0B; --ink:#F2F2F2; --muted:#9A9A9A; --line:#F2F2F2;
+    --accent:#F2F2F2; --accent-ink:#000000; --accent-soft:#262626;
+    --marker:#4A4A4A; --ok:#7CCB95; --ok-soft:#10261A; --ng:#F08A80; --ng-soft:#2E1512;
+    color-scheme:dark;
+  }
+}
+[data-skin="mono"] .set,[data-skin="mono"] .stat3,[data-skin="mono"] .choice{border-color:var(--ink)}
+[data-skin="mono"] .tabs{border-bottom-width:2px;border-bottom-color:var(--ink)}
+[data-skin="mono"] .brand h1{letter-spacing:.18em}
+
+/* カラフル */
+:root[data-skin="color"]{
+  --bg:#FFF7E8; --surface:#FFFFFF; --ink:#1B1340; --muted:#5A4F7A; --line:#1B1340;
+  --accent:#E91E63; --accent-ink:#FFFFFF; --accent-soft:#FFE0EC;
+  --marker:#FFE234; --ok:#00875A; --ok-soft:#D6F7E8; --ng:#D81B3A; --ng-soft:#FFE0E4;
+  --en:"Rubik", "Arial Rounded MT Bold", sans-serif;
+  --ja:"M PLUS 1p", "Hiragino Sans", system-ui, sans-serif; --head:"Dela Gothic One", var(--ja);
+  --r:18px; --rs:12px; color-scheme:light;
+}
+[data-skin="color"] body{background:
+  radial-gradient(circle at 8% 4%, #FFD23F55 0 120px, transparent 121px),
+  radial-gradient(circle at 96% 14%, #18C8FF44 0 150px, transparent 151px),
+  radial-gradient(circle at 4% 70%, #7CE57744 0 130px, transparent 131px),
+  radial-gradient(circle at 92% 92%, #FF5DA244 0 160px, transparent 161px), var(--bg);background-attachment:fixed}
+[data-skin="color"] .panel{border-width:2px;box-shadow:6px 6px 0 #18C8FF;position:relative;overflow:hidden}
+[data-skin="color"] .panel::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:linear-gradient(90deg,#FF3D7F,#FFB000,#FFE234,#7CE577,#18C8FF,#8B5CF6)}
+[data-skin="color"] .brand h1{background:linear-gradient(90deg,#FF3D7F,#FF8A00,#00B37E,#1E88E5,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:400}
+[data-skin="color"] h2{font-weight:400}
+[data-skin="color"] button.primary{box-shadow:3px 3px 0 var(--ink)}
+[data-skin="color"] .set,[data-skin="color"] .choice,[data-skin="color"] .stat3{border-width:2px}
+
+/* ポップ(キッズ) */
+:root[data-skin="pop"]{
+  --bg:#E6F6FF; --surface:#FFFFFF; --ink:#1E2A5A; --muted:#55628F; --line:#B8D6EE;
+  --accent:#FF9F1C; --accent-ink:#1E2A5A; --accent-soft:#FFEACC;
+  --marker:#FFE066; --ok:#1E9450; --ok-soft:#DCF5E6; --ng:#E23B30; --ng-soft:#FFE1DE;
+  --en:"Fredoka", "Arial Rounded MT Bold", sans-serif;
+  --ja:"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif; --head:"Mochiy Pop One", var(--ja);
+  --r:24px; --rs:16px; color-scheme:light;
+}
+[data-skin="pop"] body{background:radial-gradient(#FFFFFF 3px, transparent 4px) 0 0/28px 28px, var(--bg)}
+[data-skin="pop"] .panel{border:3px solid var(--ink);box-shadow:0 6px 0 var(--ink)}
+[data-skin="pop"] button{border-width:2px;box-shadow:0 3px 0 var(--line)}
+[data-skin="pop"] button.primary{border-color:var(--ink);box-shadow:0 4px 0 var(--ink)}
+[data-skin="pop"] button:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+[data-skin="pop"] .tabs button,[data-skin="pop"] button.link{box-shadow:none}
+[data-skin="pop"] .brand h1{font-weight:400;color:#FF6B6B;text-shadow:3px 3px 0 #FFE066}
+[data-skin="pop"] h2{font-weight:400}
+
+/* かわいい */
+:root[data-skin="cute"]{
+  --bg:#FFF0F5; --surface:#FFFFFF; --ink:#5A3A4A; --muted:#956C80; --line:#F3C6D8;
+  --accent:#D64A82; --accent-ink:#FFFFFF; --accent-soft:#FFE1EC;
+  --marker:#FFCFE2; --ok:#2E8B62; --ok-soft:#E3F6EC; --ng:#D24963; --ng-soft:#FDE3E8;
+  --en:"Quicksand", "Avenir Next", sans-serif;
+  --ja:"Kiwi Maru", "Hiragino Maru Gothic ProN", system-ui, sans-serif; --head:"Hachi Maru Pop", var(--ja);
+  --r:26px; --rs:18px; color-scheme:light;
+}
+[data-skin="cute"] body{background:
+  radial-gradient(circle, #FFD1E3 2px, transparent 3px) 0 0/22px 22px,
+  radial-gradient(circle, #E7DBFF 2px, transparent 3px) 11px 11px/22px 22px, var(--bg)}
+[data-skin="cute"] .panel{border:2px dashed var(--line);box-shadow:0 8px 24px #F27BA81F}
+[data-skin="cute"] .brand h1{font-weight:400;color:var(--accent)}
+[data-skin="cute"] .brand h1::after{content:" ♡";font-size:.7em}
+[data-skin="cute"] h2{font-weight:400}
+
+/* きせかえボタン・パネル */
+.skinbtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px}
+.skinbtn i{width:14px;height:14px;border-radius:50%;background:conic-gradient(#FF3D7F,#FFB000,#7CE577,#18C8FF,#8B5CF6,#FF3D7F);display:inline-block}
+.skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.skin{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px;text-align:left}
+.skin[aria-pressed=true]{outline:3px solid var(--accent);outline-offset:1px}
+.skin .sw{height:54px;border-radius:8px;display:flex;align-items:flex-end;padding:6px;gap:4px;border:1px solid #0002}
+.skin .sw b{width:16px;height:16px;border-radius:50%;border:1px solid #0002}
+.skin .nm{font-weight:700;font-size:14px;line-height:1.3}
+.skin .ds{font-size:11px;color:var(--muted);line-height:1.4}
+
+/* タブ(4つ)を横スクロール可に */
+.tabs{overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;flex:none}
+
+/* まちがえた語 */
+.st-ok{color:var(--ok);font-weight:700;font-size:12px;white-space:nowrap}
+.st-ng{color:var(--ng);font-weight:700;font-size:12px;white-space:nowrap}
+.say.sm{width:30px;height:30px}
+
+/* 単語図鑑 */
+.dex-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dex-head b{font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.dex-head span{color:var(--muted);font-size:13px}
+.dex-tools{display:flex;flex-direction:column;gap:10px}
+.more{align-self:center;margin-top:6px}
+.abc{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px}
+.abc button{display:flex;flex-direction:column;align-items:center;padding:4px 0 3px;line-height:1.15;border-radius:var(--rs)}
+.abc button b{font-family:var(--en);font-size:16px}
+.abc button small{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+.abc button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.abc button[aria-pressed=true] small{color:var(--accent-ink);opacity:.85}
+.abc button.full:not([aria-pressed=true]){border-color:#E0B23A;background:#F6D55C33}
+.drs{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--rs);overflow:hidden}
+.dr{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--line);padding:8px 12px;background:var(--surface);min-height:56px;position:relative}
+.dr:last-child{border-bottom:none}
+.dr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--cc)}
+.dr .ic{font-size:28px;line-height:1;text-align:center}
+.dr .tx{display:flex;flex-direction:column;min-width:0}
+.dr .w{font-family:var(--en);font-weight:700;font-size:17px;line-height:1.3;word-break:break-word}
+.dr .m{font-size:13px;line-height:1.4;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr .rt{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.dr .rt small{font-size:10px;color:var(--muted);font-family:var(--en);font-variant-numeric:tabular-nums}
+.gotm{font-size:10px;font-weight:800;letter-spacing:.08em;color:#fff;background:var(--cc);border-radius:4px;padding:1px 6px}
+.dr.got,.dr.master{background:linear-gradient(90deg,color-mix(in srgb,var(--cc) 14%,var(--surface)),var(--surface) 70%)}
+.dr.master{background:linear-gradient(90deg,#F6D55C40,var(--surface) 70%)}
+.dr.seen .ic{filter:grayscale(1);opacity:.55}
+.dr.dark{background:color-mix(in srgb,var(--ink) 6%,var(--surface))}
+.dr.dark::before{background:var(--line)}
+.dr.dark .ic{filter:grayscale(1) brightness(0);opacity:.18}
+.dr.dark .w{color:var(--muted)}
+.dr.dark .m{color:var(--muted);letter-spacing:.2em;opacity:.7}
+.c-小学{--cc:#2E9E5B} .c-中学{--cc:#2F6FD6} .c-英検{--cc:#8B4FD8} .c-共通テスト{--cc:#D9562B}
+
+/* トレカ */
+.tcard{position:relative;border-radius:18px;padding:10px;background:var(--cc);color:#1B1B1F;box-shadow:0 10px 30px #0003;display:flex;flex-direction:column;gap:6px;max-width:360px;width:100%;align-self:center;font-family:var(--ja)}
+.tcard.master{background:linear-gradient(135deg,#F6D55C,#E0A82E 40%,#FFF1B8 55%,#D99A1E)}
+.tcard.off{background:#3A3F47}
+.tband{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em;padding:0 4px;font-family:var(--en)}
+.tcard.master .tband{color:#5A3B00}
+.tart{position:relative;border-radius:12px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,#FFFFFF 0,#FFFFFF 30%,color-mix(in srgb,var(--cc) 30%,#FFFFFF) 70%,color-mix(in srgb,var(--cc) 55%,#FFFFFF));border:3px solid #FFFFFFCC}
+.tart::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,#FFFFFF66 48%,transparent 60%);pointer-events:none}
+.tart .big{font-size:min(28vw,120px);line-height:1;filter:drop-shadow(0 6px 8px #0003)}
+.tart .maru{position:absolute;right:10px;bottom:10px;background:#FFFFFFDD}
+.tcard.off .tart{background:radial-gradient(circle at 50% 40%,#5B616B,#2A2E35);border-color:#4B515C}
+.tcard.off .tart::after{display:none}
+.tcard.off .big{filter:grayscale(1) brightness(0);opacity:.55}
+.tart .lock{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:12px;font-weight:700;color:#E5E7EB;letter-spacing:.05em}
+.tname{display:flex;align-items:center;gap:8px;background:#FFFFFFEE;border-radius:10px;padding:6px 10px}
+.tname .bigw{font-family:var(--en);font-size:26px;font-weight:700;line-height:1.2;flex:1;word-break:break-word;color:#1B1B1F}
+.tname .say{width:38px;height:38px;background:#fff;color:#1B1B1F;border-color:#0002}
+.tpos{font-size:11px;color:#fff;font-weight:700;padding:0 6px}
+.tcard.master .tpos{color:#5A3B00}
+.tsense{background:#FFFFFFEE;border-radius:10px;padding:8px 12px;font-size:15px;line-height:1.55;display:flex;flex-direction:column;gap:2px;color:#1B1B1F}
+.tsense .tag{color:#555;border-color:#0002}
+.tfoot{display:flex;justify-content:flex-end;gap:12px;font-size:11px;color:#fff;padding:0 6px}
+.tfoot b{font-variant-numeric:tabular-nums}
+.tcard.master .tfoot{color:#5A3B00}
+
+/* 詳細モーダル */
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+.sheet{background:var(--surface);color:var(--ink);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 18px 28px;display:flex;flex-direction:column;gap:12px;font-family:var(--ja)}
+@media (min-width:700px){.modal{align-items:center;padding:24px}.sheet{border-radius:20px}}
+.sheet .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sheet .bigw{font-family:var(--en);font-size:32px;font-weight:700;line-height:1.2;word-break:break-word}
+.sense{display:flex;gap:8px;align-items:baseline;font-size:16px}
+.sense .tag{flex:none}
+.recrow{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.recrow b{color:var(--ink);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -7584,26 +7761,196 @@ const ui = {view:"home", tab:"sets", course:null, group:null, selected:new Set()
 let timerId = null;
 let quiz = null;
 
+/* ---------- きせかえ ---------- */
+const SKINS = [
+  {id:"base",  name:"いつもの",   ds:"マル単の標準デザイン",       sw:["#F3F5F4","#0F5257","#F6D55C"], fonts:""},
+  {id:"mono",  name:"モノクロ",   ds:"白と黒だけ。シンプルに集中", sw:["#FFFFFF","#111111","#DADADA"], fonts:"family=Inter:wght@400;600;700&family=BIZ+UDPGothic:wght@400;700"},
+  {id:"color", name:"カラフル",   ds:"ド派手な色でテンション高め", sw:["#FFF7E8","#E91E63","#18C8FF","#FFE234"], fonts:"family=Rubik:wght@400;600;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One"},
+  {id:"pop",   name:"ポップ",     ds:"まるくて元気なキッズ風",     sw:["#E6F6FF","#FF9F1C","#FF6B6B","#FFE066"], fonts:"family=Fredoka:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One"},
+  {id:"cute",  name:"かわいい",   ds:"パステルでふんわり",         sw:["#FFF0F5","#D64A82","#E7DBFF","#FFCFE2"], fonts:"family=Quicksand:wght@500;700&family=Kiwi+Maru:wght@400;500&family=Hachi+Maru+Pop"}
+];
+const THEME_COLOR = {base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82"};
+const loadedFonts = new Set();
+function curSkin(){ return (ui.name && mem.users[ui.name]?.skin) || mem.skin || "base"; }
+function applySkin(){
+  const id = curSkin(), s = SKINS.find(x=>x.id===id) || SKINS[0];
+  if(s.fonts && !loadedFonts.has(id)){
+    loadedFonts.add(id);
+    const l = document.createElement("link"); l.rel="stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?"+s.fonts+"&display=swap";
+    document.head.appendChild(l);
+  }
+  if(s.id==="base") delete document.documentElement.dataset.skin; else document.documentElement.dataset.skin = s.id;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[s.id]);
+}
+function setSkin(id){
+  if(ui.name){ (mem.users[ui.name] ||= {rec:{}}).skin = id; }
+  mem.skin = id; save(); applySkin();
+}
+function viewSkinSheet(){
+  const cur = curSkin();
+  return `<div class="modal" data-act="closemodal"><div class="sheet" role="dialog" aria-modal="true" aria-label="きせかえ">
+    <div class="top"><h2 style="margin:0">きせかえ</h2><button class="link" data-act="closemodal">とじる</button></div>
+    <p class="note" style="margin:0">タップすると画面の色と文字のデザインが変わります。名前ごとに覚えておきます。</p>
+    <div class="skins">${SKINS.map(s=>`<button class="skin" aria-pressed="${s.id===cur}" data-act="skin" data-v="${s.id}">
+      <span class="sw" style="background:${s.sw[0]}">${s.sw.slice(1).map(c=>`<b style="background:${c}"></b>`).join("")}</span>
+      <span class="nm">${s.name}${s.id===cur?"　✓":""}</span><span class="ds">${s.ds}</span></button>`).join("")}</div>
+  </div></div>`;
+}
+
 function user(){ return ui.name ? (mem.users[ui.name] ||= {rec:{}}) : null; }
 function rec(key){ const u = user(); return (u.rec[key] ||= {c:0, w:0, streak:0, due:false}); }
 function isDue(key){ const r = user()?.rec[key]; return !!(r && r.due); }
 function isMastered(key){ const r = user()?.rec[key]; return !!(r && r.c>0 && !r.due); }
+function missAll(){ const u=user(); return u ? allWords.filter(w=>u.rec[w.key]?.w>0) : []; }
+
+/* ---------- 単語図鑑(辞書)— 同じつづりの語は1枚のカードにまとめる ---------- */
+/* 図鑑のイラスト(単語ごとに意味に合う絵文字) */
+const EMOJI = {"a":"1️⃣","a big fan of 〜":"🤩","a box of 〜":"📦","a bucket of water":"🪣","a couple of 〜":"✌️","a dream come true":"🌠","a few":"🤏","a few 〜":"🤏","a foreign language":"🗣️","a great way to 〜":"👍","a high school":"🏫","a junior high school":"🏫","a little":"🤏","a little 〜":"🤏","a lot of":"🧺","a lot of 〜":"🧺","a pair of 〜":"🧦","a picture of 〜":"🖼️","a piece of 〜":"🧩","a variety of":"🌈","a.m.":"🌅","abandon":"🗑️","abandoned":"🏚️","abide by":"📏","ability":"💪","able":"💪","about":"💬","about 〜":"💬","above":"⬆️","abroad":"✈️","absorb":"🧽","absorbed in":"🎧","abundant":"🌾","accelerate":"🏎️","accept":"🤝","access":"🚪","accessible":"🔓","accident":"💥","accommodation":"🏨","according":"📰","according to":"📰","accordingly":"🔁","account for":"🧾","accountability":"📋","accurate":"🎯","achieve":"🏆","achievement":"🏅","acquire":"🎁","across":"↔️","act":"🎭","act out":"🎭","action":"🎬","active":"🏃","actively":"🙋","activity":"⚽","actor":"🎭","actual":"✅","actually":"💡","adapt":"🦎","adapt to":"🦎","add":"➕","addition":"➕","additional":"➕","additionally":"➕","address":"🏠","adequate":"👌","adhere to":"📏","adjacent":"🏘️","admire":"😍","adopt":"🙋","adult":"🧑","advanced":"🎓","advantage":"⭐","adventure":"🗺️","adventurer":"🧗","adverse":"⚠️","advertising":"📢","advice":"💡","advocate":"📣","affect":"🌊","affluence":"💰","afford":"💴","affordable":"🏷️","afraid":"😨","africa":"🌍","after":"⏭️","after 〜":"⏭️","after all":"🤷","after school":"🎒","aftereffect":"🩹","afternoon":"🌤️","again":"🔁","again and again":"🔁","against":"🥊","age":"🎂","agency":"🏢","aggressive":"😠","ago":"⏪","〜 ago":"⏪","agree":"👍","agriculture":"🚜","ah":"😮","ahead":"⬆️","ai":"🤖","aim":"🎯","air":"💨","air conditioner":"❄️","airplane":"✈️","airport":"🛫","album":"📔","alert":"👀","alive":"🌱","all":"💯","all day":"🕛","all day long":"🕛","all of 〜":"💯","all over the world":"🌏","all right":"👌","all right.":"👌","all-around":"🤹","alleviate":"🩹","allocate":"🍰","allow":"🙆","almost":"🔜","aloha":"🌺","alone":"🧍","along":"🛤️","already":"✅","also":"➕","alter":"🔄","alternative":"🔀","although":"🔀","always":"♾️","am":"🙋","am 〜":"🙋","amazing":"🤩","ambiguous":"🌫️","ambulance":"🚑","america":"🇺🇸","american":"🇺🇸","ammonia":"🧪","among":"👥","amount":"⚖️","amusement":"🎡","amusement park":"🎢","an":"1️⃣","an opportunity to 〜":"🚪","analyze":"🔬","ancestor":"👴","ancient":"🏛️","and":"➕","〜 and so on":"💬","〜 and under":"⬇️","比較級 and 比較級":"📈","angle":"📐","angry":"😠","animal":"🐾","animation":"🎞️","anime":"📺","ankle":"🦶","anniversary":"🎉","announce":"📢","announcement":"📢","annoyed":"😤","annual":"📅","another":"➕","answer":"🙋","ant":"🐜","anxiety":"😰","anxious":"😰","any":"❓","any kind of 〜":"🎨","anymore":"🚫","anyone":"👥","anyone who 〜":"👥","anything":"❓","anytime":"🕐","anyway":"🤷","anywhere":"🗺️","apologize":"🙇","apparent":"👀","appear":"✨","apple":"🍎","application":"📱","apply":"📝","appointment":"📅","appreciate":"🙏","approach":"🛣️","appropriate":"👌","approve":"✅","approximately":"〰️","apricot":"🍑","april":"🌸","apron":"👩‍🍳","aquarium":"🐠","arbitrary":"🎲","archery":"🏹","are":"👥","are 〜":"👥","are they?":"❓","area":"🗺️","argue":"🗣️","argument":"🗣️","arm":"💪","around":"🔄","around the world":"🌏","arrange":"📋","arrangement":"💐","arrest":"🚓","arrive":"🏁","art":"🎨","art club":"🎨","article":"📰","artificial":"🤖","artist":"👩‍🎨","artistic swimming":"🏊","arts and crafts":"✂️","arts and crafts room":"✂️","artwork":"🖼️","as":"🟰","as 〜":"🟰","as …":"🟰","as a result":"➡️","as long as":"⏳","as soon as":"⚡","as soon as possible":"⚡","asia":"🌏","ask":"🙋","ask question(s) of 〜":"❓","ask 人 to v":"🙏","asleep":"😴","aspect":"💎","assign":"📋","assist":"🤝","associate a with b":"🔗","associated with":"🔗","astronaut":"👨‍🚀","astronomy club":"🔭","at":"📍","at 〜":"📍","at any time":"🕐","at first":"1️⃣","at home":"🏠","at last":"🏁","at least":"⬇️","at night":"🌙","at school":"🏫","at stake":"⚠️","at sunrise and sunset":"🌅","at that time":"🕰️","at the moment":"⏱️","at the same time":"⏱️","at university":"🎓","at your age":"🎂","ate":"🍽️","athlete":"🏃","athletics":"🏃","atmosphere":"🌍","atomic":"⚛️","atomic bomb":"💥","attach":"📎","attack":"⚔️","attacker":"⚔️","attend":"🙋","attention":"👀","attract":"🧲","attractive":"✨","audience":"👏","audio":"🔊","august":"🌻","aunt":"👩","australia":"🇦🇺","author":"✍️","authority":"👮","autobiography":"📖","automatically":"🤖","autumn":"🍁","autumn festival":"🏮","available":"✅","average":"📊","avocado":"🥑","avoid":"🙅","award":"🏆","away":"👋","awesome":"🤩","awful":"😖","baby":"👶","baby stroller":"👶","back":"🔙","back up":"🤝","backpacker":"🎒","bacon":"🥓","bad":"👎","bad news":"📰","badminton":"🏸","bag":"👜","bagpipes":"🎶","bake":"🍞","baked potatoes":"🥔","baker":"👨‍🍳","bakery":"🥐","balance":"⚖️","ball":"⚽","ball game tournament":"🏐","balloon":"🎈","bamboo":"🎋","ban":"🚫","banana":"🍌","band":"🎸","bank":"🏦","bar":"🍫","barbecue":"🍖","barrier":"🚧","base":"🏗️","baseball":"⚾","baseball bat":"⚾","baseball player":"⚾","based on":"🧱","basket":"🧺","basketball":"🏀","bat":"🦇","bath":"🛁","bathing":"🛁","bathroom":"🚽","battery":"🔋","be":"🟰","be able to":"💪","be able to afford":"💴","be about to":"⏳","be about to 〜":"⏳","be accustomed to":"🛋️","be affected by 〜":"🌊","be afraid of":"😨","be angry to 〜":"😠","be aware of":"💡","be back":"🔙","be based on":"🧱","be busy with":"🏃","be capable of":"💪","be careful":"⚠️","be cloudy":"☁️","be coming soon":"🔜","be committed to 〜":"🔥","be concerned about":"😟","be concerned that":"😟","be different from":"🔀","be done":"✅","be dropped on 〜":"⬇️","be exposed to 〜":"☀️","be familiar with 〜":"🤓","be famous for":"🌟","be famous for 〜":"🌟","be fascinated by":"😍","be from":"🏡","be full of":"🈵","be full of 〜":"🈵","be glad to 〜":"😊","be going to 〜":"➡️","be good at":"👍","be good at 〜":"👍","be in charge of":"🧑‍💼","be in love":"💕","be in the 〜 club":"🏸","be in trouble":"😣","be interested in":"🤔","be interested in 〜":"🤔","be into 〜":"🎮","be involved with":"🤝","be kind to":"🤗","be late for":"⏰","be likely to":"📈","be likely to 〜":"📈","be made from 〜":"🍇","be made of 〜":"🪵","be on fire":"🔥","be on one's side":"🤝","be on the 〜 team":"👕","be placed in 〜":"📍","be proud of":"😌","be rainy":"🌧️","be ready for":"✅","be responsible for":"🧑‍💼","be satisfied with":"😊","be scared of 〜":"😱","be sensitive to":"🌡️","be sick in bed":"🤒","be sunny":"☀️","be supposed to":"📋","be surprised":"😲","be surprised at":"😲","be tired of":"😩","be used to 〜ing":"🛋️","be worried about":"😟","be worried that":"😟","beach":"🏖️","bean":"🫘","bear":"🐻","beat":"🥁","beautiful":"🌸","beautifully":"🌸","beauty":"💐","became":"🦋","because":"💡","because 〜":"💡","because of":"💡","become":"🦋","become crazy about 〜":"🤩","bed":"🛏️","bedroom":"🛏️","bee":"🐝","beef":"🥩","beefsteak":"🥩","been":"🟰","before":"⏮️","before 〜":"⏮️","before 〜ing":"⏮️","before long":"🔜","beforehand":"📝","began":"🚦","begin":"🚦","begin to 〜":"🚦","beginner":"🔰","beginning":"🌱","behave":"🙇","behavior":"🚶","behind":"🔙","belgium":"🇧🇪","believe":"🙏","believe in 〜":"🙏","bell":"🔔","belong":"👥","belong to":"👥","belong to 〜":"👥","belongings":"🎒","below":"⬇️","belt":"👖","bench":"🪑","beneficial":"👍","benefit":"🎁","beside":"👫","besides":"➕","best":"🥇","better":"📈","between":"↔️","beyond":"🌄","bicycle":"🚲","big":"🐘","bike":"🚲","bill":"💵","billion":"🔢","biological":"🧬","bird":"🐦","birthday":"🎂","biscuit":"🍪","bit":"🦷","bite":"🦷","bitter":"☕","black":"⚫","black-and-white":"🐼","blackboard":"👨‍🏫","blame":"👉","blank":"📄","blanket":"🛌","blender":"🥤","blew":"💨","blind":"🦯","block":"🧱","bloom":"🌸","blow":"💨","blow down 〜":"🌪️","blow up":"💥","blown":"💨","blue":"🔵","board":"📋","boarding":"🛫","boarding time":"🎫","boat":"🚤","body":"🧍","boil":"♨️","boil down to":"🎯","boiled":"🍲","boiled egg":"🥚","bolivia":"🇧🇴","bomb":"💣","bombing":"💣","book":"📕","bookstore":"📚","boom":"💥","boost":"🚀","boots":"👢","border":"🚧","bored":"🥱","boring":"🥱","born":"👶","borrow":"🤲","botanical garden":"🌿","both":"✌️","both sides":"↔️","bottle":"🍾","bottom":"⬇️","bought":"🛍️","bowl":"🥣","box":"📦","boxing":"🥊","boy":"👦","braille":"👆","braille block":"🦯","brain":"🧠","branch":"🏢","brass band":"🎺","brave":"🦁","bravely":"🦁","brazil":"🇧🇷","bread":"🍞","break":"💔","break a record":"🏅","break between classes":"☕","break down":"🛠️","break into pieces":"💔","break out":"🚨","break the tie":"🏆","breakfast":"🍳","breast":"🫁","breast cancer":"🎗️","breathe":"🌬️","bridge":"🌉","bright":"🔆","bring":"🤲","bring about":"⚙️","bring in 〜":"📥","british":"🇬🇧","broadcast":"📡","broadcasting club":"🎙️","broaden":"↔️","broccoli":"🥦","brochure":"📑","broke":"💔","broken":"💔","brother":"👦","brought":"🤲","brown":"🟤","brush":"🪥","brush aside":"🙅","brush my teeth":"🪥","brush up on":"✨","bucket":"🪣","bud":"🌱","budget":"💰","buffalo":"🦬","build":"🏗️","building":"🏢","built":"🏗️","bully":"😢","bump":"⛰️","bungee jump":"🪂","burden":"🎒","burn":"🔥","bus":"🚌","bus driver":"🚌","bus stop":"🚏","business":"💼","busy":"🏃","but":"🔀","button":"🔘","buy":"🛒","by":"👤","by 〜":"👤","by 〜ing":"🛠️","by and large":"🌐","by chance":"🎲","by the way":"💭","bye":"👋","cabbage":"🥬","cafe":"☕","cafeteria":"🍱","cake":"🍰","calculate":"🧮","calendar":"📅","call":"📞","call for":"📣","call off":"❌","calligraphy":"🖌️","calm":"😌","came":"🚶","camel":"🐫","camera":"📷","camp":"🏕️","campaign":"📣","camping":"🏕️","camping tent":"⛺","can":"💪","can 〜":"💪","can i 〜?":"🙋","can you 〜?":"🙏","canada":"🇨🇦","cancel":"❌","cancer":"🎗️","candle":"🕯️","candy":"🍬","candy apple":"🍎","cane":"🦯","cannot":"🙅","canoe":"🛶","cap":"🧢","capable":"💪","capacity":"🏟️","captain":"🧑‍✈️","car":"🚗","carbon dioxide":"🏭","card":"🃏","care":"🤲","care for 〜":"🤲","career":"💼","careful":"⚠️","carefully":"🔍","caregiver":"🧑‍⚕️","carnivorous":"🦖","carpenter":"🔨","carrot":"🥕","carry":"📦","carry out":"✅","carry out 〜":"✅","case":"🗂️","castle":"🏯","cat":"🐱","catastrophe":"🌋","catch":"🧤","catch up with":"🏃","caught":"🧤","cause":"⚙️","cd":"💿","ceiling":"⬆️","celebrate":"🎉","celebrity":"🌟","cell":"🔲","cellphone":"📱","center":"🎯","central":"🎯","century":"💯","ceremony":"🎎","certainly":"✅","chain":"⛓️","chain reaction":"🔗","chair":"🪑","challenge":"🧗","chamomile":"🌼","championship":"🏆","chance":"🍀","change":"🔄","change my mind":"💭","change to 〜":"🚉","character":"🧙","characteristic":"🔖","charcoal":"⚫","charge":"🔌","charity":"💝","charm":"🧿","chart":"📊","chat":"💬","cheap":"🏷️","check":"✔️","check out":"🔍","cheer":"📣","cheer 〜 on":"📣","cheer up":"😄","cheerful":"😄","cheese":"🧀","cheesecake":"🍰","chef":"👨‍🍳","chemical":"🧪","chemistry":"⚗️","cherish":"💖","cherry":"🍒","cherry blossom":"🌸","chest":"🫁","chestnut":"🌰","chew":"😋","chicken":"🐔","chicken rice":"🍛","child":"🧒","childhood":"🧸","children":"👧","children's day":"🎏","chile":"🇨🇱","china":"🇨🇳","chinatown":"🏮","chinese":"🀄","chip":"🥔","chocolate":"🍫","choice":"☑️","choose":"👆","chopstick":"🥢","choreograph":"💃","choreographer":"💃","chorus club":"🎵","chorus contest":"🎶","chose":"👆","chosen":"👆","christmas":"🎄","church":"⛪","circle":"⭕","citizen":"🧑‍🤝‍🧑","city":"🏙️","city hall":"🏛️","civil":"🏛️","civil servant":"🧑‍💼","civil war":"⚔️","civilization":"🏛️","claim":"🗣️","clap":"👏","class":"🧑‍🏫","classically-trained":"🎻","classmate":"🧑‍🤝‍🧑","classroom":"🏫","clean":"🧹","clean the classroom":"🧹","cleaned":"🧹","clear":"☀️","clearly":"🔍","clerk":"🧑‍💼","clever":"🧠","climate":"🌦️","climate change":"🌡️","climb":"🧗","climber":"🧗","climbing":"🏔️","clock":"🕰️","clock tower":"🕰️","close":"🚪","closed":"🔒","closely":"🔎","closet":"👔","cloth":"🧵","clothes":"👕","cloud":"☁️","cloudy":"☁️","club":"🏸","coach":"📣","coal":"⛏️","coat":"🧥","code":"🔣","coded":"🔐","coffee":"☕","coin":"🪙","cola":"🥤","cold":"🥶","collect":"🧺","collection":"🗃️","college":"🎓","collision":"💥","colonize":"🚩","color":"🎨","color usage":"🎨","colored pencil":"🖍️","colorful":"🌈","combine":"🧩","come":"👋","come across":"👀","come along":"🚶","come back":"🔙","come down with":"🤒","come from 〜":"🏡","come home":"🏠","come in":"🚪","come out":"🐣","come out of 〜":"🐣","come to an end":"🔚","come true":"🌠","come up with":"💡","come up with 〜":"💡","comedian":"🎤","comedy":"😂","comfort":"🤗","comfortable":"🛋️","comforting":"☕","comic":"💭","comic book":"📖","commemorate":"🗿","commercial":"💹","commit":"🔥","committee":"👥","common":"🤝","communicate":"💬","communication":"💬","community":"🏘️","community service":"🙋","company":"🏢","compare":"⚖️","compare a to b":"⚖️","compasses":"📐","compensate":"💴","compensation":"💴","competition":"🏁","complain":"😤","complete":"💯","complex":"🧩","complicated":"🧶","comply":"🙆","composition":"🖼️","comprehensive":"🌐","compulsory":"📌","computer":"💻","computer room":"🖥️","concentrate":"🎯","concern":"😟","concerned":"😟","concert":"🎤","concert hall":"🎻","conclusion":"🏁","condition":"🩺","conditioner":"🎛️","conduct":"📋","conference":"🧑‍💼","confidence":"😎","confident":"😎","conflict with":"⚡","confused":"😵‍💫","confusing":"🌀","connect":"🔗","conquer":"🚩","consciousness":"💭","consensus":"🤝","consequently":"➡️","consider":"🤔","considerable":"📈","conspicuous":"🚨","construction":"🏗️","consume":"🍽️","consumer":"🛒","contact":"📞","contamination":"☣️","content":"📄","contest":"🏅","continent":"🌍","continue":"⏩","continue 〜ing":"⏩","continuing":"⏩","contribute":"🤲","contribute to":"🤲","control":"🎮","controversy":"🗯️","convenience store":"🏪","convenient":"👍","conversation":"💬","convince":"🗣️","cook":"🍳","cooked":"🍳","cookie":"🍪","cooking":"🍳","cooking room":"🍳","cool":"😎","cool.":"😎","cooperation":"🤝","cope with":"🛠️","copy":"📠","corn":"🌽","corn soup":"🥣","corner":"📐","correct":"⭕","cost":"💴","costume":"👘","cotton candy":"🍭","could":"💪","could you 〜?":"🙏","count":"🔢","counter":"🛎️","country":"🗾","couple":"💑","coupon":"🎟️","courage":"🦁","course":"✅","court":"🏟️","cousin":"👫","cover":"☂️","cow":"🐄","cowardly":"🐔","crack down on":"👮","craft":"🧶","crane":"🕊️","crayon":"🖍️","crazy":"🤪","cream cheese":"🧀","create":"🎨","creation":"✨","creative":"💡","creature":"🐾","crew":"👷","critic":"🧐","critical":"❗","criticism":"👎","crop":"🌾","cross":"🚸","crossing":"🚦","crowd":"👥","crowded":"🚃","cruise":"🛳️","cry":"😭","cucumber":"🥒","cuff":"👔","cuisine":"🍽️","cultural":"🎎","culture":"🎎","cup":"☕","cupcake":"🧁","curator":"🖼️","curb":"🛑","curious":"🧐","curling":"🥌","current":"🆕","currently":"⏱️","curry":"🍛","curry and rice":"🍛","curse":"🪄","custom":"🎎","customer":"🛍️","cut":"✂️","cut down 〜":"🪓","cut down on":"📉","cute":"🥰","cutout":"✂️","cyborg":"🦾","cycling":"🚴","cyclone":"🌀","3-d art":"🧊","dad":"👨","daily":"📆","dam":"🏞️","damage":"💥","damaged":"🏚️","dance":"💃","dancer":"🕺","dancing":"💃","danger":"⚠️","dangerous":"☠️","dark":"🌑","data":"📊","date":"📅","daughter":"👧","day":"☀️","day-at-work program":"👷","dead":"🥀","deal":"🤝","deal with":"🛠️","deal with 〜":"🤝","dealt":"🤝","dear":"💌","death":"🥀","debate":"🗣️","debris":"🧱","deceive":"🎭","december":"🎄","decide":"✅","decide on":"✅","decide to 〜":"✊","decision":"⚖️","decline":"📉","decorate":"🎀","decoration":"🎊","decrease":"📉","deed":"🙌","deep":"🌊","deer":"🦌","deficit":"📉","degree":"🌡️","delicious":"😋","deliver":"🚚","demand":"📈","demonstrate":"🧪","denmark":"🇩🇰","dentist":"🦷","department":"🏬","department store":"🏬","depend":"🤲","depend on":"🤲","deplete":"🪫","depressed":"😞","depression":"😞","derive":"⛲","describe":"📝","desert":"🏜️","desert climate":"🏜️","design":"✏️","designer":"✏️","desk":"🗃️","despite":"💪","dessert":"🍮","destination":"🏁","destroy":"💥","destruction":"💥","destructive":"💣","detail":"🔍","detect":"📡","detective":"🕵️","deteriorate":"📉","determine":"⚖️","detrimental":"☠️","develop":"🛠️","developing":"🌱","developing country":"🌱","device":"📱","devote":"🙌","devote oneself to 〜":"🙌","diagram":"📈","diamond":"💎","diary":"📓","dice":"🎲","dictionary":"📖","did":"✅","die":"🥀","die from 〜":"🥀","differ":"🔀","difference":"🔀","different":"🔀","difficult":"🧗","difficulty":"🧗","dig":"⛏️","diligent":"📚","diminish":"📉","dinner":"🍽️","direction":"🧭","directly":"➡️","dirty":"💩","disability":"♿","disabled":"♿","disadvantage":"👎","disagree":"🙅","disappear":"💨","disappointed":"😞","disaster":"🌪️","discard":"🗑️","discipline":"📏","discount":"🏷️","discourage a from 〜ing":"😔","discover":"🔍","discovery":"💡","discrepancy":"❓","discuss":"🗣️","discussion":"🗣️","disease":"🦠","dish":"🍽️","display":"🖼️","dispute":"🗯️","disrupt":"🌀","district":"🗺️","disturb":"🙉","dive":"🤿","divide":"➗","diving":"🤿","dizzy":"😵‍💫","do":"✊","do away with":"🗑️","do my homework":"📝","do one's homework":"📝","do volunteer work":"🙋","doctor":"🧑‍⚕️","dodgeball":"🏐","does":"✊","dog":"🐶","doll":"🪆","doll's festival":"🎎","dollar":"💵","dolphin":"🐬","dome":"🏟️","domestic":"🏠","don't have to 〜":"🙆","don't worry.":"😌","donate":"💝","done":"✅","donut":"🍩","door":"🚪","dormice":"🐭","dormouse":"🐭","dot":"⚫","double":"✖️","doubt":"🤨","down":"⬇️","draft":"📝","dragon":"🐉","drama":"🎭","drama club":"🎭","drama festival":"🎭","drank":"🥤","draw":"✏️","draw attention to":"🔦","draw pictures":"🖍️","drawback":"👎","drawing":"🖍️","dream":"💭","dress":"👗","drew":"✏️","dried":"☀️","drink":"🥤","drink tea":"🍵","drinking":"🚰","drinking water":"🚰","drive":"🚗","driver":"🧑‍✈️","drop":"💧","drop out of":"🚪","drought":"🏜️","drum":"🥁","drummer":"🥁","dry":"🏜️","duck":"🦆","due":"📅","dull":"😑","during":"⏳","during each throw":"🥌","dust":"🌫️","dutch":"🇳🇱","dvd":"📀","dying":"🥀","e-mail":"📧","each":"☝️","each other":"🤝","eagerly":"🤩","eagle":"🦅","ear":"👂","early":"🐓","earth":"🌏","earthquake":"🫨","easily":"👌","east":"➡️","easy":"👌","easygoing":"😌","eat":"🍽️","eat breakfast":"🍳","eat dinner":"🍽️","eat lunch":"🍱","eaten":"🍽️","eco-friendly":"♻️","economy":"💹","edge":"📐","edo period":"🏯","educate":"🧑‍🏫","education":"🎓","educational":"📚","effect":"✨","effective":"🎯","efficient":"⚡","efficiently":"⚡","effort":"💦","egg":"🥚","eggplant":"🍆","egypt":"🇪🇬","eight":"8️⃣","eighteen":"🔢","eighteenth":"🔢","eighth":"8️⃣","eighty":"🔢","either":"🤷","elderly":"👵","electric":"⚡","electrically":"⚡","electricity":"⚡","electronic":"💻","element":"🧩","elementary":"🔰","elementary school":"🏫","elephant":"🐘","elevator":"🛗","eleven":"🔢","eleventh":"🔢","eligible":"🎫","eliminate":"❌","else":"➕","email":"📧","embarrassed":"😳","emergency":"🚨","emergency exit":"🚪","emergency food":"🥫","emission":"🏭","emit":"🏭","emotion":"😊","emotional":"🥹","emphasize":"❗","employee":"🧑‍💼","empty":"🫙","encourage":"📣","end":"🔚","ending":"🔚","endorse":"👍","energy":"⚡","enforce":"👮","engage in":"🤝","engineer":"👷","english":"🔤","english teacher":"🧑‍🏫","enhance":"📈","enjoy":"😄","enjoy 〜ing":"😄","enjoy skiing":"⛷️","enjoy themselves":"🥳","enjoyed":"😄","enormous":"🐋","enormously":"🐋","enough":"👌","enrich":"💎","ensure":"🔒","enter":"🚪","entrance":"🚪","entrance ceremony":"🌸","entrance hall":"🚪","entry":"📝","environment":"🌳","environmental":"🌳","envy":"😒","equal":"🟰","equipment":"🧰","eraser":"🧽","escape":"🏃","especially":"⭐","essential":"🔑","establish":"🏗️","estimate":"🧮","europe":"🇪🇺","european":"🇪🇺","evaluate":"⚖️","eve":"🌃","even":"😮","even if 〜":"🌧️","evening":"🌆","event":"🎪","eventually":"🏁","ever":"❓","every":"🔁","every day":"📆","everybody":"👨‍👩‍👧‍👦","everyday":"📆","everyone":"👨‍👩‍👧‍👦","everything":"🌐","everywhere":"🌍","evidence":"🔍","evident":"👀","evil":"😈","exactly":"🎯","exaggerate":"🎈","exaggerated":"🎈","exam":"📝","examine":"🔬","example":"💡","excellent":"💯","exception":"⚠️","exchange":"🔄","exchange student":"🧑‍🎓","excited":"🤩","exciting":"🎢","excuse":"🙏","excuse me.":"🙋","exempt":"🆓","exercise":"🏋️","exhibit":"🖼️","exist":"🌱","exit":"🚪","expand":"↔️","expect":"🤞","expensive":"💎","experience":"🧗","experiment":"🧪","expert":"🧑‍🔬","explain":"🧑‍🏫","explanation":"💬","explode":"💥","exploit":"⛏️","exploration":"🔭","explore":"🧭","explorer":"🧭","expo":"🎪","expose":"☀️","exposed":"☀️","express":"🗣️","expression":"😀","extend":"↔️","extinction":"🦤","extraordinary":"🌟","extreme":"🔥","eye":"👁️","face":"🙂","face-to-face":"👥","facial":"🙂","facility":"🏢","fact":"✅","factory":"🏭","fail":"❌","failure":"❌","faint":"🌫️","fair":"⚖️","fairy":"🧚","fake":"🎭","fall":"🍂","fall festival":"🏮","fall off":"⬇️","fall over":"🤕","fall through":"💨","fame":"🌟","familiar":"🤓","family":"👨‍👩‍👧‍👦","famous":"🌟","fan":"📣","fantastic":"🤩","fantasy":"🦄","far":"🔭","far away":"🔭","faraway":"🏝️","farm":"🚜","farmer":"🧑‍🌾","farming":"🌾","fascinate":"😍","fast":"💨","fastball":"⚾","fat":"🐷","fatality":"🥀","father":"👨","faucet":"🚰","favorite":"❤️","feasible":"✅","feather":"🪶","feature":"📰","february":"⛄","fee":"💴","feed":"🐟","feel":"💗","feel at home":"🛋️","feel like 〜":"💭","feeling":"💗","feet":"🦶","fell":"🍂","felt":"💗","female":"♀️","fence":"🚧","ferris wheel":"🎡","festival":"🎆","fever":"🤒","few":"🤏","fiction":"📖","field":"🌾","field trip":"🚌","fifteen":"🔢","fifteenth":"🔢","fifth":"5️⃣","fifty":"🔢","fight":"🥊","fighter":"🥷","figure":"🗿","figure out":"💡","figure skater":"⛸️","file":"📁","fill":"🫗","fill 〜 with …":"🫗","fill in for":"🔁","film":"🎬","final":"🏁","final game":"🏆","finally":"🏁","financial":"💰","find":"🔍","find out":"🔍","fine":"☀️","finger":"☝️","finish":"🏁","finish 〜ing":"🏁","finland":"🇫🇮","fire":"🔥","fire drill":"🚒","fire fighter":"🧑‍🚒","fire off 〜":"🚀","fire station":"🚒","firefighter":"🧑‍🚒","firework":"🎆","fireworks":"🎆","fireworks festival":"🎇","first":"🥇","fish":"🐟","fisherman":"🎣","fishing":"🎣","fishing kit":"🎣","fishway":"🐟","fit":"🧩","five":"5️⃣","five minutes before 〜":"⏰","fix":"🔧","flash":"⚡","flat":"➖","flavor":"👅","flexible":"🤸","flight":"✈️","flight attendant":"✈️","floor":"🏢","florist":"💐","flow":"🌊","flower":"🌷","flower shop":"💐","flowering":"🌼","fluctuation":"📈","flute":"🎶","flute case":"🎶","fly":"🕊️","fly up in the air":"🎈","focus":"🎯","focus on":"🎯","focus on 〜":"🎯","focused":"🎯","fold":"🦢","folk":"🪕","follow":"👣","follower":"👥","food":"🍙","food court":"🍔","foolish":"🤪","foot":"🦶","football":"🏈","football 5-a-side":"⚽","for":"🎁","for 〜":"🎁","for a long time":"⏳","for a while":"⏳","for dessert":"🍮","for emergencies":"🎒","for example":"💡","for free":"🆓","for instance":"💡","for personal use":"🙋","for the first time":"🆕","forecast":"🌦️","foreign":"🌐","foreigner":"🧳","forest":"🌲","forever":"♾️","forget":"🤔","forgot":"🤔","fork":"🍴","form":"📝","former":"⏪","fortune":"🔮","forty":"🔢","forum":"🗣️","forward":"⏩","fossil":"🦴","foster":"🌱","found":"🔍","founder":"🏗️","fountain":"⛲","fountain pen":"🖋️","four":"4️⃣","fourteen":"🔢","fourteenth":"🔢","fourth":"4️⃣","fox":"🦊","fraction":"🍕","fragile":"🥚","frame":"🖼️","france":"🇫🇷","frayed":"🧵","free":"🆓","freedom":"🕊️","freely":"🕊️","french":"🥖","french fries":"🍟","french-speaking country":"🇫🇷","frequent":"🔁","frequently":"🔁","fresh":"🥬","freshwater":"🏞️","friday":"📅","fried chicken":"🍗","fried garlic":"🧄","fried rice":"🍚","friend":"🧑‍🤝‍🧑","friendly":"😊","friendship":"🤝","frightened":"😱","frog":"🐸","from":"⬅️","from 〜":"⬅️","from a to b":"↔️","from home":"🏠","from now on":"⏩","from place to place":"🗺️","from the top":"🏔️","front":"⬆️","fruit":"🍇","fruit shop":"🍓","frustrated":"😤","fuel":"⛽","fulfillment":"😊","full":"🈵","full moon":"🌕","fully":"💯","fully booked":"🈵","fun":"🎉","funny":"😂","furniture":"🛋️","further":"➕","furthermore":"➕","future":"🔮","game":"🎮","game creator":"🎮","garbage":"🗑️","garden":"🏡","garlic":"🧄","gas":"🔥","gas station":"⛽","gate":"⛩️","gate to 〜":"⛩️","gather":"👥","gave":"🎁","generally":"🌐","generate":"⚡","generation":"👪","gentle":"🕊️","gentleman":"🎩","german":"🇩🇪","germany":"🇩🇪","gesture":"👐","get":"🎁","get a 〜% discount":"🏷️","get a discount":"🏷️","get along with":"🤝","get back":"🔙","get back to 〜":"🔙","get down from 〜":"⬇️","get here":"📍","get home":"🏠","get in touch with 〜":"📞","get into trouble":"😣","get off":"🚏","get on":"🚌","get rid of":"🗑️","get sick":"🤒","get to":"📍","get to 〜":"📍","get up":"⏰","get up late":"😪","get used to":"🛋️","ghana":"🇬🇭","giant":"🦕","gift":"🎁","giraffe":"🦒","girl":"👧","give":"🎁","give a high five":"🙌","give a presentation":"📊","give a speech":"🎤","give a tour to 〜":"🚩","give up":"🏳️","glad":"😊","glass":"🥛","glasses":"👓","global":"🌍","global warming":"🌡️","glove":"🧤","gloves":"🧤","glue stick":"🧴","go":"🚶","go 〜ing":"🚶","go abroad":"✈️","go bag":"🎒","go green":"♻️","go home":"🏠","go into 〜":"🚪","go on a trip":"🧳","go shopping":"🛍️","go straight.":"⬆️","go to bed":"🛏️","go to school":"🏫","go to the library":"📚","go to the park":"🌳","go up":"⬆️","goal":"🥅","goalball":"🔔","goat":"🐐","gold":"🥇","golden":"✨","golf":"⛳","gone":"💨","good":"👍","good afternoon.":"🌤️","good evening.":"🌆","good luck charm":"🧿","good luck.":"🍀","good morning.":"🌞","good night.":"🌙","goodbye.":"👋","goods":"🛍️","gorilla":"🦍","got":"🎁","government":"🏛️","grade":"💯","gradually":"📶","graduate":"🎓","graduation":"🎓","graduation ceremony":"🎓","gram":"⚖️","grand piano":"🎹","grandfather":"👴","grandma":"👵","grandmother":"👵","grandpa":"👴","grandparent":"👴","grandparents":"👵","grant":"🙆","grant one's wish":"🌠","grape":"🍇","grapefruit":"🍊","graph":"📈","grass":"🌿","grasshopper":"🦗","grateful":"🙏","great":"🌟","great wall":"🧱","greatly":"⬆️","greece":"🇬🇷","green":"🟢","green pepper":"🫑","green tea":"🍵","greenhouse gas":"🏭","greet":"👋","grew":"🌱","grid":"#️⃣","grilled fish":"🐟","ground":"🟫","group":"👥","grow":"🌱","grow into 〜":"🌳","grow up":"🌳","grown-up":"🧑","guess":"🤔","guest":"🛎️","guidance":"🧭","guide":"🚩","guidebook":"📗","guitar":"🎸","guitarist":"🎸","gym":"🏀","gym shoes":"👟","gymnastics":"🤸","habit":"🔁","habitat":"🏞️","had":"✋","hair":"💇","hair dryer":"💨","hairdresser":"💇","half":"🌗","hall":"🏛️","halloween":"🎃","ham":"🍖","hamburg steak":"🍖","hamburger":"🍔","hamper":"🚧","hand":"✋","hand in":"📤","handkerchief":"🤧","handle":"🤲","handmade":"🧶","handout":"📄","hang":"🪝","hang down":"🪝","happen":"❗","happiness":"😊","happy":"😄","hard":"💪","harm":"⚠️","harmful":"☠️","harness":"🦺","harvest":"🌾","has":"✋","hasn't":"🙅","hat":"👒","hate":"😡","have":"✋","have 〜 in common":"🤝","have a cold":"🤧","have a good time":"😄","have a great time":"🥳","have a haircut":"💇","have been to 〜":"✈️","have difficulty with 〜":"😣","have fun":"🎉","have room for":"🈳","have time for 〜":"⏰","have to":"❗","have to 〜":"❗","have trouble with 〜":"😣","haven't":"🙅","hazardous":"☢️","he":"👦","head":"🗣️","headache":"🤕","heal":"🩹","health":"💪","healthy":"🥗","hear":"👂","hear from":"📩","hear of 〜":"👂","heard":"👂","heart":"❤️","heartwarming":"🥰","heat":"🔥","heavy":"🏋️","heel":"👠","held":"🎪","hell":"👹","hello":"👋","hello.":"👋","help":"🤝","help a with b":"🤝","helped":"🤝","helpful":"👍","her":"👩","herbivore":"🐄","herder":"🐑","here":"📍","here are some reminders.":"📢","here you are.":"🫴","heritage":"🏯","hero":"🦸","hers":"👩","herself":"👩","hesitate":"😬","hey":"👋","hi":"👋","hibernation":"🐻","hid":"🙈","hidden":"🙈","hide":"🙈","hide and seek":"🙈","high":"⬆️","high five":"🙌","high school":"🏫","hike":"🥾","hiking":"🥾","hill":"⛰️","him":"👦","himself":"👦","hinder":"🚧","hint":"💡","hip-hop":"🎧","hire":"🤝","his":"👦","historical":"🏛️","history":"📜","hit":"💥","hitter":"⚾","hiv":"🎗️","hmm":"🤔","hobby":"🎨","hold":"🎪","hold off":"⏸️","hold out":"🫴","hole":"🕳️","holiday":"🏖️","home":"🏠","home economics":"🧵","home run":"⚾","home to 〜":"🏞️","homestay":"🏡","homestay program":"🏡","hometown":"🏡","homework":"📝","honest":"😇","honor":"🎖️","hope":"🌈","horrible":"😱","horror":"👻","horse":"🐴","hospital":"🏥","host":"🎤","hot":"🥵","hot chocolate":"☕","hot dog":"🌭","hot spring":"♨️","hot springs":"♨️","hotel":"🏨","hour":"⏰","house":"🏠","household":"🏠","how":"❓","how 〜!":"😲","how about 〜?":"💭","how about 〜ing?":"💭","how amazing!":"🤩","how long":"📏","how long 〜?":"⏳","how many 〜?":"🔢","how many ( s)":"🔢","how many times 〜?":"🔁","how much":"💴","how much 〜?":"💴","how often":"🔁","how often 〜?":"🔁","how old":"🎂","how to 〜":"📘","how to v":"📘","however":"🔀","hug":"🤗","huge":"🐋","human":"🧑","humid":"💦","humor":"😂","hundred":"💯","hungary":"🇭🇺","hungry":"🤤","hunt":"🏹","hunter":"🏹","hurry":"🏃","hurry up":"🏃","hurt":"🤕","husband":"🤵","hydrogen":"💧","hygiene":"🧼","hypocenter":"💥","hypothesis":"💭","i":"🙋","i agree with you.":"👍","i can't wait!":"🤩","i see.":"💡","i suggest 〜.":"💡","i'll take it.":"🛍️","i'm sorry.":"🙇","i've":"🙋","ice":"🧊","ice cream":"🍦","idea":"💡","identify":"🔎","if":"❓","if 〜":"❓","iguana":"🦎","illegal":"🚫","image":"🖼️","imagine":"💭","imbalance":"⚖️","immediately":"⚡","impact":"💥","impaired":"♿","impetus":"🚀","implement":"⚙️","imply":"😏","impolite":"😝","importance":"❗","important":"❗","important tools to 〜":"🧰","impose":"📌","impossible":"🙅","impress":"😲","impress 〜 with …":"😲","impressive":"🤩","improve":"📈","in":"📥","in 〜":"📥","in a club":"🏸","in a panic":"😱","in a rock band":"🎸","in a row":"🔁","in addition":"➕","in addition to":"➕","in conclusion":"🏁","in english":"🔤","in fact":"💡","in favor of":"👍","in front of":"⬆️","in front of 〜":"⬆️","in general":"🌐","in light of":"💡","in order to":"🎯","in order to 〜":"🎯","in other colors":"🎨","in return for":"🎁","in short":"✂️","in spite of":"💪","in spite of 〜":"💪","in terms of":"🔍","in the afternoon":"🌤️","in the end":"🏁","in the evening":"🌆","in the late 〜":"🌙","in the long run":"🛣️","in the morning":"🌅","in the past":"⏪","in the sun":"☀️","in this way":"➡️","in your seats":"🪑","inactive":"😴","inadvertently":"😅","incentive":"🥕","include":"📦","including":"📦","inclusive":"🤗","income":"💰","increase":"📈","independent":"🦅","india":"🇮🇳","indian":"🇮🇳","indicate":"👉","indispensable":"🔑","individual":"🧍","indonesia":"🇮🇩","indoor":"🏠","industry":"🏭","inequality":"⚖️","inevitable":"🌊","infection":"🦠","influence":"🌊","influential":"📣","inform a about b":"📢","information":"ℹ️","infrastructure":"🌉","ingredient":"🥕","initiative":"🚩","injure":"🤕","injured":"🤕","injury":"🩹","injustice":"⚖️","ink":"🖋️","innovation":"💡","insect":"🐞","inside":"📥","inspire":"✨","instance":"💡","instant":"🍜","instantly":"⚡","instead":"🔄","instead of":"🔄","instead of 〜":"🔄","institute":"🎓","instructor":"🧑‍🏫","instrument":"🎻","integrity":"😇","intense":"🔥","interest":"🤔","interested":"🤔","interesting":"🤩","international":"🌐","internet":"🌐","interpreter":"🗣️","interview":"🎙️","interviewer":"🎙️","into":"📥","introduce":"🙋","introduce 〜 to …":"🧑‍🏫","introduction":"📖","invariably":"🔁","invent":"💡","invention":"⚙️","invest":"💹","investigation":"🕵️","investment":"💹","invite":"💌","involve":"🤝","ireland":"🇮🇪","iron out":"🛠️","is":"🟰","is 〜":"🟰","island":"🏝️","isn't 〜?":"❓","issue":"❗","it":"👉","it is up to a":"🫵","it is 形容詞 for 人 to v.":"💬","italy":"🇮🇹","item":"📦","its":"👉","itself":"👉","jacket":"🧥","jam":"🍓","january":"🎍","japan":"🗾","japanese":"🇯🇵","japanese drum":"🥁","japanese pear":"🍐","japanese radish":"🥕","japanese-style":"🏯","jasmine":"🌼","jeans":"👖","jet":"✈️","job":"💼","jobless":"📉","jogging":"🏃","join":"🙋","joke":"😜","journey":"🗺️","juice":"🧃","july":"🎋","jump":"🦘","jump out":"🦘","jump rope":"🪢","june":"☔","junior college":"🎓","junior high school":"🏫","just":"🎯","kabuki":"🎭","kangaroo":"🦘","keep":"🔒","keep 〜 away from …":"🙅","keep a in mind":"🧠","keep in mind":"🧠","keep in touch":"📱","keep on":"⏩","keep up":"📈","keep up with":"🏃","kendama":"🪀","kendo":"🥋","kenya":"🇰🇪","kept":"🔒","key":"🔑","kick":"🦵","kid":"😜","kill":"🗡️","kilogram":"⚖️","kilometer":"📏","kimono":"👘","kind":"🤗","〜 kind(s) of …":"🗂️","kindness":"💗","king":"🤴","kiss":"😘","kitchen":"🍳","kite":"🪁","kiwi fruit":"🥝","knee":"🦵","knew":"💡","knife":"🔪","knitting":"🧶","knock":"✊","knock 〜 together":"✊","know":"💡","knowledge":"📚","knowledgeable":"🤓","known":"💡","koala":"🐨","korea":"🇰🇷","korean":"🇰🇷","labor":"👷","laboratory":"🔬","lack":"🪫","lady":"👩","lake":"🏞️","land":"🟫","land onto the ground":"🛬","landscape":"🏞️","landslide":"⛰️","language":"🗣️","lantern":"🏮","laos":"🇱🇦","large":"🐘","last":"🔚","last summer":"🌻","last year":"📅","lasting":"♾️","late":"⏰","lately":"🆕","later":"⏳","latest":"🆕","laugh":"😂","laughter":"😂","launch":"🚀","laundry":"🧺","law":"⚖️","lay":"🥚","lay off":"📦","lazy":"🦥","lead":"🛣️","lead to":"➡️","leader":"🚩","leaf":"🍃","leaflet":"📄","learn":"📚","learner":"🧑‍🎓","least":"🤏","leave":"🚶","leave home":"🏠","leaves":"🍂","leaving the hospital":"🏥","left":"⬅️","leftover":"🍱","leg":"🦵","legend":"🐉","legislation":"📜","lemon":"🍋","lend":"🫴","lent":"🫴","leopard":"🐆","less":"📉","lesson":"🧑‍🏫","let":"🙆","let's":"🙌","let's 〜":"🙌","let's 〜.":"🙌","letter":"✉️","lettuce":"🥬","level":"📶","library":"📚","lid":"🫕","life":"🌱","lifeboat":"🛟","light":"🪶","lightning":"⚡","like":"❤️","like 〜":"🟰","likelihood":"📊","likely":"📈","likewise":"🟰","limit":"🚧","limited":"🔒","line":"🚃","link":"🔗","linked":"🔗","lion":"🦁","list":"📋","listen":"👂","listen to":"👂","listen to 〜":"👂","listen to music":"🎧","listening to":"🎧","lit":"💡","literacy":"📖","literacy rate":"📊","literature":"📚","little":"🐁","little by little":"🐢","live":"🏠","live music":"🎤","live up to":"🙌","livelihood":"💼","lives":"🌱","living":"🌱","living environment studies":"🌻","loaf":"🍞","lobster":"🦞","local":"🏘️","local farmer":"🧑‍🌾","lock":"🔒","lock up 〜":"🔒","lonely":"😔","long":"📏","long-lasting":"🔋","look":"👀","look after":"🤲","look around":"👀","look at":"👀","look at 〜":"👀","look for":"🔍","look for 〜":"🔍","look forward to":"🤩","look forward to 〜ing":"🤩","look into":"🔎","look like":"🪞","look up":"🔍","look 形":"👀","lose":"😞","lose sight of":"🙈","loss":"📉","lost":"😞","lot":"🧺","lots of 〜":"🧺","love":"❤️","lovely":"🥰","low":"⬇️","low-floor bus":"🚌","luck":"🍀","lucky":"🍀","lucrative":"💰","lunch":"🍱","lunch box":"🍱","lunchtime":"🍱","lyric":"🎼","macaroni":"🍝","machine":"⚙️","made":"🛠️","magazine":"📰","magic":"🪄","main":"⭐","maintain":"🔧","maintenance":"🔧","major":"⭐","major league":"⚾","major leaguer":"⚾","majority":"👥","make":"🛠️","make 〜 shots":"🏀","make a big noise":"📢","make a decision":"⚖️","make a difference":"✨","make friends":"🧑‍🤝‍🧑","make it":"🏆","make sure":"✅","make the most of":"💯","make up for":"🩹","make up one's mind":"✊","make use of":"🧰","making":"🛠️","malay":"🇲🇾","malaysia":"🇲🇾","malaysian":"🇲🇾","malnutrition":"🍽️","man":"👨","manage":"📋","management":"📋","manager":"🧑‍💼","mandatory":"📌","manga":"📖","mango":"🥭","manhole":"🕳️","manner":"🙇","manners":"🙇","manufacturer":"🏭","many":"🧺","many times":"🔁","many types of 〜":"🌈","map":"🗺️","marathon":"🏃","marathon race":"🏃","march":"🌸","marine life":"🐠","markedly":"📈","marker":"🖊️","market":"🏪","marry":"💒","mask":"😷","master":"🧘","match":"🧩","material":"🧱","math":"➗","matter":"❗","mature":"🌳","maximize":"📈","may":"🌷","may 〜":"🙆","may i 〜?":"🙋","may i help you?":"💁","maybe":"🤔","me":"🙋","me, too.":"🙋","meal":"🍽️","mean":"💬","meaning":"💬","meaningful":"✨","means":"🛠️","meant":"💬","meanwhile":"⏳","meat":"🍖","meatball":"🧆","medal":"🏅","medical":"🏥","medicine":"💊","meet":"🤝","meeting":"🧑‍💼","melon":"🍈","melt":"🫠","melt away":"🫠","member":"👥","memoir":"📔","memorial":"🗿","memory":"💭","men":"👨","mental":"🧠","menu":"📜","merely":"☝️","merlion":"🦁","message":"💌","met":"🤝","meter":"📏","〜 meter(s) above the ground":"⬆️","〜 meter(s) away from …":"↔️","〜 meter(s) southeast of …":"🧭","method":"🛠️","meticulous":"🔍","mexican":"🇲🇽","mexico":"🇲🇽","middle":"🎯","midnight":"🌃","might":"🤔","milk":"🥛","million":"🔢","mind":"🧠","mine":"🙋","miner":"⛏️","mineral water":"💧","mining":"⛏️","minute":"⏱️","90-minute tour":"🚌","miraculously":"🌟","mirror":"🪞","miso soup":"🥣","miss":"😢","missile":"🚀","missing":"❓","mission":"🎯","mistake":"❌","mistakenly":"😅","mitigate":"🩹","mix":"🥣","mixed":"🥗","mobile":"📱","mochi making festival":"🍡","model 〜 after …":"📐","moderate":"👌","moderator":"🎤","modern":"🏙️","mom":"👩","moment":"⏱️","monday":"📅","money":"💰","mongolia":"🇲🇳","monkey":"🐒","month":"📅","monthly schedule":"🗓️","moon":"🌙","moral education":"🤝","morale":"💪","more":"➕","more and more":"📈","more and more 〜":"📈","more than 〜":"➕","moreover":"➕","morning":"🌅","moss":"🌿","most":"💯","mother":"👩","mother tongue":"🗣️","motion":"🏃","mountain":"⛰️","mouse":"🐭","mouth":"👄","move":"🚚","move one space forward":"➡️","move to 〜":"🚚","movement":"🏃","movie":"🎬","movie theater":"🍿","moving":"🚚","mr.":"👨","mr. 〜":"👨","mrs.":"👩","ms.":"👩","ms. 〜":"👩","mt. 〜":"🗻","much":"🧺","muffin":"🧁","multiple":"🔢","murmur":"💬","muscle":"💪","museum":"🏛️","mushroom":"🍄","music":"🎵","music festival":"🎶","music room":"🎹","musical":"🎶","musical instrument":"🎻","musician":"🎼","must":"❗","must 〜":"❗","must not 〜":"🚫","mustn't":"🚫","mvp":"🏆","my":"🙋","my pleasure.":"😊","myself":"🙋","mysterious":"🔮","mystery":"🕵️","name":"📛","name 〜 after …":"📛","narrow":"↔️","nasa":"🚀","national":"🗾","national science fair":"🔬","native":"🌱","native people":"🪶","native speaker":"🗣️","natural":"🌿","natural disaster":"🌪️","natural resources":"⛏️","naturally":"🌿","nature":"🌳","naughty":"😜","navigation":"🧭","near":"📍","near 〜":"📍","nearly":"🔜","necessary":"🔑","neck":"🦒","need":"🙏","need to 〜":"❗","negative":"👎","negatively":"👎","neighbor":"🏘️","neighboring":"🏘️","nepal":"🇳🇵","nephew":"👦","nervous":"😬","nest":"🪺","net":"🥅","never":"🚫","nevertheless":"💪","new":"🆕","new year's day":"🎍","new year's eve":"🔔","new zealand":"🇳🇿","news":"📰","newspaper":"🗞️","newspaper club":"🗞️","next":"⏭️","next time":"⏭️","next to":"👫","ngo":"🤝","nice":"👍","nice to meet you.":"🤝","nickname":"📛","niece":"👧","night":"🌙","nine":"9️⃣","nine-by-nine":"#️⃣","nineteen":"🔢","nineteenth":"🔢","ninety":"🔢","ninth":"9️⃣","no":"🙅","no problem.":"👌","no wonder":"💡","nobel prize":"🏅","nobody":"🫥","nod":"🙂‍↕️","noise":"🔊","noisy":"📢","nominate":"☝️","non-":"🚫","nonessential":"🗑️","noodle":"🍜","noon":"🕛","north":"⬆️","northeast":"↗️","norway":"🇳🇴","nose":"👃","not":"🙅","not 〜 anymore":"🚫","not 〜 at all":"🙅","not always 〜":"🤷","not as 〜 as …":"⚖️","not only a but also b":"➕","notably":"⭐","note":"📝","notebook":"📓","nothing":"🫙","notice":"📌","notification":"🔔","novel":"📕","november":"🍂","now":"⏱️","npo":"🤝","number":"🔢","numerous":"🧺","nurse":"🧑‍⚕️","nut":"🥜","nutrition":"🥗","〜 o'clock":"🕐","o'clock":"🕐","obscure":"🌫️","observe":"🔭","obsolete":"📼","obstacle":"🚧","obstruct":"🚧","obtain":"🎁","obviously":"👀","occur":"❗","ocean":"🌊","october":"🎃","octopus":"🐙","of":"🔗","of 〜":"🔗","of course":"👍","of course.":"👍","off":"📴","offer":"🫴","office":"🏢","officer":"👮","official":"📜","offset":"⚖️","often":"🔁","oh":"😮","oil":"🛢️","ok":"👌","okay":"👌","old":"👴","olympic":"🏅","oman":"🇴🇲","omelet":"🍳","on":"🔛","on 〜":"🔛","on account of":"💡","on my team":"👕","on one's own":"🧍","on one's way home":"🏠","on sunday":"📅","on sundays":"📅","on the internet":"🌐","on the other hand":"🔀","on the verge of":"⚠️","on the way":"🛣️","on time":"⏰","on tv":"📺","on your left":"⬅️","on your right":"➡️","once":"1️⃣","once upon a time":"🏰","one":"1️⃣","one 〜 the other …":"✌️","one after another":"🔁","one by one":"1️⃣","one day":"📅","one hundred":"💯","one of 〜":"☝️","one thousand":"🔢","one's way of life":"🏡","onion":"🧅","online":"💻","online tour":"💻","onlooker":"👀","only":"☝️","only a few of 〜":"🤏","onto":"⬆️","open":"🔓","operate":"⚙️","operating":"⚙️","opinion":"💭","opportunity":"🚪","oppose":"🙅","opposite":"🔄","optical illusion":"🌀","or":"🔀","〜 or so":"〰️","orange":"🍊","orange juice":"🧃","order":"🛎️","ordinary":"😐","organic":"🌿","organization":"🏢","organize":"📋","organizer":"📋","origami":"🦢","origin":"🌱","original":"💡","osechi":"🍱","other":"👉","otherwise":"⚠️","our":"👨‍👩‍👧","ours":"👨‍👩‍👧","ourselves":"👨‍👩‍👧","out":"🚪","out of 〜":"🚪","〜 out of …":"🍕","outbreak":"🦠","outdoor":"🌳","outside":"🌳","outstanding":"🌟","over":"🔚","over there":"👉","overall":"🌐","overcome":"🧗","overjoyed":"🥳","overseas":"✈️","owing to":"💡","own":"🙋","owner":"🔑","ox":"🐂","oxygen":"🫧","oyster":"🦪","p.e.":"🤸","p.m.":"🌆","pace":"🏃","pack":"📦","package":"📦","page":"📄","paid":"💳","pain":"🤕","painful":"😣","paint":"🎨","painter":"👩‍🎨","painting":"🖼️","pair":"🧦","pale":"😨","pamphlet":"📑","pancake":"🥞","panda":"🐼","pandemic":"🦠","panic":"😱","pants":"👖","paper":"📄","paper for notes":"🗒️","para athletics":"🦿","para cycling":"🚴","para swimming":"🏊","parade":"🎉","paralympic":"🏅","paralympics":"🏅","pardon":"🙏","parent":"👪","parents":"👪","parfait":"🍨","park":"🌳","parsley":"🌿","part":"🧩","participant":"🙋","participate":"🙋","participate in":"🙋","partner":"🤝","party":"🎉","pass":"🫴","pass away":"🕊️","pass down":"👴","pass up":"🙅","passenger":"🧳","passive":"🛋️","passport":"🛂","past":"⏪","pasta":"🍝","pathway":"🛤️","patient":"🛌","patiently":"⏳","patrol":"👮","pattern":"🔶","paving":"🧱","pay":"💳","pay attention":"👀","pay attention to":"👀","peace":"🕊️","peaceful":"🕊️","peacefully":"🕊️","peach":"🍑","peanut":"🥜","pear":"🍐","pen":"🖊️","pencil":"✏️","pencil case":"🖍️","pencil sharpener":"✏️","penguin":"🐧","people":"👥","people in need":"🤲","per":"➗","per capita":"🧍","percent":"💯","percentage":"📊","perfect":"💯","perform":"🎻","performance":"🎭","performer":"🎭","perhaps":"🤔","period":"⏳","permanent":"♾️","permission":"🙆","permit":"🪪","person":"🧍","personal":"🙋","personality":"😊","perspective":"👓","peru":"🇵🇪","pet":"🐕","phase in":"📶","phase out":"📉","phenomenon":"🌈","philippines":"🇵🇭","phone":"📞","photo":"📸","photo club":"📷","photograph":"📸","photographer":"📷","photography":"📷","phrase":"💬","physical":"💪","pianist":"🎹","piano":"🎹","pick":"🌼","pick up":"🫳","picnic":"🧺","pictogram":"🚻","picture":"🖼️","pie":"🥧","pie chart":"📊","piece":"♟️","pig":"🐷","pilot":"🧑‍✈️","pineapple":"🍍","pink":"🩷","pitcher":"⚾","pizza":"🍕","place":"📍","plan":"🗓️","plane":"✈️","planet":"🪐","plant":"🌱","plastic":"🧴","plate":"🍽️","platform":"🚉","plausible":"🤔","play":"⚽","play shogi":"♟️","play the guitar":"🎸","play the piano":"🎹","played":"⚽","played cards":"🃏","player":"⛹️","playground":"🛝","playing catch":"⚾","playing tag":"🏃","please":"🙏","pleasure":"😊","plenty":"🧺","plenty of 〜":"🧺","plum":"🌸","plus":"➕","pocket":"👖","podium":"🎤","poem":"📜","point":"👉","point out":"☝️","poison":"☠️","polar":"🧊","polar bear":"🐻‍❄️","pole":"🎋","police":"👮","police officer":"👮","police station":"🚓","policy":"📜","polite":"🙇","politeness":"🙇","politician":"🧑‍💼","pollute":"🏭","pollution":"🏭","pond":"🐸","pool":"🏊","poor":"🪙","pop":"🎤","popcorn":"🍿","popular":"🌟","population":"👥","pork":"🐖","pork-based":"🍜","port":"⚓","portrait":"🖼️","pose":"🤳","position":"📍","positive":"😃","possession":"🎒","possible":"🙆","post":"📮","post office":"🏤","postcard":"💌","poster":"🪧","postwar":"🕊️","pot":"🫖","potato":"🥔","potential":"🌱","poverty":"🪙","power":"💪","powerful":"💪","practice":"🏋️","practice game":"⚽","practiced":"🏋️","praise":"👏","pray":"🙏","precious":"💎","predator":"🦈","predict":"🔮","prediction":"🔮","predominantly":"💯","prefecture":"🗾","prefer":"❤️","prepare":"📋","prepare for":"📋","prerequisite":"🔑","preschool":"🧸","present":"🎁","presentation":"📊","preserve":"🛡️","pressure":"😰","prestige":"👑","presumably":"🤔","pretend":"🎭","pretend to be 〜":"🎭","pretty":"🥰","prevalence":"🌐","prevent":"🛡️","prevent 〜 from …ing":"🛡️","previous":"⏪","price":"🏷️","priest":"🧘","primary":"🥇","print":"🖨️","printer":"🖨️","priority":"🥇","privacy":"🔒","private":"🔒","prize":"🏆","probably":"🤔","problem":"❓","process":"⚙️","produce":"🏭","product":"📦","professional":"🧑‍💼","proficiency":"🎓","profit":"💰","program":"📺","programmer":"👩‍💻","programming":"👩‍💻","progressive":"🚀","prohibit":"🚫","project":"📋","prolong":"⏳","prominent":"🌟","promise":"🤙","promote":"📣","proper":"👌","protect":"🛡️","proud":"😌","provide":"🫴","prudent":"🧐","psychologist":"🧠","public":"🏛️","public transportation":"🚇","publish":"📚","pudding":"🍮","pull":"🪢","pull through":"💪","pumpkin":"🎃","punish":"⚖️","punishment":"⚖️","purchase":"🛒","purple":"🟣","purpose":"🎯","purse":"👛","push":"👐","put":"🫳","put 〜 away":"📦","put 〜 to …":"📥","put a in danger":"⚠️","put off":"⏸️","put on":"👕","put on 〜":"👕","put up with":"😤","qatar":"🇶🇦","quality":"💎","quarter":"🕒","queen":"👸","question":"❓","quick":"⚡","quickly":"⚡","quiet":"🤫","quietly":"🤫","quite":"👍","quiz":"❓","rabbit":"🐰","race":"🏁","racket":"🎾","radio":"📻","radish":"🥕","rag":"🧽","railroad":"🛤️","railway":"🚆","rain":"🌧️","rain boots":"👢","rainbow":"🌈","raincoat":"🧥","rainwater":"💧","rainy":"☔","raise":"🙋","raise awareness of":"📢","ramp":"♿","ran":"🏃","random":"🎲","rank":"🥇","rank 〜 in order of …":"📊","rapid":"⚡","rapidly":"⚡","rare":"💎","rate":"📊","rather":"🔀","rather than":"🔀","reach":"🏁","reaction":"😮","read":"📖","read books":"📚","reading":"📖","ready":"✅","real":"✅","reality show":"📺","realize":"💡","really":"❗","really?":"😲","reason":"💡","receive":"📥","recent":"🆕","recently":"🆕","receptive":"👂","recipe":"📃","recognize":"💡","recommend":"👍","recommendation":"👍","record":"📝","recorder":"🎶","recover":"🩹","recreate":"🔁","recreational":"🎳","recruit":"📣","rectangle":"🟩","recycle":"♻️","red":"🔴","reduce":"📉","redundant":"➕","refer":"📖","reflect":"🪞","reflect on":"💭","refreshing":"🍃","refund":"💸","regardless of":"🌐","region":"🗺️","register":"📝","registration":"📝","regret":"😣","regularly":"📆","regulation":"📏","rehab":"🦽","rehearsal":"🎭","reinforce":"💪","reject":"🙅","related":"🔗","relationship":"🤝","relatively":"⚖️","relax":"😌","relaxing":"🛀","release":"🎉","relieved":"😮‍💨","reluctant":"😒","rely on":"🤲","remain":"📌","remarkable":"🌟","remedy":"💊","remember":"🧠","remind":"🔔","reminder":"🔔","remove":"❌","renewable":"♻️","renewed":"🌱","repeat":"🔁","replace":"🔄","reply":"💬","report":"📄","reporter":"🎙️","represent":"🙋","representative":"🙋","request":"🙏","require":"❗","requirement":"📋","rescue":"🛟","rescued":"🛟","research":"🔬","researcher":"🧑‍🔬","reserve":"📅","reset":"🔄","resident":"🏘️","resource":"⛏️","respect":"🙇","respond":"💬","respondent":"🙋","response":"💬","responsibility":"🧑‍💼","responsible":"🧑‍💼","responsive":"👂","rest":"😴","restaurant":"🍽️","restore":"🔧","restriction":"🚧","restroom":"🚻","result":"📊","result in":"➡️","retain":"🔒","rethink":"🔄","retrace one's steps":"↩️","return":"↩️","return to 〜":"↩️","reuse":"♻️","reveal":"🎁","revenue":"💰","review":"🔍","revise":"✏️","reward":"🎁","rewarding":"😊","rhino":"🦏","rhythm":"🥁","rice":"🍚","rice ball":"🍙","rice cake":"🍡","rice cracker":"🍘","rich":"💰","ridden":"🚲","ride":"🚲","ride a bike":"🚲","riding":"🏇","right":"➡️","right behind 〜":"🔙","〜, right?":"❓","ring":"🔔","rink":"⛸️","rise":"📈","risk":"⚠️","rival":"🤺","river":"🏞️","road":"🛣️","roar":"🦁","roast":"🍗","roast beef":"🥩","roast chicken":"🍗","robot":"🤖","rock":"🎸","rocket":"🚀","rode":"🚲","role":"🎭","role model":"🌟","roll":"🎳","roof":"🏠","room":"🈳","rope":"🪢","rose":"🌹","rose-garden":"🌹","round":"⭕","routine":"🔁","row":"🚣","3rs":"♻️","rubber":"🎈","rugby":"🏉","rule":"📏","rule out":"❌","ruler":"📏","rumble":"⛈️","run":"🏃","run away":"🏃","run into":"😮","run into 〜":"💥","run out of":"🪫","runner":"🏃","running":"🏃","rush":"💨","rush away":"💨","russia":"🇷🇺","russian":"🇷🇺","sacred":"⛩️","sad":"😢","safari":"🦓","safe":"🛡️","safely":"🛡️","safety":"🦺","said":"💬","sail":"⛵","sailing":"⛵","salad":"🥗","sale":"🏷️","salmon":"🐟","salt":"🧂","salty":"🧂","same":"🟰","sample":"🧪","sand":"🏖️","sandal":"🩴","sandwich":"🥪","sang":"🎤","sat":"🪑","satellite":"🛰️","satisfaction":"😊","satisfy":"✅","saturday":"📅","sauce":"🥫","sausage":"🌭","savanna":"🦒","save":"🐷","saw":"👀","say":"💬","saying":"📜","scarce":"🤏","scarecrow":"🌾","scared":"😨","scarf":"🧣","scary":"👻","scene":"🎬","scenery":"🏞️","schedule":"🗓️","school":"🏫","school festival":"🎪","school library":"📚","school life":"🏫","school nurse's office":"🩹","school principal's office":"🚪","school trip":"🚌","science":"🔬","science room":"🧪","scientist":"🧑‍🔬","scissors":"✂️","score":"🥅","scratch":"🩹","scrutinize":"🔍","scrutiny":"🔍","sculpture":"🗿","sea":"🌊","seafood":"🦐","seal":"🦭","search":"🔍","season":"🍂","seasonal":"🌸","seat":"💺","second":"2️⃣","secret":"🤫","section":"🧩","security":"🔐","see":"👀","see a movie":"🎬","see you tomorrow!":"👋","see you.":"👋","seed":"🌱","seem":"🤔","seemingly":"🤔","seen":"👀","select":"👆","selection":"🛍️","sell":"🏷️","send":"📤","send 〜 back to …":"↩️","sense":"👃","sensor":"📡","sent":"📤","sentence":"📝","september":"🎑","series":"📚","serious":"😐","serve":"🍽️","service":"🛎️","session":"🕐","set":"⚙️","set 〜 down …":"⬇️","set 〜 goal":"🎯","set aside":"📦","set off":"🚀","set out 〜":"📍","set the table":"🍽️","set up":"🏗️","set up 〜":"🏗️","setback":"📉","seven":"7️⃣","seventeen":"🔢","seventeenth":"🔢","seventh":"7️⃣","seventy":"🔢","several":"🔢","severe":"⛈️","sewing":"🪡","shake":"🤝","shall":"🙋","shall i 〜?":"💁","shall we 〜?":"🙌","shallow":"🏖️","shampoo":"🧴","shape":"🔷","share":"🍰","share 〜 with …":"🍰","shared":"👥","sharp":"🔪","shaved ice":"🍧","she":"👩","sheep":"🐑","shelf":"📚","shelter":"⛺","shift":"🔄","shinai":"⚔️","shine":"✨","ship":"🚢","shirt":"👔","shock":"⚡","shocked":"😱","shoe":"👟","shoe rack":"👟","shoes":"👟","shogi":"♟️","shoot":"🏀","shooter":"🏀","shop":"🏪","shopping":"🛍️","shopping center":"🏬","short":"🤏","shortage":"🪫","shorts":"🩳","shot":"⛳","should":"☝️","should 〜":"☝️","shoulder":"💪","shout":"📢","show":"👀","show off":"😎","show up":"✨","shower":"🚿","shown":"👀","shrimp":"🦐","shrine":"⛩️","shut":"🚪","shy":"🙈","sick":"🤒","side":"↔️","side by side":"👫","sight":"👁️","sightseeing":"📸","sign":"🪧","sign up":"📝","sign up for":"📝","signal":"🚦","significant":"❗","silence":"🤫","silent":"🔇","silly":"🤪","silver":"🥈","similar":"👯","simple":"⚪","simply":"⚪","since":"⏳","since 〜":"⏳","sing":"🎤","singapore":"🇸🇬","singer":"🎤","singing":"🎶","single":"🧍","sink":"⚓","sister":"👧","sit":"🪑","sit down":"🪑","site":"📍","sitting volleyball":"🏐","situation":"🌐","six":"6️⃣","sixteen":"🔢","sixteenth":"🔢","sixth":"6️⃣","sixty":"🔢","size":"📏","skate":"⛸️","skateboard":"🛹","skateboarder":"🛹","skater":"⛸️","skating":"⛸️","ski":"🎿","skiing":"⛷️","skill":"🛠️","skin":"✋","skirt":"👗","sky":"🌤️","sleep":"😴","sleeping":"💤","sleeping bag":"🛌","sleepy":"😪","slept":"😴","slide":"🛝","slightly":"🤏","slimy":"🐌","slow":"🐢","slow down":"🐢","slowly":"🐢","small":"🐜","smart":"🧠","smartphone":"📱","smell":"👃","smile":"😊","smoke":"💨","smoothie":"🥤","snack":"🍿","snail":"🐌","snake":"🐍","snow":"❄️","snow festival":"☃️","snowman":"⛄","snowy":"🌨️","so":"❗","so far":"🛣️","so that 〜 can …":"🎯","soap":"🧼","soccer":"⚽","soccer ball":"⚽","soccer game":"⚽","soccer uniform":"👕","social":"👥","social studies":"🗺️","society":"🏙️","sock":"🧦","socks":"🧦","soda":"🥤","sofa":"🛋️","soft":"☁️","softly":"🪶","soil":"🟫","solar":"☀️","sold":"🏷️","solid":"🧱","solo":"🧍","solution":"💡","solve":"🧩","some":"🤏","some 〜, other(s) …":"👥","some day":"🌈","somebody":"👤","someday":"🌈","somehow":"🤷","someone":"👤","something":"❓","something else":"❓","something to 〜":"❓","sometime":"🕐","sometimes":"🌗","somewhere":"📍","son":"👦","song":"🎵","soon":"🔜","sorry":"🙇","sound":"🔊","sounds good.":"👍","soup":"🥣","sour":"🍋","source":"⛲","south":"⬇️","southeast":"↘️","southeast asia":"🌏","southeastern":"↘️","southern":"⬇️","souvenir":"🎁","space":"🌌","spaghetti":"🍝","spain":"🇪🇸","spanish":"🇪🇸","sparse":"🌵","speak":"🗣️","speak to 〜":"🗣️","special":"⭐","specialize":"🎯","specialize in 〜":"🎯","species":"🐾","specific":"🎯","specification":"📐","speculate":"🤔","speech":"🎤","speed":"🏎️","spell":"🔤","spend":"💸","spent":"💸","spicy":"🌶️","spider":"🕷️","spinach":"🥬","spinner":"🌀","spirit":"✨","spite":"😈","splash":"💦","spoke":"🗣️","spoken":"🗣️","sponsor":"🤝","spoon":"🥄","sport":"🏅","sports day":"🏃","spot":"📍","spread":"🌊","spring":"🌸","spring roll":"🌯","sprout":"🌱","square":"🟦","squirrel":"🐿️","stadium":"🏟️","staff":"🧑‍💼","stage":"🎭","stair":"🪜","stamp":"📮","stand":"🧍","stand for":"🔤","stand out":"🌟","stand up":"🧍","stapler":"📎","star":"⭐","star festival":"🎋","star-shaped":"⭐","start":"🚦","start to 〜":"🚦","starving":"🤤","state":"🇺🇸","station":"🚉","stationery":"✏️","stationery store":"🖊️","statue":"🗽","stay":"🏨","stay with 〜":"🏡","stayed":"🏨","steak":"🥩","stem from":"🌱","step":"👣","stew":"🍲","still":"⏳","stimulate":"⚡","stinking":"🤢","stomach":"🫃","stomachache":"🤢","stone":"🪨","stood":"🧍","stop":"🛑","stop 〜ing":"🛑","stop by":"🚏","store":"🏪","stormy":"⛈️","story":"📖","storyteller":"🗣️","straight":"⬆️","strange":"🤨","stranger":"👤","strategy":"♟️","strawberry":"🍓","street":"🛣️","stress":"😫","stressful":"😫","strict":"😠","strike":"🤳","strike 〜 pose":"🤳","stringent":"📏","strong":"💪","strongly":"💪","structure":"🏗️","struggle to":"😣","student":"🧑‍🎓","studio":"🎨","study":"📚","study abroad":"✈️","study math":"➗","stuff":"📦","stuffed":"🧸","stupid":"🤪","style":"👗","subject":"📚","submission":"📤","subsequently":"⏭️","subsidy":"💴","substantial":"📈","subway":"🚇","succeed":"🏆","success":"🏆","successful":"🏆","successor":"🏃","such":"👉","such as":"💡","such as 〜":"💡","〜 such as …":"💡","suddenly":"⚡","suffer":"😣","suffer from 〜":"🤒","sufficient":"👌","sugar":"🍬","suggest":"💡","suggestion":"💡","suit":"👔","suitcase":"🧳","summer":"🌻","summer festival":"🏮","sun":"☀️","sunday":"📅","sung":"🎤","sunny":"☀️","sunrise":"🌅","sunscreen":"🧴","sunset":"🌇","sunshine":"🌞","super":"🤩","superhero":"🦸","superintendent":"🧑‍💼","supermarket":"🛒","support":"🤝","suppose":"🤔","sure":"👍","surely":"✅","surf":"🏄","surfing":"🏄","surpass":"📈","surprise":"😲","surprised":"😲","surprising":"😲","surprisingly":"😲","surveillance":"📹","survey":"📋","survival":"🛟","survive":"🛟","survivor":"🛟","sustain":"♻️","sustainable":"♻️","swam":"🏊","sweater":"🧶","sweet":"🍬","sweet potatoes":"🍠","swim":"🏊","swimmer":"🏊","swimming":"🏊","swimming meet":"🏊","swimming pool":"🏊","swimsuit":"👙","swimwear":"🩱","swing":"🎠","switch":"🔀","switzerland":"🇨🇭","swum":"🏊","symbol":"🔣","system":"⚙️","t-shirt":"👕","table":"🪑","table tennis":"🏓","tablet":"📱","taco":"🌮","tag":"🏃","taiwan":"🇹🇼","take":"🫳","take 〜 lesson":"🧑‍🏫","take 〜 to …":"🚶","take a bath":"🛁","take a look":"👀","take a picture":"📸","take action":"🏃","take advantage of":"🧰","take care of":"🤲","take care of 〜":"🤲","take off":"🧥","take off 〜":"🧥","take out":"📤","take out 〜 from …":"📤","take out garbage":"🗑️","take over":"🔄","take part in":"🙋","take place":"🎪","take trains":"🚃","take up":"🎸","taken":"🫳","talk":"💬","talk about 〜":"💬","talk to":"💬","talk with my friend":"💬","talked":"💬","tall":"🦒","tangerine":"🍊","tap":"🚰","taste":"👅","tasteless":"😑","tasty":"😋","taught":"🧑‍🏫","tax":"💴","taxi":"🚕","tea":"🍵","tea ceremony":"🍵","teach":"🧑‍🏫","teach 〜 to …":"🧑‍🏫","teacher":"🧑‍🏫","teachers' office":"🧑‍🏫","team":"👥","team spirit":"🤜","teammate":"🧑‍🤝‍🧑","tear":"💧","technique":"🛠️","technology":"💻","technology and home economics":"🔨","teenage":"🧑","teenager":"🧑","teeth":"🦷","telephone":"☎️","telescope":"🔭","television":"📺","tell":"🗣️","tell 〜 from …":"⚖️","tell me about 〜":"🗣️","tell 人 to v":"🗣️","temperature":"🌡️","temple":"🛕","tempura":"🍤","ten":"🔟","tend to":"📈","tennis":"🎾","tent":"⛺","tentative":"✏️","tenth":"🔟","teriyaki":"🍗","terrible":"😖","test":"📝","text":"📄","textbook":"📘","thailand":"🇹🇭","than":"⚖️","than 〜":"⚖️","thank":"🙏","thank 〜 for …":"🙏","thank you for 〜":"🙏","thank you.":"🙏","thanks to":"🙏","thanks to 〜":"🙏","that":"👉","that 〜":"💬","that night":"🌙","that way":"➡️","that's a good idea.":"💡","that's right.":"⭕","the":"👉","the first step of 〜":"👣","the first step to 〜":"👣","the first-round draft":"⚾","the following 〜":"⬇️","the moment 〜, …":"⚡","the philippines":"🇵🇭","the u.k.":"🇬🇧","the u.s.":"🇺🇸","theater":"🎭","their":"👥","theirs":"👥","them":"👥","theme":"🎯","theme park":"🎢","themselves":"👥","then":"⏭️","there":"👉","there is[are] 〜.":"📍","therefore":"➡️","these":"👇","these days":"🆕","these kinds of 〜":"🗂️","they":"👥","thick":"📚","thin":"📄","thing":"📦","think":"🤔","think 〜":"🤔","think of":"💭","think of 〜":"💭","think over":"🤔","third":"3️⃣","thirsty":"🥤","thirteen":"🔢","thirteenth":"🔢","thirtieth":"🔢","thirty":"🔢","thirty-first":"🔢","this":"👇","those":"👉","though":"🔀","thought":"💭","thoughtfulness":"💗","thousand":"🔢","thousands of 〜":"🔢","threat":"⚠️","threaten":"😠","three":"3️⃣","three-by-three":"#️⃣","three-dimensional":"🧊","threshold":"🚪","threw":"🤾","thrilling":"🎢","thrive":"🌳","through":"🚇","throw":"🤾","throw 〜 to …":"🤾","throw away":"🗑️","thrown":"🤾","thunder":"⛈️","thursday":"📅","ticket":"🎫","tie":"👔","tiger":"🐯","till":"⏳","time":"⏰","time's up.":"⏰","timeline":"📜","〜 times a day":"🔁","tin":"🥫","tiny":"🐜","tired":"😩","to":"➡️","to 〜":"➡️","to one's surprise":"😲","to the right / left of 〜":"↔️","toast":"🍞","today":"📅","toe":"🦶","together":"🤝","toilet":"🚽","toilet paper":"🧻","told":"🗣️","tolerate":"😌","tomato":"🍅","tomorrow":"🌄","ton":"⚖️","tongue":"👅","tonight":"🌙","too":"➕","took":"🫳","took care of":"🤲","took pictures":"📸","tool":"🔧","tooth":"🦷","top":"🏔️","topic":"💬","topping":"🍒","total":"🧮","tote bag":"👜","touch":"👆","touch one's heart":"💗","touching":"🥹","tough":"💪","tough time":"😣","tour":"🚌","tourist":"📸","tournament":"🏆","toward":"➡️","towel":"🧖","tower":"🗼","town":"🏘️","toy":"🧸","track":"🛤️","track and field":"🏃","trade":"🚢","tradition":"🎎","traditional":"🎎","traffic":"🚗","traffic sign":"🚸","tragedy":"😭","train":"🚆","training":"🏋️","transform":"🦋","transition":"🔄","translate":"🌐","translation":"🌐","transplant":"🪴","transport":"🚚","transportation":"🚆","trap":"🪤","trash":"🗑️","travel":"✈️","traveler":"🧳","treasure":"💎","treat a like b":"🤝","treatment":"💊","tree":"🌳","trendy":"🕶️","triangle":"🔺","trick":"🎩","trip":"🧳","trompe l'oeil":"🌀","trouble":"😣","trout":"🐟","truck":"🚚","true":"⭕","trumpet":"🎺","trunk":"🌳","trust":"🤝","truth":"💡","try":"💪","try on":"👕","try to 〜":"💪","tuesday":"📅","tuna":"🐟","turkey":"🇹🇷","turmoil":"🌪️","turn":"↪️","turn 〜 upside down":"🙃","turn down":"🔉","turn into 〜":"🦋","turn left.":"⬅️","turn off":"📴","turn on":"💡","turn out":"💡","turn right.":"➡️","turtle":"🐢","tv":"📺","tv program":"📺","twelfth":"🔢","twelve":"🔢","twentieth":"🔢","twenty":"🔢","twenty-first":"🔢","twenty-one":"🔢","twice":"✌️","twinge":"🤕","twist":"🌀","twisted":"🦶","two":"2️⃣","two-way":"⚾","type":"🗂️","typewriter":"⌨️","typical":"⭐","uh-huh":"🙂","ultimately":"🏁","ultrasonic":"🦇","um":"🤔","umbrella":"☂️","unbelievable":"😱","uncle":"👨","unconsciously":"💭","under":"⬇️","under 〜":"⬇️","undermine":"📉","understand":"💡","understood":"💡","unfair":"⚖️","unforgettable":"💭","unfortunately":"😞","unhappy":"😞","unicycle":"🎪","uniform":"👔","unique":"🦄","united":"🤝","united states":"🇺🇸","universal":"🌐","universal design":"♿","university":"🎓","unrelated":"🙅","until":"⏳","unusual":"🦄","unwrap":"🎁","up":"⬆️","upon":"🔛","upside":"⬆️","upstream":"🐟","urban":"🏙️","urge":"📣","us":"👨‍👩‍👧","usage":"📘","use":"🔧","use 〜 as …":"🔧","use my computer":"💻","used":"♻️","useful":"👍","user":"🧑‍💻","usually":"🔁","utter":"💬","vacation":"🏖️","vaguely":"🌫️","valuable":"💎","value":"💎","vanish":"💨","variety":"🌈","various":"🌈","varying":"🌈","vase":"🏺","vegetable":"🥕","vehicle":"🚗","venue":"🏟️","verify":"✅","very":"❗","very much":"❗","very well":"😮‍💨","vest":"🦺","vet":"🐶","viable":"✅","victim":"🩹","victory":"🏆","video":"📹","video game":"🎮","vietnam":"🇻🇳","vietnamese":"🇻🇳","view":"🏞️","viewing":"👀","village":"🏡","villager":"🧑‍🌾","violin":"🎻","violinist":"🎻","virtual":"🥽","visit":"🚪","visited":"🚪","visitor":"🧳","visually":"👁️","vocabulary":"🔤","voice":"🗣️","volleyball":"🏐","volunteer":"🙋","volunteer day":"🙋","vote":"🗳️","vulnerable":"🥚","vulture":"🦅","waffle":"🧇","wait":"⏳","wait a minute":"✋","wait a minute.":"✋","wait for":"⏳","wait for 〜":"⏳","wake":"⏰","wake up 〜":"⏰","walk":"🚶","walk across 〜":"🚶","walk my dog":"🐕","walking":"🚶","wall":"🧱","wander":"🚶","want":"🤲","want to":"🤲","want to 〜":"🤲","want 人 to v":"🙏","war":"⚔️","warm":"☀️","warming":"🌡️","was":"🟰","wash":"🧼","wash my face":"🧼","wash the dishes":"🍽️","waste":"🗑️","watch":"👀","watch out for 〜":"⚠️","watch tv":"📺","watched":"👀","watching":"👀","water":"💧","water bottle":"🍶","watering":"🚿","watering can":"🚿","watermelon":"🍉","wave":"🌊","way":"🛣️","way to 〜":"🛣️","we":"👨‍👩‍👧","we've":"👨‍👩‍👧","weak":"🪫","weakness":"🪫","wealth":"💰","wear":"👕","wearable":"⌚","weather":"🌦️","website":"🌐","wedding":"💒","wednesday":"📅","weed out":"🌿","week":"🗓️","weekday":"🗓️","weekend":"🎉","weight":"⚖️","weightlifting":"🏋️","welcome":"🤗","welcome to 〜":"🤗","welfare":"🤲","well":"👍","well-being":"😊","well-known":"🌟","well-meaning":"😇","well-rounded":"🤹","went":"🚶","went camping":"🏕️","were":"🟰","west":"⬅️","whale":"🐋","what":"❓","what 〜!":"😲","what day":"📅","what do you mean?":"❓","what do you think about 〜?":"💭","what happens to 〜?":"❓","what kind of 〜":"🗂️","what time":"🕐","what time 〜?":"🕐","what to v":"❓","what would you like?":"🍽️","what's going on?":"😮","what's the matter?":"😟","what's up?":"👋","what's wrong?":"😟","wheelchair":"🦽","wheelchair basketball":"🏀","wheelchair tennis":"🎾","when":"🕐","when 〜":"🕐","when it comes to":"🎯","when to v":"🕐","where":"📍","where to v":"📍","whether":"🤔","which":"🤔","which do you like better, a or b?":"⚖️","which is 比較級, a or b?":"⚖️","while":"⏳","white":"⚪","who":"👤","whole":"🍕","whose":"❓","why":"❓","why don't we 〜?":"🙌","why don't you 〜?":"💡","why not 〜?":"💡","wi-fi":"🛜","wicked":"😈","wide":"↔️","wife":"👰","wild":"🦁","wildlife":"🦌","will":"🔮","will 〜":"🔮","win":"🏆","wind":"🌬️","window":"🪟","windy":"🌬️","wink":"✨","winter":"⛄","wipe":"🧽","wisdom":"🦉","wise":"🦉","wish":"🌠","witch":"🧙‍♀️","with":"🤝","with 〜":"🤝","with a spring in one's step":"🎵","with one hand":"✋","with one's 〜 on":"👟","with the help of":"🤝","within":"⏳","without":"🙅","without 〜":"🙅","withstand":"💪","wizard":"🧙","woke":"⏰","woman":"👩","women":"👩","won":"🏆","won't":"🙅","wonder":"🤔","wonderful":"🤩","wonderland":"🎠","wood":"🪵","wooden":"🪵","woodman":"🪓","word":"🔤","wore":"👕","work":"💼","work experience":"👷","work on 〜":"💪","work out":"👌","work up the courage":"🦁","worker":"👷","workshop":"🛠️","world":"🌏","world heritage site":"🏯","world-famous":"🌟","worn":"👖","worried":"😟","worry":"😟","worth":"💎","worth 〜ing":"💎","would":"💭","would like to 〜":"🤲","would you like 〜?":"🍰","wow":"🤩","wrap":"🎁","wrapper":"🍬","wrapping":"🎁","wrestling":"🤼","wriggle":"🐛","wriggle out of 〜":"🐛","wrist":"⌚","write":"✍️","write a letter":"✉️","write back":"✉️","writer":"✍️","writing":"✍️","written":"✍️","wrong":"❌","wrote":"✍️","yacht":"⛵","yard":"🏡","yeah":"👍","year":"📅","5-year-old girl":"👧","〜 years old":"🎂","yellow":"🟡","yemen":"🇾🇪","yen":"💴","yes":"🙆","yes, let's.":"🙌","yesterday":"⏪","yet":"⏳","yield":"🌾","yoga":"🧘","yogurt":"🥛","you":"🫵","you must be kidding.":"😜","you're right.":"⭕","you're welcome.":"😊","young":"🧒","your":"🫵","yours":"🫵","yourself":"🫵","youth":"🧒","yummy":"😋","zambia":"🇿🇲","zebra":"🦓","zero":"0️⃣","zip-lining":"🌲","zoo":"🦁","zookeeper":"🧑‍🌾","zucchini":"🥒"};
+const kana = t => String(t).normalize("NFKC").toLowerCase().replace(/[\u30a1-\u30f6]/g, c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const COURSE_RANK = {"小学":0,"中学":1,"英検":2,"共通テスト":3};
+const DEX = (()=>{
+  const m = new Map();
+  for(const s of SETS){
+    if(/^(irr|cmp)-/.test(s.id)) continue;               // 不規則動詞・比較変化の表は除く(原形は別に載っている)
+    for(const w of s.words){
+      const id = w.en.trim().toLowerCase();
+      let e = m.get(id);
+      if(!e){ e = {id, en:w.en.trim(), senses:[], exs:[], keys:[], sets:[], courses:new Set()}; m.set(id,e); }
+      e.keys.push(wkey(s.id,w));
+      e.courses.add(s.course);
+      if(!e.sets.includes(s.title)) e.sets.push(s.title);
+      const sj = (w.pos||"")+"|"+w.ja;
+      if(!e.senses.some(x=>x.k===sj)) e.senses.push({k:sj, pos:w.pos||"", ja:w.ja});
+      if(w.ex && !e.exs.some(x=>x.ex===w.ex)) e.exs.push({ex:w.ex, src:s.title});
+    }
+  }
+  const arr = [...m.values()].sort((a,b)=>a.id.replace(/^[^a-z]+/,"").localeCompare(b.id.replace(/^[^a-z]+/,""),"en"));
+  // 意味の重複をまとめる:すでに出た言い方だけでできている意味は省く
+  const toks = ja => ja.replace(/[\[［(（][^\]］)）]*[\]］)）]/g,"").replace(/[〜～…]/g,"").split(/[・、,，/／;；]/).map(t=>t.trim()).filter(Boolean);
+  arr.forEach(e=>{ const seen=new Set(); e.senses=e.senses.filter(x=>{ const t=toks(x.ja); const add=!t.length||t.some(y=>!seen.has(x.pos+y)); t.forEach(y=>seen.add(x.pos+y)); return add; }); });
+  arr.forEach((e,i)=>{ e.no=i+1; e.course=[...e.courses].sort((a,b)=>(COURSE_RANK[a]??9)-(COURSE_RANK[b]??9))[0];
+    e.search=kana(e.id+" "+e.senses.map(x=>x.ja).join(" ")); });
+  return arr;
+})();
+const DEX_BY_ID = Object.fromEntries(DEX.map(e=>[e.id,e]));
+function dexState(e){
+  const u = user(); let c=0, w=0, due=false;
+  if(u) for(const k of e.keys){ const r=u.rec[k]; if(r){ c+=r.c; w+=r.w; if(r.due) due=true; } }
+  // 1回でも正解 → ゲット / 2回以上正解して要復習なし → マル / まちがえただけ → seen / 未出題 → 影
+  return {c, w, st: c>0 ? (c>=MASTER_STREAK && !due ? "master":"got") : (w>0 ? "seen":"dark")};
+}
+const DEX_PAGE = 120;
+const DEX_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+const dexLetter = e => (e.id.replace(/^[^a-z]+/,"")[0]||"#");
+function dexList(){
+  const q = kana(ui.dq||"").trim();
+  const L = ui.dl || "a";
+  return DEX.filter(e=>{
+    if(!q && dexLetter(e)!==L) return false;
+    if(ui.dc && !e.courses.has(ui.dc)) return false;
+    if(q && !e.search.includes(q)) return false;
+    if(ui.df){ const st=dexState(e).st;
+      if(ui.df==="got" && !(st==="got"||st==="master")) return false;
+      if(ui.df==="dark" && st!=="dark") return false;
+      if(ui.df==="seen" && st!=="seen") return false; }
+    return true;
+  });
+}
+const emo = e => EMOJI[e.id] || "📘";
+function viewDex(){
+  const pool = ui.dc ? DEX.filter(e=>e.courses.has(ui.dc)) : DEX;
+  let got=0, mas=0; const byL={};
+  for(const e of pool){ const st=dexState(e).st, l=dexLetter(e); (byL[l] ||= [0,0])[1]++; if(st==="got"||st==="master"){ got++; byL[l][0]++; } if(st==="master") mas++; }
+  const courses = Object.keys(COURSE_RANK).filter(c=>DEX.some(e=>e.courses.has(c)));
+  const L = ui.dl || "a";
+  return `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <div class="dex-head"><h2 style="margin:0">単語図鑑</h2></div>
+    <div class="dex-head"><b>${got.toLocaleString()}</b><span>/ ${pool.length.toLocaleString()} 枚ゲット${ui.dc?`(${esc(ui.dc)})`:""}　うちマル ${mas.toLocaleString()} 枚</span></div>
+    <div class="bar" style="height:8px;margin:0"><i style="width:${pool.length?got/pool.length*100:0}%"></i></div>
+    <p class="note" style="margin:0">テストで正解した単語はカードをゲットでき、色がつきます。まだの単語はグレーのままです。タップするとトレカが開いて、イラスト・意味・例文が見られます。</p>
+    <div class="dex-tools">
+      <input type="text" id="dexQ" placeholder="英語か日本語でさがす(例:apple / りんご)" value="${esc(ui.dq||"")}" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="abc" role="tablist" aria-label="頭文字">${DEX_LETTERS.filter(l=>byL[l]).map(l=>{const [g,t]=byL[l];return `<button class="${g===t?"full":""}" aria-pressed="${!ui.dq&&L===l}" data-act="dl" data-v="${l}"><b>${l.toUpperCase()}</b><small>${g}/${t}</small></button>`}).join("")}</div>
+      <div class="filters">
+        <button class="chip" aria-pressed="${!ui.dc}" data-act="dc" data-v="">ぜんぶ</button>
+        ${courses.map(c=>`<button class="chip" aria-pressed="${ui.dc===c}" data-act="dc" data-v="${esc(c)}">${esc(c)}</button>`).join("")}
+      </div>
+      <div class="filters">
+        ${[["","すべて"],["got","ゲット済み"],["seen","まちがえただけ"],["dark","まだ"]].map(([v,l])=>`<button class="chip" aria-pressed="${(ui.df||"")===v}" data-act="df" data-v="${v}">${l}</button>`).join("")}
+      </div>
+    </div>
+    <div id="dexGrid"></div>
+  </section>`;
+}
+function dexRow(e){
+  const s = dexState(e), lit = s.st==="got"||s.st==="master";
+  const sense = e.senses.map(x=>x.ja).join(" / ");
+  return `<button class="dr ${s.st} c-${esc(e.course)}" data-act="word" data-id="${esc(e.id)}">
+    <span class="ic">${emo(e)}</span>
+    <span class="tx"><span class="w">${esc(e.en)}</span><span class="m">${s.st==="dark"?"？？？":esc(sense)}</span></span>
+    <span class="rt">${s.st==="master"?'<span class="maru sm">マル</span>':lit?'<span class="gotm">GET</span>':s.st==="seen"?'<span class="st-ng">あと一歩</span>':""}<small>No.${String(e.no).padStart(4,"0")}</small></span>
+  </button>`;
+}
+function renderDex(){
+  const g = $("#dexGrid"); if(!g) return;
+  const list = dexList(), n = Math.min(list.length, ui.dn||DEX_PAGE);
+  const head = ui.dq ? `「${esc(ui.dq)}」の検索結果 ${list.length.toLocaleString()} 語` : `${(ui.dl||"a").toUpperCase()} から始まる単語 ${list.length.toLocaleString()} 語`;
+  g.innerHTML = list.length
+    ? `<p class="note" style="margin:0 0 8px">${head}</p><div class="drs">${list.slice(0,n).map(dexRow).join("")}</div>
+       ${n<list.length?`<div class="row" style="justify-content:center;margin-top:14px"><button class="more" data-act="dexmore">もっと見る(のこり ${(list.length-n).toLocaleString()} 語)</button></div>`:""}`
+    : `<p class="empty">${head}　見つかりませんでした。</p>`;
+}
+function viewWordSheet(id){
+  const e = DEX_BY_ID[id]; if(!e) return "";
+  const s = dexState(e), lit = s.st==="got"||s.st==="master";
+  const pos = [...new Set(e.senses.map(x=>x.pos).filter(Boolean))].map(posName).join("・");
+  const label = {master:"マル！(2回以上正解・要復習なし)", got:"ゲット済み", seen:"まちがえただけ(正解するとゲット)", dark:"まだ出会っていない単語"}[s.st];
+  const i = DEX.indexOf(e);
+  return `<div class="modal" data-act="closemodal"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(e.en)}">
+    <div class="top"><span class="note">${esc(label)}</span><button class="link" data-act="closemodal">とじる</button></div>
+    <div class="tcard ${lit?"lit":"off"} ${s.st} c-${esc(e.course)}">
+      <div class="tband"><span>${[...e.courses].sort((a,b)=>COURSE_RANK[a]-COURSE_RANK[b]).map(esc).join("・")}</span><span>No.${String(e.no).padStart(4,"0")}</span></div>
+      <div class="tart"><span class="big">${emo(e)}</span>${s.st==="master"?'<span class="maru">マル</span>':""}${lit?"":`<span class="lock">${s.st==="seen"?"正解するとゲット！":"まだゲットしていません"}</span>`}</div>
+      <div class="tname"><span class="bigw">${esc(e.en)}</span>${canSpeak?`<button class="say" data-act="sayt" data-t="${esc(e.en)}" data-w="1" aria-label="発音を聞く"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:""}</div>
+      ${pos?`<div class="tpos">${esc(pos)}</div>`:""}
+      <div class="tsense">${e.senses.map(x=>`<div>${x.pos&&e.senses.length>1?`<span class="tag">${esc(posName(x.pos))}</span>`:""}${esc(x.ja)}</div>`).join("")}</div>
+      <div class="tfoot"><span>正解 <b>${s.c}</b></span><span>まちがい <b>${s.w}</b></span></div>
+    </div>
+    ${e.exs.length?`<div style="display:flex;flex-direction:column;gap:10px"><p class="label" style="margin:0">例文</p>
+      ${e.exs.map(x=>`<div><div class="exrow">${canSpeak?sayBtn("ex","例文を聞く").replace('data-act="say"',`data-act="sayt" data-t="${esc(x.ex)}"`):""}<div class="ex">${esc(x.ex).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}</div></div><div class="ex-src">出典:${esc(x.src)}</div></div>`).join("")}</div>`
+      :`<p class="note" style="margin:0">この単語には例文はありません。</p>`}
+    <div><p class="label" style="margin:0 0 4px">のっているセット</p><p class="note" style="margin:0">${e.sets.map(esc).join(" / ")}</p></div>
+    <div class="row" style="justify-content:space-between">
+      <button data-act="word" data-id="${esc(DEX[i-1]?.id||"")}" ${i>0?"":"disabled"}>‹ 前の単語</button>
+      <button data-act="word" data-id="${esc(DEX[i+1]?.id||"")}" ${i<DEX.length-1?"":"disabled"}>次の単語 ›</button>
+    </div>
+  </div></div>`;
+}
 
 /* ---------- views ---------- */
 function render(){
   const app = $("#app");
-  if(!ui.name) return app.innerHTML = viewLogin();
+  applySkin();
+  const y = scrollY;
+  if(!ui.name){ app.innerHTML = viewLogin() + (ui.modal?.type==="skin"?viewSkinSheet():""); return; }
+  if(ui.view==="home" && ui.modal){
+    app.innerHTML = viewHome() + (ui.modal.type==="skin" ? viewSkinSheet() : viewWordSheet(ui.modal.id));
+    if(ui.tab==="dex") renderDex();
+    window.scrollTo({top:y}); return;
+  }
   if(ui.view==="quiz"){ app.innerHTML = viewQuiz(); const bi=$("#blankIn"); if(bi) setTimeout(()=>bi.focus({preventScroll:true}),0);
     const c=document.querySelector(".card"); if(c){ const r=c.getBoundingClientRect(); if(r.top<0 || r.top>innerHeight*0.35) window.scrollTo({top:Math.max(0,scrollY+r.top-10)}); }
     return; }
   if(ui.view==="result") return app.innerHTML = viewResult();
   app.innerHTML = viewHome();
+  if(ui.tab==="dex") renderDex();
 }
 
 function header(){
   return `<header class="top">
     <div class="brand"><small>学びの場マル直</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
-    ${ui.name ? `<div class="who"><span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button></div>`:""}
+    <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ</button>`:""}</div>
   </header>`;
 }
 
@@ -7644,7 +7991,8 @@ function viewHome(){
   const hasForm = selSids.some(isFormSet), onlyForm = hasForm && selSids.every(isFormSet);
   const tabs = `<div class="tabs" role="tablist">
       <button role="tab" aria-selected="${ui.tab==="sets"}" data-act="tab" data-tab="sets">セットを選ぶ</button>
-      <button role="tab" aria-selected="${ui.tab==="review"}" data-act="tab" data-tab="review">要復習リスト（${dueAll.length}）</button>
+      <button role="tab" aria-selected="${ui.tab==="review"}" data-act="tab" data-tab="review">まちがえた語（${missAll().length}）</button>
+      <button role="tab" aria-selected="${ui.tab==="dex"}" data-act="tab" data-tab="dex">単語図鑑</button>
       <button role="tab" aria-selected="${ui.tab==="data"}" data-act="tab" data-tab="data">記録の引っ越し</button>
     </div>`;
 
@@ -7686,15 +8034,40 @@ function viewHome(){
       </div>`}
     </section>`;
   } else if(ui.tab==="review"){
-    body = `<section class="panel">
-      <h2>要復習リスト</h2>
-      <p class="note" style="margin:0 0 10px">まちがえた語がここに入ります。${MASTER_STREAK}回続けて正解するとリストから外れます。</p>
-      ${dueAll.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th>セット</th><th style="text-align:right">×</th></tr></thead><tbody>
-        ${dueAll.sort((a,b)=>rec(b.key).w-rec(a.key).w).map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}</td><td class="note">${esc(w.setTitle)}</td><td class="num">${rec(w.key).w}</td></tr>`).join("")}
-        </tbody></table></div>
-        <div class="startbar" style="margin-top:14px"><button class="primary" data-act="start" data-only="dueAll">要復習の語をぜんぶ解く（${dueAll.length}）</button></div>`
-      :`<p class="empty">いまは要復習の語はありません。</p>`}
+    const missed = missAll();
+    const shownM = (ui.miss==="due" ? missed.filter(w=>isDue(w.key)) : missed)
+      .sort((a,b)=>(isDue(b.key)-isDue(a.key)) || (user().rec[b.key].w-user().rec[a.key].w) || a.en.localeCompare(b.en));
+    body = `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0">まちがえた語</h2>
+      <p class="note" style="margin:0">これまでに1回でもまちがえた語がぜんぶ残ります。${MASTER_STREAK}回続けて正解すると「克服」になります(一覧からは消えません)。</p>
+      ${missed.length?`<div class="stats">
+        <div class="stat3"><b>${missed.length}</b><span>まちがえた語</span></div>
+        <div class="stat3"><b style="color:var(--ng)">${dueAll.length}</b><span>要復習</span></div>
+        <div class="stat3"><b style="color:var(--ok)">${missed.length-dueAll.length}</b><span>克服した</span></div>
+      </div>
+      <div class="filters">
+        <button class="chip" aria-pressed="${ui.miss!=="due"}" data-act="miss" data-v="all">ぜんぶ（${missed.length}）</button>
+        <button class="chip" aria-pressed="${ui.miss==="due"}" data-act="miss" data-v="due">要復習だけ（${dueAll.length}）</button>
+      </div>
+      ${shownM.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th>状態</th><th style="text-align:right">×</th></tr></thead><tbody>
+        ${shownM.map(w=>`<tr><td class="en">${esc(w.en)}</td><td>${esc(w.ja)}<div class="note">${esc(w.setTitle)}</div></td><td>${isDue(w.key)?'<span class="st-ng">要復習</span>':'<span class="st-ok">克服✓</span>'}</td><td class="num">${user().rec[w.key].w}</td></tr>`).join("")}
+        </tbody></table></div>`:`<p class="empty">要復習の語はありません。ぜんぶ克服しています！</p>`}
+      <div class="opts">
+        <div><p class="label">出題の向き</p><div class="seg">
+          ${[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
+        </div></div>
+        <div><p class="label">問題数</p><div class="seg">
+          ${[["n10","10問"],["n20","20問"],["all","ぜんぶ"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
+        </div></div>
+      </div>
+      <div class="startbar">
+        <button data-act="start" data-only="dueAll" ${dueAll.length?"":"disabled"}>要復習だけテスト（${dueAll.length}）</button>
+        <button class="primary" data-act="start" data-only="missAll">まちがえた語ぜんぶでテスト（${missed.length}）</button>
+      </div>`
+      :`<p class="empty">まだまちがえた語はありません。テストを解くと、まちがえた語がここにたまっていきます。</p>`}
     </section>`;
+  } else if(ui.tab==="dex"){
+    body = viewDex();
   } else {
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
       <h2>記録の引っ越し</h2>
@@ -8068,9 +8441,19 @@ document.addEventListener("change", e=>{
 document.addEventListener("click", async e=>{
   const b = e.target.closest("button[data-act]"); if(!b) return;
   const a = b.dataset.act;
-  if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; save(); render(); }
-  else if(a==="logout"){ stopTimer(); ui.name=null; ui.view="home"; render(); }
-  else if(a==="tab"){ ui.tab=b.dataset.tab; render(); }
+  if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; ui.modal=null; save(); render(); }
+  else if(a==="logout"){ stopTimer(); ui.name=null; ui.view="home"; ui.modal=null; render(); }
+  else if(a==="tab"){ ui.tab=b.dataset.tab; ui.dn=DEX_PAGE; render(); }
+  else if(a==="skinopen"){ ui.modal={type:"skin"}; render(); }
+  else if(a==="skin"){ setSkin(b.dataset.v); render(); }
+  else if(a==="closemodal"){ ui.modal=null; render(); }
+  else if(a==="miss"){ ui.miss=b.dataset.v; render(); }
+  else if(a==="dl"){ ui.dl=b.dataset.v; ui.dq=""; ui.dn=DEX_PAGE; render(); }
+  else if(a==="dc"){ ui.dc=b.dataset.v||null; ui.dn=DEX_PAGE; render(); }
+  else if(a==="df"){ ui.df=b.dataset.v||null; ui.dn=DEX_PAGE; render(); }
+  else if(a==="dexmore"){ ui.dn=(ui.dn||DEX_PAGE)+DEX_PAGE*2; renderDex(); }
+  else if(a==="word"){ ui.modal={type:"word", id:b.dataset.id}; render(); }
+  else if(a==="sayt"){ speak(b.dataset.t, !!b.dataset.w); }
   else if(a==="course"){ ui.course=b.dataset.c; ui.group=null; render(); }
   else if(a==="group"){ ui.group=b.dataset.g; render(); }
   else if(a==="selgroup"){ const gs=SETS.filter(s=>s.group===b.dataset.g&&s.course===ui.course); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
@@ -8080,6 +8463,7 @@ document.addEventListener("click", async e=>{
   else if(a==="start"){
     const only=b.dataset.only;
     if(only==="dueAll") startQuiz(allWords.filter(w=>isDue(w.key)),"要復習の語");
+    else if(only==="missAll") startQuiz(missAll(),"一度でもまちがえた語");
     else { const ws=allWords.filter(w=>ui.selected.has(w.sid)&&(only!=="due"||isDue(w.key)));
       const titles=SETS.filter(s=>ui.selected.has(s.id)).map(s=>s.title);
       const gs=[...new Set(SETS.filter(s=>ui.selected.has(s.id)).map(s=>s.group))];
@@ -8106,14 +8490,20 @@ document.addEventListener("click", async e=>{
     }catch(err){ $("#importMsg").textContent="コードを読み込めませんでした。全部コピーできているか確認してください"; }
   }
 });
+document.addEventListener("click", e=>{
+  if(e.target.classList?.contains("modal")){ ui.modal=null; render(); }
+});
 document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && ui.modal){ ui.modal=null; render(); return; }
   if(ui.view!=="quiz") return;
   const q=quiz.qs[quiz.i];
   if(q.kind==="blank" && q.picked===null) return;
   if(q.picked===null && /^[1-4]$/.test(e.key) && +e.key<=q.choices.length) answer(+e.key-1);
   else if(q.picked!==null && e.key==="Enter" && document.activeElement?.id!=="nextBtn"){ e.preventDefault(); next(); }
 });
+let dexTimer=null;
 document.addEventListener("input", e=>{
+  if(e.target.id==="dexQ"){ ui.dq=e.target.value; ui.dn=DEX_PAGE; clearTimeout(dexTimer); dexTimer=setTimeout(renderDex,150); return; }
   if(e.target.id!=="blankIn" || e.isComposing) return;
   if(answerBlank(e.target.value)===false) e.target.value="";
 });
