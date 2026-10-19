@@ -9911,6 +9911,13 @@ async function yapi(action, body={}){
   const r = await fetch(YARIKI_URL+"?action="+action, {method:"POST", body:JSON.stringify({action, ...body}), signal:ctl.signal});
   return r.json();
 }
+
+/* ==== MAL QUEST 共通ログイン(やりきリスト・マル単で1回だけ) ==== */
+const MQ_KEY = 'mq_login';
+function mqGet(){ try{ const v = JSON.parse(localStorage.getItem(MQ_KEY) || 'null'); return v && v.nickname ? v : null; }catch(e){ return null; } }
+function mqSet(o){ try{ localStorage.setItem(MQ_KEY, JSON.stringify(Object.assign({at: Date.now()}, o))); }catch(e){} }
+function mqClear(){ try{ localStorage.removeItem(MQ_KEY); }catch(e){} }
+
 let ROSTER = null;
 try{ ROSTER = JSON.parse(localStorage.getItem("marutan-roster")||"null"); }catch(e){}
 async function loadRoster(){
@@ -9981,6 +9988,7 @@ function rosterLogin(stu){
   const u = (mem.users[nick] ||= {rec:{}});
   u.sid = stu.id;
   ui.name = nick; ui.login = null; mem.last = nick; save();
+  mqSet({kind:'student', id:stu.id, nickname:nick});
   // この端末に、名簿と結びついていない前の記録があれば引き継ぎをたずねる
   const olds = Object.keys(mem.users).filter(n=>n!==nick && !mem.users[n].sid && !mem.users[n].mergedInto && Object.keys(mem.users[n].rec||{}).length);
   if(!u.askedMerge && olds.length) ui.modal = {type:"merge", olds};
@@ -10480,7 +10488,8 @@ document.addEventListener("submit", e=>{
   if(e.target.id!=="loginForm") return;
   e.preventDefault();
   const v = $("#nameInput").value.trim(); if(!v) return;
-  ui.name = v; mem.users[v] ||= {rec:{}}; mem.last = v; save(); render();
+  ui.name = v; mem.users[v] ||= {rec:{}}; mem.last = v; save();
+  mqSet({kind:'guest', nickname:v}); render();
 });
 document.addEventListener("change", e=>{
   const t = e.target; if(t.dataset.act!=="sel") return;
@@ -10497,7 +10506,7 @@ document.addEventListener("click", async e=>{
   else if(a==="merge"){ mergeUser(b.dataset.name); ui.modal.olds=ui.modal.olds.filter(n=>n!==b.dataset.name); user().askedMerge=true; save(); if(!ui.modal.olds.length) ui.modal=null; render(); }
   else if(a==="nomerge"){ user().askedMerge=true; save(); ui.modal=null; render(); }
   else if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; ui.modal=null; save(); render(); }
-  else if(a==="logout"){ stopTimer(); ui.name=null; ui.login=null; ui.view="home"; ui.modal=null; render(); }
+  else if(a==="logout"){ stopTimer(); mqClear(); ui.name=null; ui.login=null; ui.view="home"; ui.modal=null; render(); }
   else if(a==="tab"){ ui.tab=b.dataset.tab; ui.dn=DEX_PAGE; render(); }
   else if(a==="skinopen"){ ui.modal={type:"skin"}; render(); }
   else if(a==="skin"){ setSkin(b.dataset.v); render(); }
@@ -10584,6 +10593,13 @@ document.addEventListener("input", e=>{
   if(answerBlank(e.target.value)===false) e.target.value="";
 });
 document.addEventListener("compositionend", e=>{ if(e.target.id==="blankIn" && answerBlank(e.target.value)===false) e.target.value=""; });
+// やりきリストかマル単で一度ログインしていれば、そのまま入る(先生・体験の名前も残す)
+(function mqAutoLogin(){
+  const m = mqGet(); if(!m || ui.name) return;
+  const u = (mem.users[m.nickname] ||= {rec:{}});
+  if(m.kind==='student' && m.id!=null) u.sid = m.id;
+  ui.name = m.nickname; mem.last = m.nickname; save();
+})();
 render();
 flush();
 loadRoster();
