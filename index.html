@@ -91,6 +91,17 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .startbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .startbar .sum{margin-right:auto;font-size:13px;color:var(--muted)}
 .chip.big{font-size:15px;padding:7px 18px}
+.mana{border-radius:14px;padding:10px 12px;background:linear-gradient(135deg,#1c1240,#2b1a5e);color:#fff}
+.mana-hd{font-weight:700;font-size:14px;margin-bottom:6px;letter-spacing:.05em}
+.mana-hd span{font-weight:400;font-size:11px;color:#c9bff5;margin-left:8px}
+.mana-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mana-c{text-align:center;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 2px}
+.mana-ic{font-size:18px;line-height:1.2}
+.mana-lv{font-weight:800;font-size:15px;color:#ffe27a}
+.mana-k{font-size:10px;color:#d8d0ff;white-space:nowrap}
+.mana-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:4px 6px 2px;overflow:hidden}
+.mana-bar i{display:block;height:100%;background:linear-gradient(90deg,#b48cff,#ffe27a)}
+.mana-nx{font-size:9px;color:#c9bff5}
 .sel-n{display:inline-grid;place-items:center;margin-left:6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;line-height:1}
 .selbox{border:2px solid var(--accent);background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .selbox .hd{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
@@ -9869,6 +9880,7 @@ function viewHome(){
   if(ui.tab==="sets"){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
+      ${ui.name ? manaPanel() : ""}
       ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
       ${selBox(S)}
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
@@ -10090,14 +10102,16 @@ function dmgFinish(){
   const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
   let raw = D.pts + D.revive*DMG.revive + maru*DMG.maru;
   if(D.crit) raw *= 2;
-  const day = dmgDay();
-  const dmg = Math.max(0, Math.min(raw, DMG.dayCap - day.sent));
+  const qs = quizSubject(), M = qs ? manaLv(qs) : {lv:1};
+  raw = Math.round(raw * manaMult(M.lv));
+  const day = dmgDay(), cap = manaCap(M.lv);
+  const dmg = Math.max(0, Math.min(raw, cap - day.sent));
   day.sent += dmg; save();
-  quiz.dmgResult = {raw, dmg, crit:D.crit, revive:D.revive, maru, items:D.items, left:DMG.dayCap-day.sent, linked:!!u.sid};
+  quiz.dmgResult = {raw, dmg, crit:D.crit, revive:D.revive, maru, items:D.items, left:cap-day.sent, linked:!!u.sid, mlv:M.lv};
   if(dmg>0 && u.sid){
     const q = dmgOutbox(); q.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), sid:u.sid, nick:ui.name, damage:dmg, isCrit:D.crit, date:yDay()});
     setDmgOutbox(q);
-    mqMagicStrike(dmg, D.crit);   // ボスの前に出て魔法を撃つ演出(ボスの情報を先に取ってから送信)
+    mqMagicStrike(dmg, D.crit, M.lv);   // ボスの前に出て魔法を撃つ演出(ボスの情報を先に取ってから送信)
   }
 }
 /* 魔法の色:教科で属性が変わる(英語=風 数学=雷 国語=水 理科=炎 社会=大地) */
@@ -10108,7 +10122,7 @@ function spellColor(){
   if(ss.length!==1) return "#b48cff";
   return ({"英語":"#7fe0c0","数学":"#ffe14d","国語":"#5ab8ff","理科":"#ff7a3d","社会":"#d2a26c"})[ss[0]] || "#b48cff";
 }
-async function mqMagicStrike(dmg, crit){
+async function mqMagicStrike(dmg, crit, mlv){
   const spell = (crit?"大":"") + spellName(), color = spellColor(), hero = ui.name;
   let boss = null;
   try{
@@ -10117,7 +10131,7 @@ async function mqMagicStrike(dmg, crit){
   }catch(e){}
   flushDmg();
   const B = boss ? {name:boss.name, hp:Number(boss.hp)||0, cur:Number(boss.currentHp ?? boss.hp), imgUrl:(boss.imageUrl||"").trim()} : {name:"やりきリストの大魔王"};
-  mqStrike({kind:"magic", dmg, crit, hero, spell, color, element:spellElement(), boss:B});
+  mqStrike({kind:"magic", dmg, crit, hero, spell, color, element:spellElement(), mlv, boss:B});
 }
 function dmgOutbox(){ try{ return JSON.parse(localStorage.getItem(DMG_OUTBOX)||"[]"); }catch(e){ return []; } }
 function setDmgOutbox(a){ try{ localStorage.setItem(DMG_OUTBOX, JSON.stringify(a)); }catch(e){} }
@@ -10151,6 +10165,31 @@ function spellName(){
   if(ss.length!==1) return "マル単の魔法";
   return ({order:"つなぎの魔法", "英語":"風の魔法", "国語":"水の魔法", "数学":"雷の魔法", "理科":"炎の魔法", "社会":"大地の魔法"})[ss[0]] || "マル単の魔法";
 }
+/* ==== 魔力:覚えきったセット(マル)は魔法陣に刻まれる輪。教科ごとにマルが増えるほど魔力Lvが上がる ==== */
+const MANA_STEPS = [0,1,3,6,10,15,21,28,36,45];          // Lv1〜10に必要なマルの数
+const SUBJ_ELEM = {"英語":"wind","数学":"thunder","国語":"water","理科":"fire","社会":"earth"};
+const ELEM_INFO = {wind:["🌀","風"], thunder:["⚡","雷"], water:["💧","水"], fire:["🔥","炎"], earth:["🪨","大地"]};
+function maruCount(subj){ return SETS.filter(s=>s.subject===subj && setDone(s)).length; }
+function manaLv(subj){
+  const n = maruCount(subj); let lv = 1;
+  MANA_STEPS.forEach((need,i)=>{ if(n>=need) lv = i+1; });
+  const next = MANA_STEPS[lv]; return { lv, n, next: next==null ? null : next - n };
+}
+const manaMult = lv => 1 + (lv-1)*0.1;                    // Lv1=×1.0 … Lv10=×1.9
+const manaCap  = lv => DMG.dayCap + (lv-1)*30;             // 1日の魔力(上限)も少しずつ増える
+function quizSubject(){
+  if(!quiz) return null; if(quiz.math) return "数学";
+  const c = {}; quiz.qs.forEach(q=>{ const k = q.w && q.w.subject; if(k) c[k]=(c[k]||0)+1; });
+  return Object.keys(c).sort((a,b)=>c[b]-c[a])[0] || null;
+}
+function manaPanel(){
+  const subs = Object.keys(SUBJ_ELEM).filter(k=>SETS.some(s=>s.subject===k));
+  return `<div class="mana" aria-label="魔力">
+    <div class="mana-hd">魔力<span>マルの数で上がる</span></div>
+    <div class="mana-row">${subs.map(k=>{ const m=manaLv(k), [ic,nm]=ELEM_INFO[SUBJ_ELEM[k]]; const pct = m.next==null?100:Math.round((m.n-MANA_STEPS[m.lv-1])/(MANA_STEPS[m.lv]-MANA_STEPS[m.lv-1])*100);
+      return `<div class="mana-c" title="${esc(k)}:マル${m.n}個${m.next==null?"(最大)":`・あと${m.next}個でLv${m.lv+1}`}"><div class="mana-ic">${ic}</div><div class="mana-lv">Lv${m.lv}</div><div class="mana-k">${esc(k)}・${nm}</div><div class="mana-bar"><i style="width:${pct}%"></i></div><div class="mana-nx">${m.next==null?"MAX":`あと${m.next}マル`}</div></div>`; }).join("")}</div>
+  </div>`;
+}
 /* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
 function spellElement(){
   if(!quiz) return "";
@@ -10167,7 +10206,7 @@ function dmgPanel(){
     <span class="mcircle" aria-hidden="true"></span>
     <div class="dmgn"><span class="spell">🔮 ${esc(spell)}！</span></div>
     <div class="dmgn"><span>やりきリストのボスに</span><b>${R.dmg.toLocaleString()}</b><span>の魔法ダメージ！</span></div>
-    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で魔力2倍":""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日の魔力はここまで)`:""}</div>
+    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で魔力2倍":"", R.mlv>1?`魔力Lv${R.mlv}(×${manaMult(R.mlv).toFixed(1)})`:""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日の魔力はここまで)`:""}</div>
     <div class="note">今日の魔力のこり ${Math.max(0,R.left)}　<span id="dmgSend">${R.dmg?(R.sentOk?"ボスに届きました！":"詠唱中…"):""}</span></div>
   </div>`;
 }
@@ -10948,7 +10987,8 @@ function mqsBolt(x0,y0,x1,y1,delay,dur,width){
   });
 }
 // 魔法陣
-function mqsCircle(x, y, r, color, delay, dur){
+function mqsCircle(x, y, r, color, delay, dur, lv){
+  lv = lv || 1;
   mqsFx(delay, dur||900, (ctx, t) => {
     const a = t<.2 ? t/.2 : (t>.8 ? (1-t)/.2 : 1), rot = t*2.2, R = r*MQS.dpr*(.6+.4*mqsEase.out(Math.min(1,t*3)));
     ctx.save(); ctx.translate(x, y); ctx.scale(1, .38); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a;
@@ -10957,6 +10997,11 @@ function mqsCircle(x, y, r, color, delay, dur){
     ctx.lineWidth = 1.5*MQS.dpr; ctx.beginPath(); ctx.arc(0,0,R*.78,0,Math.PI*2); ctx.stroke();
     ctx.rotate(rot); ctx.beginPath(); for(let i=0;i<=5;i++){ const ang=-Math.PI/2+i*4*Math.PI/5; const X=Math.cos(ang)*R*.78, Y=Math.sin(ang)*R*.78; i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);} ctx.stroke();
     for(let i=0;i<24;i++){ const ang=i/24*Math.PI*2-rot*2; ctx.beginPath(); ctx.moveTo(Math.cos(ang)*R*.86,Math.sin(ang)*R*.86); ctx.lineTo(Math.cos(ang)*R*.96,Math.sin(ang)*R*.96); ctx.stroke(); }
+    if(lv >= 4){ ctx.rotate(-rot*2.2); ctx.lineWidth = 2*MQS.dpr; ctx.beginPath(); ctx.arc(0,0,R*1.22,0,Math.PI*2); ctx.stroke();
+      for(let i=0;i<12;i++){ const ang=i/12*Math.PI*2; ctx.save(); ctx.translate(Math.cos(ang)*R*1.1,Math.sin(ang)*R*1.1); ctx.rotate(ang); ctx.strokeRect(-4*MQS.dpr,-4*MQS.dpr,8*MQS.dpr,8*MQS.dpr); ctx.restore(); } }
+    if(lv >= 7){ ctx.rotate(rot*3); ctx.lineWidth = 1.5*MQS.dpr; for(let k=0;k<2;k++){ ctx.beginPath(); for(let i=0;i<=3;i++){ const ang=k*Math.PI/3+i*2*Math.PI/3-Math.PI/2; const X=Math.cos(ang)*R*.55, Y=Math.sin(ang)*R*.55; i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);} ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(0,0,R*1.42,0,Math.PI*2); ctx.stroke(); }
+    if(lv >= 10){ ctx.globalAlpha = a*.5; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(0,0,R*.3*(1+.15*Math.sin(t*20)),0,Math.PI*2); ctx.fill(); }
     ctx.restore(); ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   });
 }
@@ -11066,8 +11111,10 @@ function mqsPlay(o, B, H){
 
   // ---- 魔法 ----
   const E = MQS_ELEMENTS[o.element] || { color:o.color||'#b48cff', light:'#efe6ff', word:'', w1:'#efe6ff', w2:'#7a4dff' };
-  mqsCircle(H.x, H.y + 34*d, 70, E.color, 250, 1100);
-  for(let i=0;i<34;i++) mqsAt(260 + i*16, () => { const a=Math.random()*Math.PI*2, r=mqsRand(50,110)*d; mqsPart({ x:H.x+Math.cos(a)*r, y:H.y+Math.sin(a)*r, vx:-Math.cos(a)*r/16, vy:-Math.sin(a)*r/16, drag:1, max:16, size:mqsRand(5,9)*d, color:E.color, type:'glow' }); });
+  const LV = Math.max(1, Math.min(10, o.mlv || 1));
+  mqsCircle(H.x, H.y + 34*d, 56 + LV*6, E.color, 250, 1100, LV);
+  if(LV >= 5) mqsCircle(bx, by + bw*.75, 50 + LV*8, E.color, 700, 900, LV);   // 魔力が高いとボスの足元にも魔法陣
+  for(let i=0;i<20+LV*4;i++) mqsAt(260 + i*16, () => { const a=Math.random()*Math.PI*2, r=mqsRand(50,110)*d; mqsPart({ x:H.x+Math.cos(a)*r, y:H.y+Math.sin(a)*r, vx:-Math.cos(a)*r/16, vy:-Math.sin(a)*r/16, drag:1, max:16, size:mqsRand(5,9)*d, color:E.color, type:'glow' }); });
   const hit = () => { mqsHitBoss(o); word('', E.word, E.w1, E.w2); };
   if(o.element === 'thunder'){
     mqsAt(T - 380, () => { document.getElementById('mqs-bg').classList.add('dim'); });
@@ -11095,7 +11142,7 @@ function mqsPlay(o, B, H){
     });
   } else {
     const color = E.color;
-    mqsAt(T - 520, () => mqsProjectile(H.x+16*d, H.y-20*d, bx, by, color, 0, 520, 24));
+    mqsAt(T - 520, () => mqsProjectile(H.x+16*d, H.y-20*d, bx, by, color, 0, 520, 18 + LV*2.5));
     mqsAt(T, () => {
       mqsFlash(.5, 220); mqsShake(16); mqsRing(bx, by, bw*.95, color, 0, 480, 12); mqsSpeedLines(bx, by, 0, 300); mqsFlare(bx, by, 300, E.light, 0, 450);
       if(o.element === 'fire'){
@@ -11161,7 +11208,7 @@ function mqStrike(o){
   const wpn = magic ? `<span class="mqs-wpn fist">${E ? E.icon : '🔮'}</span>`
     : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
   const digits = Array.from((Number(o.dmg)||0).toLocaleString()).map((c,i) => `<span style="animation-delay:${i*45}ms">${c}</span>`).join('');
-  const label = magic ? (E ? `${E.icon} MAGIC ATTACK` : '🔮 MAGIC ATTACK') : punch ? '👊 PUNCH' : '⚔ ATTACK';
+  const label = magic ? (E ? `${E.icon} MAGIC ATTACK${o.mlv ? ' ・ 魔力Lv' + o.mlv : ''}` : '🔮 MAGIC ATTACK') : punch ? '👊 PUNCH' : '⚔ ATTACK';
   const msg = magic ? `${mqsEsc(o.spell || 'マル単の魔法')}！` : punch ? 'こぶしでパンチ！' : `${mqsEsc(o.weaponName || '')}で攻撃！`;
   st.innerHTML = `
     <div class="mqs-title">${label}</div>
