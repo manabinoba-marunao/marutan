@@ -10175,8 +10175,10 @@ function manaLv(subj){
   MANA_STEPS.forEach((need,i)=>{ if(n>=need) lv = i+1; });
   const next = MANA_STEPS[lv]; return { lv, n, next: next==null ? null : next - n };
 }
-const manaMult = lv => 1 + (lv-1)*0.1;                    // Lv1=×1.0 … Lv10=×1.9
-const manaCap  = lv => DMG.dayCap + (lv-1)*30;             // 1日の魔力(上限)も少しずつ増える
+// マルが増えるほど魔力の倍率が大きく伸びる(魔法だけ鍛えても「魔法使い」として強くなれる)
+const MANA_MULT = [1, 1.2, 1.5, 1.8, 2, 2.5, 3, 3.5, 4, 5];   // Lv1〜10
+const manaMult = lv => MANA_MULT[Math.max(1, Math.min(10, lv)) - 1];
+const manaCap  = lv => Math.round(DMG.dayCap * manaMult(lv));   // 1日の上限も同じ倍率で増える(Lv10で3000)
 function quizSubject(){
   if(!quiz) return null; if(quiz.math) return "数学";
   const c = {}; quiz.qs.forEach(q=>{ const k = q.w && q.w.subject; if(k) c[k]=(c[k]||0)+1; });
@@ -10187,7 +10189,7 @@ function manaPanel(){
   return `<div class="mana" aria-label="魔力">
     <div class="mana-hd">魔力<span>マルの数で上がる</span></div>
     <div class="mana-row">${subs.map(k=>{ const m=manaLv(k), [ic,nm]=ELEM_INFO[SUBJ_ELEM[k]]; const pct = m.next==null?100:Math.round((m.n-MANA_STEPS[m.lv-1])/(MANA_STEPS[m.lv]-MANA_STEPS[m.lv-1])*100);
-      return `<div class="mana-c" title="${esc(k)}:マル${m.n}個${m.next==null?"(最大)":`・あと${m.next}個でLv${m.lv+1}`}"><div class="mana-ic">${ic}</div><div class="mana-lv">Lv${m.lv}</div><div class="mana-k">${esc(k)}・${nm}</div><div class="mana-bar"><i style="width:${pct}%"></i></div><div class="mana-nx">${m.next==null?"MAX":`あと${m.next}マル`}</div></div>`; }).join("")}</div>
+      return `<div class="mana-c" title="${esc(k)}:マル${m.n}個${m.next==null?"(最大)":`・あと${m.next}個でLv${m.lv+1}`}"><div class="mana-ic">${ic}</div><div class="mana-lv">Lv${m.lv}</div><div class="mana-k">×${manaMult(m.lv)}</div><div class="mana-k">${esc(k)}・${nm}</div><div class="mana-bar"><i style="width:${pct}%"></i></div><div class="mana-nx">${m.next==null?"MAX":`あと${m.next}マル`}</div></div>`; }).join("")}</div>
   </div>`;
 }
 /* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
@@ -10206,7 +10208,7 @@ function dmgPanel(){
     <span class="mcircle" aria-hidden="true"></span>
     <div class="dmgn"><span class="spell">🔮 ${esc(spell)}！</span></div>
     <div class="dmgn"><span>やりきリストのボスに</span><b>${R.dmg.toLocaleString()}</b><span>の魔法ダメージ！</span></div>
-    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で魔力2倍":"", R.mlv>1?`魔力Lv${R.mlv}(×${manaMult(R.mlv).toFixed(1)})`:""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日の魔力はここまで)`:""}</div>
+    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で魔力2倍":"", R.mlv>1?`魔力Lv${R.mlv}(×${manaMult(R.mlv)})`:""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日の魔力はここまで)`:""}</div>
     <div class="note">今日の魔力のこり ${Math.max(0,R.left)}　<span id="dmgSend">${R.dmg?(R.sentOk?"ボスに届きました！":"詠唱中…"):""}</span></div>
   </div>`;
 }
