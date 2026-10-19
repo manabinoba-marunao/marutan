@@ -91,6 +91,15 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .startbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .startbar .sum{margin-right:auto;font-size:13px;color:var(--muted)}
 .chip.big{font-size:15px;padding:7px 18px}
+.sel-n{display:inline-grid;place-items:center;margin-left:6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;line-height:1}
+.selbox{border:2px solid var(--accent);background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.selbox .hd{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.selbox .hd span{margin-right:auto}
+.selbox .hd .link{white-space:nowrap}
+.selbox .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.selbox .gname{font-size:12px;color:var(--muted);width:100%;margin-top:2px}
+.selchip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--accent);border-radius:999px;padding:3px 4px 3px 10px;font-size:12px;color:var(--ink)}
+.selchip button{border:none;background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;font-size:12px;line-height:1;padding:0;cursor:pointer}
 .maru-n{display:inline-grid;place-items:center;margin-left:6px;min-width:20px;height:20px;padding:0 4px;border-radius:999px;border:2px solid var(--ng);color:var(--ng);font-size:11px;font-weight:700;line-height:1}
 .maru{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;border:3px solid var(--ng);color:var(--ng);font-weight:800;font-size:12px;letter-spacing:.05em;transform:rotate(-8deg);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 4px var(--ng)}
 .maru.sm{width:auto;height:22px;padding:0 6px;border-radius:999px;border-width:2px;box-shadow:none;font-size:11px;transform:none;margin-right:2px}
@@ -8274,7 +8283,7 @@ const SETS = [
     "details|名|詳細・細かい点|Please tell me the **details** of the plan.",
     "jail|名|刑務所・牢屋|The thief was sent to **jail**.",
     "party bros|名|ヤリラフィー(ノリのいいパリピ仲間・口語)|They are such **party bros**. They are always loud and having fun.",
-    "suit|名|スーツ・(〜用の)服|He wore a black **suit** to the party.",
+    "suit|動|〜に合う・似合う(名詞ではスーツ)|This color really **suits** you.",
     "be scared of|熟|〜をこわがる|My little brother **is scared of** dogs.",
     "escape|動|逃げる・脱出する|The hero **escaped** from the dark castle.",
     "stomach|名|胃・おなか|I have a pain in my **stomach**.",
@@ -9819,6 +9828,19 @@ function setStats(s){
 
 const COURSE_ORDER = ["小学","中学","英検","共通テスト","AIE","並び替え"];
 function setDone(s){ const st=setStats(s); return st.total>0 && st.done===st.total; }
+/* 選んでいるセットを区分ごとにまとめて表示(区分をまたいで選んでも、何を選んだか一目でわかる) */
+function selBox(S){
+  const sel = SETS.filter(s=>ui.selected.has(s.id) && s.subject===ui.subject);
+  if(!sel.length) return "";
+  const nWords = allWords.filter(w=>ui.selected.has(w.sid)).length;
+  const byCourse = {};
+  sel.forEach(s=>{ ((byCourse[s.course] ||= {})[s.group] ||= []).push(s); });
+  const courses = Object.keys(byCourse).sort((a,b)=>(COURSE_ORDER.indexOf(a)+99)%99-(COURSE_ORDER.indexOf(b)+99)%99);
+  return `<div class="selbox" aria-label="選んでいるセット">
+    <div class="hd"><span>✅ 選んでいるセット ${sel.length}つ・${nWords}${S.unit}</span><button class="link" data-act="unselall">ぜんぶ外す</button></div>
+    ${courses.map(c=>`<div class="grp"><div class="gname">【${esc(c)}】</div>${Object.keys(byCourse[c]).map(g=>byCourse[c][g].map(s=>`<span class="selchip">${g!==c?`${esc(g)} › `:""}${esc(s.title)}<button data-act="unsel" data-id="${esc(s.id)}" aria-label="${esc(s.title)}を外す">✕</button></span>`).join("")).join("")}</div>`).join("")}
+  </div>`;
+}
 function viewHome(){
   const S = sj(ui.subject);
   const SS = SETS.filter(s=>s.subject===ui.subject);
@@ -9847,8 +9869,9 @@ function viewHome(){
   if(ui.tab==="sets"){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
-      ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
-      ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
+      ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
+      ${selBox(S)}
+      ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
       ${ui.course&&!ui.group?`<p class="empty">教材・級を選んでください。</p>`:""}
       ${ui.group?`<div><p class="label">セット（いくつでも選べます・ぜんぶ覚えたらマル！）</p>
       ${shown.map(g=>{const gs=list.filter(s=>s.group===g);const allOn=gs.every(s=>ui.selected.has(s.id));return `
@@ -10578,6 +10601,8 @@ document.addEventListener("click", async e=>{
   else if(a==="subject"){ if(ui.subject!==b.dataset.s){ ui.subject=b.dataset.s; ui.course=null; ui.group=null; ui.selected.clear(); ui.mode="en2ja"; mem.subject=ui.subject; save(); } render(); }
   else if(a==="course"){ ui.course=b.dataset.c; ui.group=null; render(); }
   else if(a==="group"){ ui.group=b.dataset.g; render(); }
+  else if(a==="unsel"){ ui.selected.delete(b.dataset.id); render(); }
+  else if(a==="unselall"){ ui.selected.clear(); render(); }
   else if(a==="selgroup"){ const gs=SETS.filter(s=>s.subject===ui.subject&&s.group===b.dataset.g&&s.course===ui.course); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
   else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
   else if(a==="fmode"){ ui.fmode=b.dataset.v; render(); }
