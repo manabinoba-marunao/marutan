@@ -8267,6 +8267,34 @@ const SETS = [
     "渡来人||朝鮮半島などから日本に移り住み、技術や文化を伝えた人々",
     "十七条の憲法||聖徳太子(厩戸皇子)が役人の心構えを示したもの",
     "冠位十二階||家柄にとらわれず、才能や功績のある人を役人に取り立てる制度"
+  ]},
+  {id:"aie-w-1019", course:"AIE", group:"AIEクラスWORLD", title:"WORLD 10/19 の単語", source:"AIEクラスWORLD(板書より)", words:[
+    "details|名|詳細・細かい点|Please tell me the **details** of the plan.",
+    "jail|名|刑務所・牢屋|The thief was sent to **jail**.",
+    "party|名|(冒険の)パーティー・仲間の一行|Our **party** has a hero, a wizard and a fighter.",
+    "bros|名|(口語)仲間・兄弟(brothersの略)|We are **bros**, so we always help each other.",
+    "suit|名|スーツ・(〜用の)服|He wore a black **suit** to the party.",
+    "be scared of|熟|〜をこわがる|My little brother **is scared of** dogs.",
+    "escape|動|逃げる・脱出する|The hero **escaped** from the dark castle.",
+    "stomach|名|胃・おなか|I have a pain in my **stomach**.",
+    "as a result|熟|その結果|He studied hard. **As a result**, he passed the test.",
+    "the rest of|熟|〜の残り|I will finish **the rest of** my homework tonight.",
+    "complete|動|〜を完成させる・やり終える|We **completed** the quest together.",
+    "summon|動|〜を呼び出す・召喚する|The wizard **summoned** a giant owl.",
+    "salmon|名|サケ・サーモン|I had grilled **salmon** for dinner.",
+    "magic circle|名|魔法陣|A **magic circle** appeared on the floor.",
+    "ceiling|名|天井|There is a spider on the **ceiling**.",
+    "grill|動|(網で)〜を焼く|My father **grilled** fish in the yard.",
+    "thin|形|うすい・細い|This book is very **thin**.",
+    "thick|形|厚い・太い|This dictionary is very **thick**.",
+    "sick|形|病気の・気分が悪い|She was **sick** in bed yesterday.",
+    "awaken|動|目覚める・(力などを)目覚めさせる|The legendary sword **awakened** in his hand.",
+    "cooperate with|熟|〜と協力する|We need to **cooperate with** each other to win.",
+    "operate|動|手術する・(機械を)操作する|The doctor **operated** on his leg.",
+    "company|名|仲間・一緒にいること/会社|I enjoy your **company**.",
+    "self-employed|形|自営業の|My uncle is **self-employed** and runs a bookstore.",
+    "reserve|動|〜を予約する|I **reserved** a seat in the study room.",
+    "reservation|名|予約|I made a **reservation** for tomorrow."
   ]}
 ];
 
@@ -9616,7 +9644,7 @@ function noteHtml(en){ const t = noteText(en); return t ? `<div class="etym note
 function etymText(en){ return ETYM[String(en||"").trim().toLowerCase()] || ""; }
 function etymHtml(en){ const t = etymText(en); return t ? `<div class="etym"><span class="lb">語源</span><span>${esc(t).replace(/([a-z][a-z-]*)\(/gi,"<b>$1</b>(")}</span></div>` : ""; }
 const kana = t => String(t).normalize("NFKC").toLowerCase().replace(/[\u30a1-\u30f6]/g, c=>String.fromCharCode(c.charCodeAt(0)-0x60));
-const COURSE_RANK = {"小学":0,"中学":1,"英検":2,"共通テスト":3};
+const COURSE_RANK = {"小学":0,"中学":1,"英検":2,"共通テスト":3,"AIE":4};
 const DEX = (()=>{
   const m = new Map();
   for(const s of SETS){
@@ -9788,7 +9816,7 @@ function setStats(s){
   return {due, done, total:keys.length};
 }
 
-const COURSE_ORDER = ["小学","中学","英検","共通テスト","並び替え"];
+const COURSE_ORDER = ["小学","中学","英検","共通テスト","AIE","並び替え"];
 function setDone(s){ const st=setStats(s); return st.total>0 && st.done===st.total; }
 function viewHome(){
   const S = sj(ui.subject);
