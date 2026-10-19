@@ -10073,8 +10073,28 @@ function dmgFinish(){
   quiz.dmgResult = {raw, dmg, crit:D.crit, revive:D.revive, maru, items:D.items, left:DMG.dayCap-day.sent, linked:!!u.sid};
   if(dmg>0 && u.sid){
     const q = dmgOutbox(); q.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), sid:u.sid, nick:ui.name, damage:dmg, isCrit:D.crit, date:yDay()});
-    setDmgOutbox(q); flushDmg();
+    setDmgOutbox(q);
+    mqMagicStrike(dmg, D.crit);   // ボスの前に出て魔法を撃つ演出(ボスの情報を先に取ってから送信)
   }
+}
+/* 魔法の色:教科で属性が変わる(英語=風 数学=雷 国語=水 理科=炎 社会=大地) */
+function spellColor(){
+  if(!quiz) return "#b48cff";
+  if(quiz.math) return "#ffe14d";
+  const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
+  if(ss.length!==1) return "#b48cff";
+  return ({"英語":"#7fe0c0","数学":"#ffe14d","国語":"#5ab8ff","理科":"#ff7a3d","社会":"#d2a26c"})[ss[0]] || "#b48cff";
+}
+async function mqMagicStrike(dmg, crit){
+  const spell = (crit?"大":"") + spellName(), color = spellColor(), hero = ui.name;
+  let boss = null;
+  try{
+    const b = await Promise.race([yapi("getBoss", {}), new Promise(r=>setTimeout(()=>r(null), 6000))]);
+    if(b && b.ok && b.boss) boss = b.boss;
+  }catch(e){}
+  flushDmg();
+  const B = boss ? {name:boss.name, hp:Number(boss.hp)||0, cur:Number(boss.currentHp ?? boss.hp), imgUrl:(boss.imageUrl||"").trim()} : {name:"やりきリストの大魔王"};
+  mqStrike({kind:"magic", dmg, crit, hero, spell, color, boss:B});
 }
 function dmgOutbox(){ try{ return JSON.parse(localStorage.getItem(DMG_OUTBOX)||"[]"); }catch(e){ return []; } }
 function setDmgOutbox(a){ try{ localStorage.setItem(DMG_OUTBOX, JSON.stringify(a)); }catch(e){} }
@@ -10634,6 +10654,116 @@ flush();
 loadRoster();
 flushDmg();
 </script>
+<!-- MAL QUEST:ボスへの攻撃カットイン(やりきリスト・マル単 共通) -->
+<style>
+#mq-strike{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,rgba(60,20,110,.97),rgba(5,5,20,.99));font-family:'DotGothic16','Hiragino Sans','Noto Sans JP',sans-serif;color:#fff;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#mq-strike.on{display:flex}
+#mq-strike .mqs-stage{position:relative;width:min(92vw,420px);height:min(92vh,560px)}
+#mq-strike .mqs-title{position:absolute;top:4%;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.2em;color:#ffd700;opacity:0;animation:mqs-fade .4s .1s forwards}
+#mq-strike .mqs-boss{position:absolute;top:10%;left:50%;width:62%;height:42%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center}
+#mq-strike .mqs-boss img,#mq-strike .mqs-boss svg{max-width:100%;max-height:100%;filter:drop-shadow(0 0 18px rgba(170,68,255,.6))}
+#mq-strike .mqs-boss.hit{animation:mqs-shake .45s}
+#mq-strike .mqs-boss.hit::after{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.85),transparent 60%);animation:mqs-flash .35s forwards;pointer-events:none}
+#mq-strike .mqs-bname{position:absolute;top:53%;left:0;right:0;text-align:center;font-size:16px;text-shadow:0 0 12px rgba(170,68,255,.8)}
+#mq-strike .mqs-hp{position:absolute;top:58.5%;left:12%;right:12%}
+#mq-strike .mqs-hpbar{height:14px;border-radius:4px;background:rgba(255,68,102,.15);border:1px solid rgba(255,68,102,.45);overflow:hidden;position:relative}
+#mq-strike .mqs-hpghost,#mq-strike .mqs-hpfill{position:absolute;left:0;top:0;bottom:0}
+#mq-strike .mqs-hpghost{background:#ffd27a;transition:width 1.2s .9s ease-in}
+#mq-strike .mqs-hpfill{background:linear-gradient(90deg,#ff2244,#ff6688);transition:width .5s ease-out}
+#mq-strike .mqs-hpnum{font-size:11px;color:#c9c9ef;text-align:right;margin-top:3px;font-family:monospace}
+#mq-strike .mqs-hero{position:absolute;left:8%;bottom:19%;width:76px;text-align:center;opacity:0;animation:mqs-in .35s .2s forwards}
+#mq-strike .mqs-hero.go{animation:mqs-in .35s .2s forwards,mqs-dash .5s .55s ease-in-out}
+#mq-strike .mqs-face{position:relative;width:60px;height:60px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3a6a,#1c1c38);border:2px solid #ffd700;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;box-shadow:0 0 14px rgba(255,215,0,.5)}
+#mq-strike .mqs-wpn{position:absolute;right:-18px;bottom:-6px;line-height:0;transform:rotate(35deg);transform-origin:50% 85%;filter:drop-shadow(0 2px 3px #000)}
+#mq-strike .mqs-wpn svg{height:62px;width:auto;display:block}
+#mq-strike .mqs-wpn.fist{font-size:28px;line-height:1;transform:none;right:-16px;bottom:0}
+#mq-strike .mqs-hero.go .mqs-wpn{animation:mqs-swing .5s .55s ease-in-out}
+#mq-strike .mqs-hname{font-size:12px;margin-top:6px}
+#mq-strike .mqs-circle{position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid var(--mqc,#b48cff);box-shadow:0 0 18px var(--mqc,#b48cff),inset 0 0 14px var(--mqc,#b48cff);opacity:0;animation:mqs-circle 1.1s .25s ease-out forwards}
+#mq-strike .mqs-circle::before{content:'';position:absolute;inset:16px;border:1px dashed var(--mqc,#b48cff);border-radius:50%;animation:mqs-rot 2s linear infinite}
+#mq-strike .mqs-orb{position:absolute;left:14%;bottom:30%;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#fff,var(--mqc,#b48cff) 55%,transparent 70%);box-shadow:0 0 24px 8px var(--mqc,#b48cff);opacity:0}
+#mq-strike .mqs-orb.fly{animation:mqs-orb .55s ease-in forwards}
+#mq-strike .mqs-slash{position:absolute;top:22%;left:50%;width:76%;height:6px;margin-left:-38%;background:linear-gradient(90deg,transparent,#fff,transparent);border-radius:3px;opacity:0;box-shadow:0 0 16px #fff}
+#mq-strike .mqs-slash.s1{transform:rotate(-28deg)} #mq-strike .mqs-slash.s2{transform:rotate(24deg)}
+#mq-strike .mqs-slash.go{animation:mqs-slash .4s ease-out forwards}
+#mq-strike .mqs-slash.s2.go{animation-delay:.1s}
+#mq-strike .mqs-burst{position:absolute;top:30%;left:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:var(--mqc,#b48cff);opacity:0}
+#mq-strike .mqs-burst.go{animation:mqs-burst .6s ease-out forwards}
+#mq-strike .mqs-dmg{position:absolute;top:24%;left:0;right:0;text-align:center;font-size:44px;font-weight:900;color:#ffd700;text-shadow:0 0 6px #000,0 0 18px rgba(255,140,0,.9);opacity:0;font-family:monospace}
+#mq-strike .mqs-dmg.go{animation:mqs-dmg 1.4s ease-out forwards}
+#mq-strike .mqs-crit{position:absolute;top:17%;left:0;right:0;text-align:center;font-size:18px;color:#ff4466;letter-spacing:.15em;opacity:0;text-shadow:0 0 10px #ff4466}
+#mq-strike .mqs-crit.go{animation:mqs-fade .3s forwards}
+#mq-strike .mqs-msg{position:absolute;bottom:3%;left:0;right:0;text-align:center;font-size:15px;line-height:1.6;opacity:0}
+#mq-strike .mqs-msg.go{animation:mqs-fade .4s forwards}
+#mq-strike .mqs-msg small{display:block;font-size:11px;color:#b8b8e0}
+@keyframes mqs-fade{to{opacity:1}}
+@keyframes mqs-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes mqs-dash{0%{transform:none}45%{transform:translate(120%,-90%) scale(1.05)}100%{transform:none}}
+@keyframes mqs-swing{0%{transform:rotate(35deg)}40%{transform:rotate(-40deg)}70%{transform:rotate(110deg)}100%{transform:rotate(35deg)}}
+@keyframes mqs-shake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 10px)) rotate(-3deg)}40%{transform:translateX(calc(-50% + 10px)) rotate(3deg)}60%{transform:translateX(calc(-50% - 6px))}80%{transform:translateX(calc(-50% + 6px))}}
+@keyframes mqs-flash{from{opacity:1}to{opacity:0}}
+@keyframes mqs-slash{0%{opacity:0;width:0}30%{opacity:1}100%{opacity:0;width:76%}}
+@keyframes mqs-circle{0%{opacity:0;transform:scale(.3)}40%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.4)}}
+@keyframes mqs-rot{to{transform:rotate(360deg)}}
+@keyframes mqs-orb{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:1;transform:translate(min(46vw,190px),calc(-1 * min(44vh,250px))) scale(1.4)}}
+@keyframes mqs-burst{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(26)}}
+@keyframes mqs-dmg{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.25)}45%{transform:scale(1)}85%{opacity:1}100%{opacity:1;transform:translateY(-8px)}}
+</style>
+<div id="mq-strike" onclick="mqStrikeClose()"><div class="mqs-stage" id="mqs-stage"></div></div>
+<script>
+const MQS_DEFAULT_BOSS = '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M28,30 L42,52 L34,56 Z M92,30 L78,52 L86,56 Z" fill="#9b4dff"/><ellipse cx="60" cy="80" rx="40" ry="34" fill="#3b1468"/><circle cx="60" cy="58" r="30" fill="#4b1a85"/><ellipse cx="48" cy="56" rx="7" ry="8" fill="#ff1e56"/><ellipse cx="72" cy="56" rx="7" ry="8" fill="#ff1e56"/><circle cx="49" cy="54" r="2.4" fill="#fff"/><circle cx="73" cy="54" r="2.4" fill="#fff"/><path d="M46,72 Q60,82 74,72" stroke="#ff1e56" stroke-width="3" fill="none"/><path d="M50,74 L53,80 L56,75 M64,75 L67,80 L70,74" fill="#fff"/></svg>';
+let mqsTimer = null;
+function mqsEsc(t){ return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function mqStrikeClose(){ const el=document.getElementById('mq-strike'); if(el) el.classList.remove('on'); clearTimeout(mqsTimer); }
+/* o = {kind:'slash'|'magic', dmg, crit, hero, weaponHtml, weaponName, spell, color,
+        boss:{name, hp, cur, imgUrl, svgHtml}} */
+function mqStrike(o){
+  const root = document.getElementById('mq-strike'), st = document.getElementById('mqs-stage');
+  if(!root || !st) return;
+  const b = o.boss || {};
+  const hp = Math.max(1, Number(b.hp) || 1);
+  const cur = Math.max(0, Math.min(hp, Number(b.cur != null ? b.cur : hp)));
+  const after = Math.max(0, cur - (Number(o.dmg) || 0));
+  const pct = v => (v / hp * 100).toFixed(1) + '%';
+  const bossArt = b.imgUrl ? `<img src="${mqsEsc(b.imgUrl)}" alt="">` : (b.svgHtml || MQS_DEFAULT_BOSS);
+  const magic = o.kind === 'magic';
+  const face = mqsEsc(Array.from(o.hero || '？')[0] || '？');
+  const wpn = magic ? '<span class="mqs-wpn fist">🔮</span>'
+    : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
+  st.style.setProperty('--mqc', o.color || (magic ? '#b48cff' : '#ffffff'));
+  st.innerHTML = `
+    <div class="mqs-title">${magic ? '🔮 MAGIC ATTACK' : '⚔ ATTACK'}</div>
+    <div class="mqs-boss" id="mqs-boss">${bossArt}</div>
+    <div class="mqs-bname">${mqsEsc(b.name || '大魔王')}</div>
+    <div class="mqs-hp" style="${b.hp ? '' : 'visibility:hidden'}"><div class="mqs-hpbar"><div class="mqs-hpghost" id="mqs-ghost" style="width:${pct(cur)}"></div><div class="mqs-hpfill" id="mqs-fill" style="width:${pct(cur)}"></div></div>
+      <div class="mqs-hpnum" id="mqs-hpnum">HP ${cur.toLocaleString()} / ${hp.toLocaleString()}</div></div>
+    <div class="mqs-slash s1" id="mqs-s1"></div><div class="mqs-slash s2" id="mqs-s2"></div>
+    <div class="mqs-burst" id="mqs-burst"></div>
+    <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✨ 大魔法！' : '⚡ 会心の一撃！') : ''}</div>
+    <div class="mqs-dmg" id="mqs-dmg">${(Number(o.dmg)||0).toLocaleString()}</div>
+    <div class="mqs-hero" id="mqs-hero"><div class="mqs-face">${face}${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
+    ${magic ? '<div class="mqs-circle" style="left:calc(8% + 38px);top:auto;bottom:calc(19% + 20px)"></div><div class="mqs-orb" id="mqs-orb"></div>' : ''}
+    <div class="mqs-msg" id="mqs-msg">${magic ? mqsEsc(o.spell || 'マル単の魔法') + '！' : mqsEsc(o.weaponName || '') + 'で攻撃！'}<br>ボスに <b style="color:#ffd700">${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>タップでとじる</small></div>`;
+  root.classList.add('on');
+  const $ = id => document.getElementById(id);
+  const hitAt = magic ? 1050 : 800;
+  if(magic) setTimeout(()=>{ const ob=$('mqs-orb'); if(ob) ob.classList.add('fly'); }, 500);
+  else { const h=$('mqs-hero'); if(h) h.classList.add('go'); setTimeout(()=>{ ['mqs-s1','mqs-s2'].forEach(i=>{ const e=$(i); if(e) e.classList.add('go'); }); }, hitAt - 80); }
+  setTimeout(()=>{
+    const bo=$('mqs-boss'); if(bo){ bo.classList.remove('hit'); void bo.offsetWidth; bo.classList.add('hit'); }
+    const bu=$('mqs-burst'); if(bu) bu.classList.add('go');
+    const d=$('mqs-dmg'); if(d) d.classList.add('go');
+    const c=$('mqs-crit'); if(c && o.crit) c.classList.add('go');
+    const f=$('mqs-fill'); if(f) f.style.width = pct(after);
+    const g=$('mqs-ghost'); if(g) g.style.width = pct(after);
+    const n=$('mqs-hpnum'); if(n) n.textContent = `HP ${after.toLocaleString()} / ${hp.toLocaleString()}`;
+    if(navigator.vibrate) try{ navigator.vibrate(o.crit ? [60,40,90] : 60); }catch(e){}
+  }, hitAt);
+  setTimeout(()=>{ const m=$('mqs-msg'); if(m) m.classList.add('go'); }, hitAt + 900);
+  clearTimeout(mqsTimer); mqsTimer = setTimeout(mqStrikeClose, hitAt + 4200);
+}
+</script>
+
 <!-- MAL QUEST:アプリ間ジャンプ -->
 <style>
 .mq-jump{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:#143070;color:#fff;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent}
