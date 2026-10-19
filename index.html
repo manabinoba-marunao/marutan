@@ -10696,6 +10696,15 @@ flushDmg();
 #mq-strike .mqs-msg{position:absolute;bottom:3%;left:0;right:0;text-align:center;font-size:15px;line-height:1.6;opacity:0}
 #mq-strike .mqs-msg.go{animation:mqs-fade .4s forwards}
 #mq-strike .mqs-msg small{display:block;font-size:11px;color:#b8b8e0}
+#mq-strike .mqs-pow{position:absolute;top:30%;left:50%;width:150px;height:150px;margin:-75px 0 0 -75px;opacity:0;pointer-events:none}
+#mq-strike .mqs-pow.go{animation:mqs-pow .7s ease-out forwards}
+#mq-strike .mqs-pow svg{width:100%;height:100%}
+#mq-strike .mqs-powtxt{position:absolute;top:8%;left:0;right:0;text-align:center;font-size:30px;font-weight:900;color:#fff;-webkit-text-stroke:2px #d0283c;text-shadow:0 4px 0 #7a0016;opacity:0;transform:rotate(-8deg)}
+#mq-strike .mqs-powtxt.go{animation:mqs-powtxt .9s ease-out forwards}
+#mq-strike .mqs-hero.punch .mqs-wpn.fist{animation:mqs-fist .55s .55s ease-in-out}
+@keyframes mqs-pow{0%{opacity:1;transform:scale(.2) rotate(0)}40%{opacity:1;transform:scale(1.1) rotate(12deg)}100%{opacity:0;transform:scale(1.4) rotate(20deg)}}
+@keyframes mqs-powtxt{0%{opacity:0;transform:rotate(-8deg) scale(2)}30%{opacity:1;transform:rotate(-8deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:rotate(-8deg) translateY(-10px)}}
+@keyframes mqs-fist{0%{transform:scale(1)}45%{transform:scale(2.6) translate(6px,-6px)}100%{transform:scale(1)}}
 @keyframes mqs-fade{to{opacity:1}}
 @keyframes mqs-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes mqs-dash{0%{transform:none}45%{transform:translate(120%,-90%) scale(1.05)}100%{transform:none}}
@@ -10726,28 +10735,30 @@ function mqStrike(o){
   const after = Math.max(0, cur - (Number(o.dmg) || 0));
   const pct = v => (v / hp * 100).toFixed(1) + '%';
   const bossArt = b.imgUrl ? `<img src="${mqsEsc(b.imgUrl)}" alt="">` : (b.svgHtml || MQS_DEFAULT_BOSS);
-  const magic = o.kind === 'magic';
+  const magic = o.kind === 'magic', punch = o.kind === 'punch';
   const face = mqsEsc(Array.from(o.hero || '？')[0] || '？');
   const wpn = magic ? '<span class="mqs-wpn fist">🔮</span>'
     : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
   st.style.setProperty('--mqc', o.color || (magic ? '#b48cff' : '#ffffff'));
   st.innerHTML = `
-    <div class="mqs-title">${magic ? '🔮 MAGIC ATTACK' : '⚔ ATTACK'}</div>
+    <div class="mqs-title">${magic ? '🔮 MAGIC ATTACK' : punch ? '👊 PUNCH!' : '⚔ ATTACK'}</div>
     <div class="mqs-boss" id="mqs-boss">${bossArt}</div>
     <div class="mqs-bname">${mqsEsc(b.name || '大魔王')}</div>
     <div class="mqs-hp" style="${b.hp ? '' : 'visibility:hidden'}"><div class="mqs-hpbar"><div class="mqs-hpghost" id="mqs-ghost" style="width:${pct(cur)}"></div><div class="mqs-hpfill" id="mqs-fill" style="width:${pct(cur)}"></div></div>
       <div class="mqs-hpnum" id="mqs-hpnum">HP ${cur.toLocaleString()} / ${hp.toLocaleString()}</div></div>
     <div class="mqs-slash s1" id="mqs-s1"></div><div class="mqs-slash s2" id="mqs-s2"></div>
     <div class="mqs-burst" id="mqs-burst"></div>
+    ${o.kind === 'punch' ? '<div class="mqs-pow" id="mqs-pow"><svg viewBox="0 0 100 100"><polygon points="50,2 61,32 95,22 70,48 98,70 63,68 58,98 45,70 12,90 30,58 2,40 36,36" fill="#ffd700" stroke="#ff7a00" stroke-width="3"/><polygon points="50,24 57,40 76,36 62,50 76,64 57,60 52,78 44,61 26,68 37,52 24,42 42,40" fill="#fff"/></svg></div><div class="mqs-powtxt" id="mqs-powtxt">ドゴッ！</div>' : ''}
     <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✨ 大魔法！' : '⚡ 会心の一撃！') : ''}</div>
     <div class="mqs-dmg" id="mqs-dmg">${(Number(o.dmg)||0).toLocaleString()}</div>
     <div class="mqs-hero" id="mqs-hero"><div class="mqs-face">${face}${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
     ${magic ? '<div class="mqs-circle" style="left:calc(8% + 38px);top:auto;bottom:calc(19% + 20px)"></div><div class="mqs-orb" id="mqs-orb"></div>' : ''}
-    <div class="mqs-msg" id="mqs-msg">${magic ? mqsEsc(o.spell || 'マル単の魔法') + '！' : mqsEsc(o.weaponName || '') + 'で攻撃！'}<br>ボスに <b style="color:#ffd700">${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>タップでとじる</small></div>`;
+    <div class="mqs-msg" id="mqs-msg">${magic ? mqsEsc(o.spell || 'マル単の魔法') + '！' : (punch ? 'こぶしでパンチ！' : mqsEsc(o.weaponName || '') + 'で攻撃！')}<br>ボスに <b style="color:#ffd700">${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>タップでとじる</small></div>`;
   root.classList.add('on');
   const $ = id => document.getElementById(id);
   const hitAt = magic ? 1050 : 800;
   if(magic) setTimeout(()=>{ const ob=$('mqs-orb'); if(ob) ob.classList.add('fly'); }, 500);
+  else if(punch) { const h=$('mqs-hero'); if(h) h.classList.add('go','punch'); setTimeout(()=>{ ['mqs-pow','mqs-powtxt'].forEach(i=>{ const e=$(i); if(e) e.classList.add('go'); }); }, hitAt - 40); }
   else { const h=$('mqs-hero'); if(h) h.classList.add('go'); setTimeout(()=>{ ['mqs-s1','mqs-s2'].forEach(i=>{ const e=$(i); if(e) e.classList.add('go'); }); }, hitAt - 80); }
   setTimeout(()=>{
     const bo=$('mqs-boss'); if(bo){ bo.classList.remove('hit'); void bo.offsetWidth; bo.classList.add('hit'); }
