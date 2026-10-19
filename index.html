@@ -10094,7 +10094,7 @@ async function mqMagicStrike(dmg, crit){
   }catch(e){}
   flushDmg();
   const B = boss ? {name:boss.name, hp:Number(boss.hp)||0, cur:Number(boss.currentHp ?? boss.hp), imgUrl:(boss.imageUrl||"").trim()} : {name:"やりきリストの大魔王"};
-  mqStrike({kind:"magic", dmg, crit, hero, spell, color, boss:B});
+  mqStrike({kind:"magic", dmg, crit, hero, spell, color, element:spellElement(), boss:B});
 }
 function dmgOutbox(){ try{ return JSON.parse(localStorage.getItem(DMG_OUTBOX)||"[]"); }catch(e){ return []; } }
 function setDmgOutbox(a){ try{ localStorage.setItem(DMG_OUTBOX, JSON.stringify(a)); }catch(e){} }
@@ -10123,10 +10123,18 @@ async function flushDmg(){
 /* 魔法の名前:教科・形式で変わる */
 function spellName(){
   if(!quiz) return "マル単の魔法";
-  if(quiz.math) return "計算の魔法";
+  if(quiz.math) return "雷の魔法(計算)";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "マル単の魔法";
-  return ({order:"つなぎの魔法", "英語":"ことだまの魔法", "国語":"漢字の魔法", "数学":"知恵の魔法", "理科":"知恵の魔法", "社会":"知恵の魔法"})[ss[0]] || "マル単の魔法";
+  return ({order:"つなぎの魔法", "英語":"風の魔法", "国語":"水の魔法", "数学":"雷の魔法", "理科":"炎の魔法", "社会":"大地の魔法"})[ss[0]] || "マル単の魔法";
+}
+/* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
+function spellElement(){
+  if(!quiz) return "";
+  if(quiz.math) return "thunder";
+  const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
+  if(ss.length!==1) return "";
+  return ({"英語":"wind","数学":"thunder","国語":"water","理科":"fire","社会":"earth"})[ss[0]] || "";
 }
 function dmgPanel(){
   const R = quiz && quiz.dmgResult; if(!R) return "";
@@ -10743,6 +10751,47 @@ flushDmg();
 @keyframes mqs-spark{0%{opacity:1;transform:scale(.2)}60%{opacity:1}100%{opacity:0;transform:scale(1.6)}}
 @keyframes mqs-splat{0%{opacity:0;transform:scale(.1)}30%{opacity:1;transform:scale(1.2)}100%{opacity:.85;transform:scale(1)}}
 @keyframes mqs-pillar{0%{opacity:0;transform:scaleY(.1)}30%{opacity:.9;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1.1)}}
+/* 魔法の属性ごとの演出 */
+#mq-strike .mqs-orb .oi{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+#mq-strike .fx-fire .fl{transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0);opacity:0}
+#mq-strike .fx-fire.go .fl{animation:mqs-flame .9s ease-out forwards}
+#mq-strike .fx-fire.go .fl:nth-child(2n){animation-delay:.08s}
+#mq-strike .fx-fire.go .fl:nth-child(3n){animation-delay:.16s}
+#mq-strike .fx-fire .em{fill:#ffd36b;opacity:0;transform-box:fill-box}
+#mq-strike .fx-fire.go .em{animation:mqs-ember 1s .2s ease-out forwards}
+#mq-strike .fx-thunder .bolt{fill:none;stroke:#fffbe0;stroke-width:6;stroke-linejoin:round;filter:drop-shadow(0 0 6px #ffe14d) drop-shadow(0 0 16px #ffe14d);opacity:0}
+#mq-strike .fx-thunder.go .bolt{animation:mqs-bolt .7s steps(1) forwards}
+#mq-strike .fx-thunder.go .bolt.b2{animation-delay:.12s}
+#mq-strike .fx-thunder .tflash{fill:#fff7c0;opacity:0}
+#mq-strike .fx-thunder.go .tflash{animation:mqs-tflash .5s forwards}
+#mq-strike .fx-water .wave{fill:#4aa8ff;opacity:0;filter:drop-shadow(0 0 8px #9fd3ff)}
+#mq-strike .fx-water.go .wave{animation:mqs-wave .8s ease-out forwards}
+#mq-strike .fx-water .dr{fill:#bfe6ff;opacity:0;transform-box:fill-box}
+#mq-strike .fx-water.go .dr{animation:mqs-drop .9s .3s ease-out forwards}
+#mq-strike .fx-water .rg{fill:none;stroke:#9fd3ff;stroke-width:3;opacity:0;transform-box:fill-box;transform-origin:center}
+#mq-strike .fx-water.go .rg{animation:mqs-ring .8s .25s ease-out forwards}
+#mq-strike .fx-wind .sw{fill:none;stroke:#b5ffe6;stroke-width:9;stroke-linecap:round;opacity:0;transform-origin:100px 60px;filter:drop-shadow(0 0 6px #b5ffe6)}
+#mq-strike .fx-wind.go .sw{animation:mqs-swirl 1s ease-out forwards}
+#mq-strike .fx-wind.go .sw:nth-child(2){animation-delay:.1s}
+#mq-strike .fx-wind.go .sw:nth-child(3){animation-delay:.2s}
+#mq-strike .fx-wind .lf{fill:#6fdc8c;opacity:0;transform-box:fill-box;transform-origin:center}
+#mq-strike .fx-wind.go .lf{animation:mqs-leaf 1s .2s ease-out forwards}
+#mq-strike .fx-earth .rk{fill:#a0703f;stroke:#4a2f14;stroke-width:2;transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0)}
+#mq-strike .fx-earth.go .rk{animation:mqs-rock .5s cubic-bezier(.2,1.6,.4,1) forwards}
+#mq-strike .fx-earth.go .rk:nth-child(2n){animation-delay:.1s}
+#mq-strike .fx-earth.go .rk:nth-child(3n){animation-delay:.2s}
+#mq-strike .fx-earth .db{fill:#c49a6c;opacity:0;transform-box:fill-box}
+#mq-strike .fx-earth.go .db{animation:mqs-ember .9s .25s ease-out forwards}
+@keyframes mqs-flame{0%{opacity:0;transform:scaleY(0)}25%{opacity:1;transform:scaleY(1.15)}45%{transform:scaleY(.9)}65%{transform:scaleY(1.05)}85%{opacity:1}100%{opacity:0;transform:scaleY(1.2)}}
+@keyframes mqs-ember{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes mqs-bolt{0%{opacity:1}15%{opacity:0}30%{opacity:1}50%{opacity:0}65%{opacity:1}100%{opacity:0}}
+@keyframes mqs-tflash{0%{opacity:.9}100%{opacity:0}}
+@keyframes mqs-wave{0%{opacity:0;transform:translateX(-120px) scaleY(.4)}40%{opacity:.95;transform:translateX(0) scaleY(1)}100%{opacity:0;transform:translateX(40px) scaleY(.6)}}
+@keyframes mqs-drop{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx,0),40px)}}
+@keyframes mqs-ring{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(2)}}
+@keyframes mqs-swirl{0%{opacity:0;transform:rotate(0) scale(.4)}30%{opacity:1}100%{opacity:0;transform:rotate(540deg) scale(1.2)}}
+@keyframes mqs-leaf{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx,40px),-40px) rotate(360deg)}}
+@keyframes mqs-rock{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
 @keyframes mqs-fade{to{opacity:1}}
 @keyframes mqs-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes mqs-dash{0%{transform:none}45%{transform:translate(120%,-90%) scale(1.05)}100%{transform:none}}
@@ -10767,6 +10816,22 @@ function mqsSlashFx(tier){
   if(tier === 'w5') return { word:'聖剣一閃！', wc:'#b8860b', html:`<svg class="fx fx-w5" viewBox="0 0 200 120"><defs><linearGradient id="mqsPillar" x1="0" x2="1"><stop offset="0" stop-color="#fff3b0" stop-opacity="0"/><stop offset=".5" stop-color="#fffbe6"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></linearGradient></defs><rect class="pillar" x="80" y="-60" width="40" height="240"/><path class="arc" d="M20,95 Q100,-30 180,40"/>${sp(10,i=>{const x=30+i*15, y=20+((i*37)%80); return `<polygon class="sp" points="${x},${y-6} ${x+2},${y-2} ${x+6},${y} ${x+2},${y+2} ${x},${y+6} ${x-2},${y+2} ${x-6},${y} ${x-2},${y-2}" style="transform-origin:${x}px ${y}px"/>`;})}</svg>` };
   return null;
 }
+const MQS_ELEMENTS = {
+  fire:    { color:'#ff7a3d', icon:'🔥', word:'ゴォォッ！', wc:'#c43a00' },
+  thunder: { color:'#ffe14d', icon:'⚡', word:'バリバリッ！', wc:'#a88a00' },
+  water:   { color:'#5ab8ff', icon:'💧', word:'ザバーン！', wc:'#1f6fd6' },
+  wind:    { color:'#7fe0c0', icon:'🌀', word:'ビュオォッ！', wc:'#1f8a5b' },
+  earth:   { color:'#d2a26c', icon:'🪨', word:'ドドドッ！', wc:'#6b4226' },
+};
+function mqsMagicFx(el){
+  const sp = (n, f) => Array.from({length:n}, (_, i) => f(i)).join('');
+  if(el === 'fire') return `<svg class="fx fx-fire" viewBox="0 0 200 120"><defs><linearGradient id="mqsFl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff3b00"/><stop offset=".6" stop-color="#ff9a00"/><stop offset="1" stop-color="#ffe680"/></linearGradient></defs>${sp(7,i=>{const x=40+i*20, h=50+(i%3)*22; return `<path class="fl" fill="url(#mqsFl)" d="M${x-14},118 Q${x-18},${118-h*.55} ${x},${118-h} Q${x+3},${118-h*.6} ${x+9},${118-h*.75} Q${x+18},${118-h*.4} ${x+14},118 Z"/>`;})}${sp(8,i=>`<circle class="em" cx="${50+i*14}" cy="${70+(i%3)*12}" r="2.5" style="animation-delay:${.2+i*.05}s"/>`)}</svg>`;
+  if(el === 'thunder') return `<svg class="fx fx-thunder" viewBox="0 0 200 120"><rect class="tflash" x="-200" y="-200" width="600" height="500"/><polyline class="bolt" points="105,-90 90,-20 112,-5 88,40 108,48 96,85"/><polyline class="bolt b2" points="70,-80 80,-30 64,-12 84,30 70,60"/></svg>`;
+  if(el === 'water') return `<svg class="fx fx-water" viewBox="0 0 200 120"><path class="wave" d="M10,115 Q30,30 90,40 Q140,48 150,20 Q175,60 160,115 Z"/>${sp(3,i=>`<ellipse class="rg" cx="100" cy="70" rx="${18+i*10}" ry="${9+i*5}" style="animation-delay:${.25+i*.12}s"/>`)}${sp(10,i=>`<circle class="dr" cx="${60+i*9}" cy="${40+(i%4)*8}" r="${3+(i%3)}" style="--dx:${(i-5)*8}px"/>`)}</svg>`;
+  if(el === 'wind') return `<svg class="fx fx-wind" viewBox="0 0 200 120"><path class="sw" d="M60,60 A40,22 0 1,1 140,60"/><path class="sw" d="M140,70 A50,28 0 1,1 50,70"/><path class="sw" d="M75,45 A28,16 0 1,1 128,52"/>${sp(6,i=>`<ellipse class="lf" cx="${70+i*12}" cy="${55+(i%2)*14}" rx="5" ry="2.5" style="--dx:${(i%2?1:-1)*(30+i*6)}px;animation-delay:${.2+i*.06}s"/>`)}</svg>`;
+  if(el === 'earth') return `<svg class="fx fx-earth" viewBox="0 0 200 120">${sp(7,i=>{const x=35+i*22, h=40+((i*29)%40); return `<polygon class="rk" points="${x-14},118 ${x-4},${118-h} ${x+3},${118-h+8} ${x+14},118"/>`;})}${sp(8,i=>`<rect class="db" x="${50+i*13}" y="${60+(i%3)*10}" width="5" height="5" style="animation-delay:${.25+i*.04}s"/>`)}</svg>`;
+  return '';
+}
 let mqsTimer = null;
 function mqsEsc(t){ return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function mqStrikeClose(){ const el=document.getElementById('mq-strike'); if(el) el.classList.remove('on'); clearTimeout(mqsTimer); }
@@ -10782,7 +10847,9 @@ function mqStrike(o){
   const pct = v => (v / hp * 100).toFixed(1) + '%';
   const bossArt = b.imgUrl ? `<img src="${mqsEsc(b.imgUrl)}" alt="">` : (b.svgHtml || MQS_DEFAULT_BOSS);
   const magic = o.kind === 'magic', punch = o.kind === 'punch';
-  const tfx = (!magic && !punch) ? mqsSlashFx(o.tier) : null;
+  const EL = magic ? MQS_ELEMENTS[o.element] : null;
+  const tfx = (!magic && !punch) ? mqsSlashFx(o.tier) : (EL ? { html: mqsMagicFx(o.element), word: EL.word, wc: EL.wc } : null);
+  if(EL && !o.color) o.color = EL.color;
   const face = mqsEsc(Array.from(o.hero || '？')[0] || '？');
   const wpn = magic ? '<span class="mqs-wpn fist">🔮</span>'
     : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
@@ -10799,7 +10866,7 @@ function mqStrike(o){
     <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✨ 大魔法！' : '⚡ 会心の一撃！') : ''}</div>
     <div class="mqs-dmg" id="mqs-dmg">${(Number(o.dmg)||0).toLocaleString()}</div>
     <div class="mqs-hero" id="mqs-hero"><div class="mqs-face">${face}${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
-    ${magic ? '<div class="mqs-circle" style="left:calc(8% + 38px);top:auto;bottom:calc(19% + 20px)"></div><div class="mqs-orb" id="mqs-orb"></div>' : ''}
+    ${magic ? '<div class="mqs-circle" style="left:calc(8% + 38px);top:auto;bottom:calc(19% + 20px)"></div><div class="mqs-orb" id="mqs-orb"><span class="oi">' + (EL ? EL.icon : '') + '</span></div>' : ''}
     <div class="mqs-msg" id="mqs-msg">${magic ? mqsEsc(o.spell || 'マル単の魔法') + '！' : (punch ? 'こぶしでパンチ！' : mqsEsc(o.weaponName || '') + 'で攻撃！')}<br>ボスに <b style="color:#ffd700">${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>タップでとじる</small></div>`;
   root.classList.add('on');
   const $ = id => document.getElementById(id);
@@ -10810,6 +10877,7 @@ function mqStrike(o){
   setTimeout(()=>{
     const bo=$('mqs-boss'); if(bo){ bo.classList.remove('hit'); void bo.offsetWidth; bo.classList.add('hit'); }
     const bu=$('mqs-burst'); if(bu) bu.classList.add('go');
+    if(magic){ const fx=document.querySelector('#mqs-fx .fx'); if(fx) fx.classList.add('go'); const wd=$('mqs-word'); if(wd) wd.classList.add('go'); }
     const d=$('mqs-dmg'); if(d) d.classList.add('go');
     const c=$('mqs-crit'); if(c && o.crit) c.classList.add('go');
     const f=$('mqs-fill'); if(f) f.style.width = pct(after);
