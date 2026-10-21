@@ -10074,6 +10074,18 @@ const MQ_KEY = 'mq_login';
 function mqGet(){ try{ const v = JSON.parse(localStorage.getItem(MQ_KEY) || 'null'); return v && v.nickname ? v : null; }catch(e){ return null; } }
 function mqSet(o){ try{ localStorage.setItem(MQ_KEY, JSON.stringify(Object.assign({at: Date.now()}, o))); }catch(e){} }
 function mqClear(){ try{ localStorage.removeItem(MQ_KEY); }catch(e){} }
+// この端末でログインした名前(やりきリストと共通)。ログイン画面に候補として出す
+const MQ_NAMES = 'mq_names';
+function recentNames(){ try{ const v = JSON.parse(localStorage.getItem(MQ_NAMES) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x) : []; }catch(e){ return []; } }
+function rememberName(n){ if(!n) return; try{ const a = recentNames().filter(x => x !== n); a.unshift(n); localStorage.setItem(MQ_NAMES, JSON.stringify(a.slice(0, 8))); }catch(e){} }
+function forgetName(n){ try{ localStorage.setItem(MQ_NAMES, JSON.stringify(recentNames().filter(x => x !== n))); }catch(e){} }
+function recentStudents(){
+  if(!ROSTER) return [];
+  const names = recentNames().concat(Object.keys(mem.users).filter(n => mem.users[n].sid && !mem.users[n].mergedInto && !mem.users[n].hideLogin));
+  const out = [];
+  names.forEach(n => { const st = findStudent(n); if(st && !out.some(x => x.id === st.id)) out.push(st); });
+  return out.slice(0, 8);
+}
 
 let ROSTER = null;
 try{ ROSTER = JSON.parse(localStorage.getItem("marutan-roster")||"null"); }catch(e){}
@@ -10115,6 +10127,8 @@ function viewRosterLogin(){
       <button class="primary" type="submit">次へ</button>
     </form>
     <p class="send ng" style="min-height:1.2em;margin:0">${esc(L.err||"")}</p>
+    ${(()=>{ const rs = recentStudents(); return rs.length ? `<div><p class="label" style="margin:0">この端末で使った名前(タップで選べるよ)</p>
+      <div class="names">${rs.map(st=>`<span style="display:inline-flex;align-items:center;gap:2px"><button class="nm" data-act="lpick" data-id="${esc(st.id)}">${esc(st.nickname)}</button><button class="link" data-act="lforget" data-name="${esc(st.nickname)}" aria-label="候補から消す" style="padding:6px">×</button></span>`).join("")}</div></div>` : ""; })()}
     <div class="row"><button class="link" data-act="lfree">やりきリストを使っていない人(体験・先生など)はこちら</button></div>
   </section>`;
 }
@@ -10143,9 +10157,10 @@ function rosterLogin(stu){
   const nick = stu.nickname;
   const isNew = !mem.users[nick];
   const u = (mem.users[nick] ||= {rec:{}});
-  u.sid = stu.id;
+  u.sid = stu.id; delete u.hideLogin;
   ui.name = nick; ui.login = null; mem.last = nick; save();
   mqSet({kind:'student', id:stu.id, nickname:nick});
+  rememberName(nick);
   // この端末に、名簿と結びついていない前の記録があれば引き継ぎをたずねる
   const olds = Object.keys(mem.users).filter(n=>n!==nick && !mem.users[n].sid && !mem.users[n].mergedInto && Object.keys(mem.users[n].rec||{}).length);
   if(!u.askedMerge && olds.length) ui.modal = {type:"merge", olds};
@@ -10715,6 +10730,7 @@ document.addEventListener("click", async e=>{
   if(a==="lpick"){ const st=(ROSTER||[]).find(x=>String(x.id)===b.dataset.id); if(st){ ui.login={stu:st, pin:""}; render(); } }
   else if(a==="pin"){ pinPress(b.dataset.k); }
   else if(a==="lback"){ ui.login=null; render(); }
+  else if(a==="lforget"){ const n=b.dataset.name; forgetName(n); Object.keys(mem.users).forEach(k=>{ const st=findStudent(k); if(st && st.nickname===n && mem.users[k].sid){ mem.users[k].hideLogin=true; } }); save(); render(); }
   else if(a==="lfree"){ ui.login={free:true}; render(); }
   else if(a==="rretry"){ ui.rosterErr=false; render(); loadRoster(); }
   else if(a==="merge"){ mergeUser(b.dataset.name); ui.modal.olds=ui.modal.olds.filter(n=>n!==b.dataset.name); user().askedMerge=true; save(); if(!ui.modal.olds.length) ui.modal=null; render(); }
