@@ -277,6 +277,83 @@ button,.set,.choice,.stat3,input[type=text],textarea{border-radius:var(--rs)}
 [data-skin="cute"] .brand h1::after{content:" ♡";font-size:.7em}
 [data-skin="cute"] h2{font-weight:400}
 
+/* ===== ごほうびきせかえ(マル単のマルの数で解放) ===== */
+/* にゃんこ(動物) */
+:root[data-skin="neko"]{
+  --bg:#FFF6E9; --surface:#FFFFFF; --ink:#4A3222; --muted:#8A6A55; --line:#F1D2B3;
+  --accent:#F0803C; --accent-ink:#FFFFFF; --accent-soft:#FFE6D2;
+  --marker:#FFE1A8; --ok:#2E8B57; --ok-soft:#E1F4E8; --ng:#D9534F; --ng-soft:#FBE3E2;
+  --en:"Fredoka", "Arial Rounded MT Bold", sans-serif;
+  --ja:"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif; --head:"Mochiy Pop One", var(--ja);
+  --r:24px; --rs:16px; color-scheme:light;
+}
+[data-skin="neko"] body{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='%23F6D9BD'%3E%3Cellipse cx='18' cy='22' rx='7' ry='6'/%3E%3Ccircle cx='10' cy='13' r='3'/%3E%3Ccircle cx='16' cy='10' r='3'/%3E%3Ccircle cx='22' cy='10' r='3'/%3E%3Ccircle cx='27' cy='14' r='3'/%3E%3C/g%3E%3Cg fill='%23F6D9BD' transform='translate(36 36)'%3E%3Cellipse cx='18' cy='22' rx='7' ry='6'/%3E%3Ccircle cx='10' cy='13' r='3'/%3E%3Ccircle cx='16' cy='10' r='3'/%3E%3Ccircle cx='22' cy='10' r='3'/%3E%3Ccircle cx='27' cy='14' r='3'/%3E%3C/g%3E%3C/svg%3E") 0 0/72px 72px, var(--bg)}
+[data-skin="neko"] .panel{border:2px solid var(--line);box-shadow:0 6px 0 #F1D2B3}
+[data-skin="neko"] .brand h1{font-weight:400;color:var(--accent)}
+[data-skin="neko"] .brand h1::after{content:" 🐾";font-size:.75em}
+[data-skin="neko"] h2{font-weight:400}
+
+/* ネオン(ドパガキ) */
+:root[data-skin="neon"]{
+  --bg:#0B0420; --surface:#160A33; --ink:#F6F2FF; --muted:#B9A9EC; --line:#FF2BD6;
+  --accent:#00F0FF; --accent-ink:#0B0420; --accent-soft:#2A1258;
+  --marker:#5B1A7A; --ok:#3CFF8F; --ok-soft:#0E3324; --ng:#FF4D6D; --ng-soft:#3A0E1C;
+  --en:"Orbitron", "Rubik", sans-serif;
+  --ja:"M PLUS 1p", "Hiragino Sans", system-ui, sans-serif; --head:"DotGothic16", var(--ja);
+  --r:14px; --rs:10px; color-scheme:dark;
+}
+[data-skin="neon"] body{background:
+  radial-gradient(60vmax 40vmax at 10% 0%, #FF2BD644, transparent 60%),
+  radial-gradient(60vmax 40vmax at 100% 100%, #00F0FF33, transparent 60%),
+  linear-gradient(#ffffff08 1px, transparent 1px) 0 0/32px 32px,
+  linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0/32px 32px, var(--bg);background-attachment:fixed}
+[data-skin="neon"] .panel{border:2px solid #FF2BD6;box-shadow:0 0 0 1px #FF2BD655, 0 0 18px #FF2BD666, inset 0 0 22px #FF2BD622}
+[data-skin="neon"] button.primary{box-shadow:0 0 12px #00F0FFAA}
+[data-skin="neon"] .brand h1{color:#fff;text-shadow:0 0 6px #FF2BD6, 0 0 16px #FF2BD6, 0 0 32px #00F0FF;animation:neonflick 3.2s infinite}
+[data-skin="neon"] h2{font-weight:400;text-shadow:0 0 8px #00F0FF88}
+@keyframes neonflick{0%,18%,22%,60%,100%{opacity:1}20%,61%{opacity:.55}}
+
+/* どうぶつえん(動物) */
+:root[data-skin="zoo"]{
+  --bg:#EEF8E4; --surface:#FFFFFF; --ink:#2E3B22; --muted:#667A55; --line:#C9E3B0;
+  --accent:#3E9B4F; --accent-ink:#FFFFFF; --accent-soft:#DDF1D2;
+  --marker:#FFE68A; --ok:#2E7D4F; --ok-soft:#E1F3E7; --ng:#D24963; --ng-soft:#FDE3E8;
+  --en:"Fredoka", "Arial Rounded MT Bold", sans-serif;
+  --ja:"Kiwi Maru", "Hiragino Maru Gothic ProN", system-ui, sans-serif; --head:"Mochiy Pop One", var(--ja);
+  --r:22px; --rs:14px; color-scheme:light;
+}
+[data-skin="zoo"] body{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg font-size='26' opacity='.22'%3E%3Ctext x='8' y='34'%3E%F0%9F%90%B6%3C/text%3E%3Ctext x='88' y='54'%3E%F0%9F%90%B1%3C/text%3E%3Ctext x='40' y='110'%3E%F0%9F%90%BC%3C/text%3E%3Ctext x='116' y='138'%3E%F0%9F%90%B0%3C/text%3E%3Ctext x='4' y='150'%3E%F0%9F%A6%81%3C/text%3E%3C/g%3E%3C/svg%3E") 0 0/160px 160px, var(--bg)}
+[data-skin="zoo"] .panel{border:3px solid var(--line);box-shadow:0 6px 0 #B5D79A}
+[data-skin="zoo"] .brand h1{font-weight:400;color:var(--accent)}
+[data-skin="zoo"] .brand h1::after{content:" 🦁🐼🐰";font-size:.6em}
+[data-skin="zoo"] h2{font-weight:400}
+
+/* ゲーミング虹(ドパガキ) */
+:root[data-skin="gaming"]{
+  --bg:#07070C; --surface:#12121C; --ink:#FFFFFF; --muted:#A8A8C4; --line:#3A3A55;
+  --accent:#FF3CAC; --accent-ink:#FFFFFF; --accent-soft:#2B1530;
+  --marker:#3B2A00; --ok:#38F59A; --ok-soft:#0F2E21; --ng:#FF5C5C; --ng-soft:#381414;
+  --en:"Orbitron", "Rubik", sans-serif;
+  --ja:"M PLUS 1p", "Hiragino Sans", system-ui, sans-serif; --head:"Dela Gothic One", var(--ja);
+  --r:12px; --rs:10px; color-scheme:dark;
+}
+[data-skin="gaming"] body{background:radial-gradient(70vmax 50vmax at 50% -10%, #784BA055, transparent 60%), var(--bg);background-attachment:fixed}
+[data-skin="gaming"] .panel{border:3px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,
+  linear-gradient(90deg,#FF3CAC,#FFB000,#7CFF6B,#18C8FF,#8B5CF6,#FF3CAC) border-box;background-size:100% 100%,300% 100%;animation:rgbslide 4s linear infinite}
+[data-skin="gaming"] .brand h1{background:linear-gradient(90deg,#FF3CAC,#FFB000,#7CFF6B,#18C8FF,#8B5CF6,#FF3CAC);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgbslide 4s linear infinite}
+[data-skin="gaming"] button.primary{background:linear-gradient(90deg,#FF3CAC,#8B5CF6);border-color:transparent}
+[data-skin="gaming"] h2{font-weight:400}
+@keyframes rgbslide{from{background-position:0 0,0% 0}to{background-position:0 0,300% 0}}
+[data-skin="gaming"] .brand h1{animation-name:rgbtext}
+@keyframes rgbtext{from{background-position:0% 0}to{background-position:300% 0}}
+@media (prefers-reduced-motion:reduce){[data-skin="neon"] .brand h1,[data-skin="gaming"] .panel,[data-skin="gaming"] .brand h1{animation:none}}
+
+/* ロックされたきせかえ・NEW */
+.skin.locked{opacity:.6;cursor:default}
+.skin.locked .sw{filter:grayscale(.6)}
+.skin .lk{font-size:11px;font-weight:700;color:var(--accent)}
+.skinbtn .skinnew{font-size:10px;font-weight:700;color:#fff;background:#E23B30;border-radius:999px;padding:0 6px;line-height:1.6}
+
 /* きせかえボタン・パネル */
 .skinbtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px}
 .skinbtn i{width:14px;height:14px;border-radius:50%;background:conic-gradient(#FF3D7F,#FFB000,#7CE577,#18C8FF,#8B5CF6,#FF3D7F);display:inline-block}
@@ -9695,11 +9772,26 @@ const SKINS = [
   {id:"mono",  name:"モノクロ",   ds:"白と黒だけ。シンプルに集中", sw:["#FFFFFF","#111111","#DADADA"], fonts:"family=Inter:wght@400;600;700&family=BIZ+UDPGothic:wght@400;700"},
   {id:"color", name:"カラフル",   ds:"ド派手な色でテンション高め", sw:["#FFF7E8","#E91E63","#18C8FF","#FFE234"], fonts:"family=Rubik:wght@400;600;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One"},
   {id:"pop",   name:"ポップ",     ds:"まるくて元気なキッズ風",     sw:["#E6F6FF","#FF9F1C","#FF6B6B","#FFE066"], fonts:"family=Fredoka:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One"},
-  {id:"cute",  name:"かわいい",   ds:"パステルでふんわり",         sw:["#FFF0F5","#D64A82","#E7DBFF","#FFCFE2"], fonts:"family=Quicksand:wght@500;700&family=Kiwi+Maru:wght@400;500&family=Hachi+Maru+Pop"}
+  {id:"cute",  name:"かわいい",   ds:"パステルでふんわり",         sw:["#FFF0F5","#D64A82","#E7DBFF","#FFCFE2"], fonts:"family=Quicksand:wght@500;700&family=Kiwi+Maru:wght@400;500&family=Hachi+Maru+Pop"},
+  // ↓ ごほうびきせかえ:need = 解放に必要なマルの数(ぜんぶ覚えたセットの数)。数字を変えれば調整できます
+  {id:"neko",  name:"にゃんこ 🐾",  ds:"肉球いっぱいのねこ部屋",     sw:["#FFF6E9","#F0803C","#F6D9BD","#4A3222"], fonts:"family=Fredoka:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One", need:3},
+  {id:"neon",  name:"ネオン ⚡",    ds:"光る!ピカピカのネオン街",    sw:["#0B0420","#FF2BD6","#00F0FF","#5B1A7A"], fonts:"family=Orbitron:wght@500;700&family=M+PLUS+1p:wght@400;700&family=DotGothic16", need:7},
+  {id:"zoo",   name:"どうぶつえん 🦁", ds:"どうぶつたちが集まる",     sw:["#EEF8E4","#3E9B4F","#FFE68A","#C9E3B0"], fonts:"family=Fredoka:wght@400;600;700&family=Kiwi+Maru:wght@400;500&family=Mochiy+Pop+One", need:12},
+  {id:"gaming",name:"ゲーミング虹 🌈", ds:"虹色に光りつづける最強版", sw:["#07070C","#FF3CAC","#18C8FF","#7CFF6B"], fonts:"family=Orbitron:wght@500;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One", need:20}
 ];
-const THEME_COLOR = {base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82"};
+const THEME_COLOR = {base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82", neko:"#F0803C", neon:"#0B0420", zoo:"#3E9B4F", gaming:"#07070C"};
+function skinMaru(){ return ui.name ? SETS.filter(setDone).length : 0; }
+function skinOpen(s){ return !s.need || skinMaru() >= s.need; }
+function newSkins(){ const u = ui.name && mem.users[ui.name]; if(!u) return []; const seen = u.skinsSeen || []; return SKINS.filter(s => s.need && skinOpen(s) && !seen.includes(s.id)); }
+function markSkinsSeen(){ const u = ui.name && mem.users[ui.name]; if(!u) return; u.skinsSeen = SKINS.filter(s => s.need && skinOpen(s)).map(s => s.id); save(); }
 const loadedFonts = new Set();
-function curSkin(){ return (ui.name && mem.users[ui.name]?.skin) || mem.skin || "base"; }
+function curSkin(){
+  const id = (ui.name && mem.users[ui.name]?.skin) || mem.skin || "base";
+  const s = SKINS.find(x => x.id === id);
+  if(!s) return "base";
+  if(ui.name && !skinOpen(s)) return "base";   // マルが足りないごほうびきせかえは使えない
+  return id;
+}
 function applySkin(){
   const id = curSkin(), s = SKINS.find(x=>x.id===id) || SKINS[0];
   if(s.fonts && !loadedFonts.has(id)){
@@ -9712,6 +9804,7 @@ function applySkin(){
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[s.id]);
 }
 function setSkin(id){
+  const sk = SKINS.find(x => x.id === id); if(!sk || !skinOpen(sk)) return;
   if(ui.name){ (mem.users[ui.name] ||= {rec:{}}).skin = id; }
   mem.skin = id; save(); applySkin();
 }
@@ -9719,10 +9812,10 @@ function viewSkinSheet(){
   const cur = curSkin();
   return `<div class="modal" data-act="closemodal"><div class="sheet" role="dialog" aria-modal="true" aria-label="きせかえ">
     <div class="top"><h2 style="margin:0">きせかえ</h2><button class="link" data-act="closemodal">とじる</button></div>
-    <p class="note" style="margin:0">タップすると画面の色と文字のデザインが変わります。名前ごとに覚えておきます。</p>
-    <div class="skins">${SKINS.map(s=>`<button class="skin" aria-pressed="${s.id===cur}" data-act="skin" data-v="${s.id}">
+    <p class="note" style="margin:0">タップすると画面の色と文字のデザインが変わります。名前ごとに覚えておきます。<br>🔒のきせかえは、マル単で<b>マル(ぜんぶ覚えたセット)</b>を集めると使えるようになるよ。${ui.name?`いまのマル:<b>${skinMaru()}</b>こ`:""}</p>
+    <div class="skins">${SKINS.map(s=>{ const open = skinOpen(s) && (ui.name || !s.need); return `<button class="skin${open?"":" locked"}" aria-pressed="${s.id===cur}" ${open?`data-act="skin" data-v="${s.id}"`:"disabled"}>
       <span class="sw" style="background:${s.sw[0]}">${s.sw.slice(1).map(c=>`<b style="background:${c}"></b>`).join("")}</span>
-      <span class="nm">${s.name}${s.id===cur?"　✓":""}</span><span class="ds">${s.ds}</span></button>`).join("")}</div>
+      <span class="nm">${open?"":"🔒 "}${s.name}${s.id===cur?"　✓":""}</span><span class="ds">${s.ds}</span>${s.need?`<span class="lk">${open?`マル${s.need}こで解放 ✓`:ui.name?`マル${s.need}こで解放(あと${s.need-skinMaru()}こ)`:`マル${s.need}こで解放(名前を入れてね)`}</span>`:""}</button>`; }).join("")}</div>
   </div></div>`;
 }
 
@@ -9903,7 +9996,7 @@ function render(){
 function header(){
   return `<header class="top">
     <div class="brand"><small>学びの場マル直</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
-    <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ</button>`:""}</div>
+    <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ${newSkins().length?`<span class="skinnew">NEW</span>`:""}</button>`:""}</div>
   </header>`;
 }
 
@@ -10738,7 +10831,7 @@ document.addEventListener("click", async e=>{
   else if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; ui.modal=null; save(); render(); }
   else if(a==="logout"){ stopTimer(); mqClear(); ui.name=null; ui.login=null; ui.view="home"; ui.modal=null; render(); }
   else if(a==="tab"){ ui.tab=b.dataset.tab; ui.dn=DEX_PAGE; render(); }
-  else if(a==="skinopen"){ ui.modal={type:"skin"}; render(); }
+  else if(a==="skinopen"){ ui.modal={type:"skin"}; render(); markSkinsSeen(); }
   else if(a==="skin"){ setSkin(b.dataset.v); render(); }
   else if(a==="closemodal"){ ui.modal=null; render(); }
   else if(a==="miss"){ ui.miss=b.dataset.v; render(); }
