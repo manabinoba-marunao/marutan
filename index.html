@@ -545,7 +545,7 @@ const MARUNAO_GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xv
    塾コード+名前+暗証番号でログインし、記録は「マル単 塾ネット」(gas/juku/Code.gs)へ。
    MAL QUEST(やりきリスト連動・魔力・ボス)は出さない。
    ============================================================ */
-const JUKU_GAS_URL = "";   // gas/juku/Code.gs をデプロイして出たURLを貼る(juku-admin.html と同じ)
+const JUKU_GAS_URL = "https://script.google.com/macros/s/AKfycby9fk31a9puiIel1E2MkqcSRg4quEsiA-q4UEw3It_CJ3mviaBqFLU5gwoWyGHk20U/exec";   // gas/juku/Code.gs をデプロイして出たURLを貼る(juku-admin.html と同じ)
 const JUKU = /[?&]juku\b/.test(location.search);
 const JUKU_CODE_PARAM = (new URLSearchParams(location.search).get("juku") || "").trim();
 const GAS_URL = JUKU ? JUKU_GAS_URL : MARUNAO_GAS_URL;
