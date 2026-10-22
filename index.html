@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>/* タブレットで2度押ししても拡大しない(ピンチでの拡大はできる) */
 html, body, * { touch-action: manipulation; }</style>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest" id="mfLink">
+<script>/* 他塾モード(?juku)では、ホーム画面に追加したときも他塾モードで開くようにする */
+if(/[?&]juku\b/.test(location.search)) document.getElementById("mfLink").href = "juku.webmanifest";</script>
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <meta name="apple-mobile-web-app-title" content="マル単">
@@ -519,6 +521,14 @@ td.ens{font-family:var(--en);font-size:13px}
 @media (prefers-reduced-motion:reduce){.mcircle,.dmgp.magic .dmgn b{animation:none}}
 
 .ktalso{font-size:13px;font-weight:700;color:#8A5A00;background:#FFF3CC;border:1px solid #F2D27A;border-radius:8px;padding:4px 10px;align-self:flex-start}
+/* 他塾モード:塾内ランキング */
+.rklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rklist li{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.rklist li .rk{font-weight:700;font-size:18px;text-align:center}
+.rklist li .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rklist li .vl{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rklist li .vl b{font-size:18px}
+.rklist li.me{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
 </style>
 </head>
 <body>
@@ -528,7 +538,17 @@ td.ens{font-family:var(--en);font-size:13px}
 /* ============================================================
    GAS のウェブアプリURL(Code.gs をデプロイして出たURLを貼る)
    ============================================================ */
-const GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xvC8QygZLhPrVkjAYdH5TMsxNlGkRq0zjcF23_yunkXsMmQj4BV0vD/exec";
+const MARUNAO_GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xvC8QygZLhPrVkjAYdH5TMsxNlGkRq0zjcF23_yunkXsMmQj4BV0vD/exec";
+
+/* ============================================================
+   他塾モード:URLに ?juku をつけて開く(例 …/marutan/?juku=ABC12)
+   塾コード+名前+暗証番号でログインし、記録は「マル単 塾ネット」(gas/juku/Code.gs)へ。
+   MAL QUEST(やりきリスト連動・魔力・ボス)は出さない。
+   ============================================================ */
+const JUKU_GAS_URL = "";   // gas/juku/Code.gs をデプロイして出たURLを貼る(juku-admin.html と同じ)
+const JUKU = /[?&]juku\b/.test(location.search);
+const JUKU_CODE_PARAM = (new URLSearchParams(location.search).get("juku") || "").trim();
+const GAS_URL = JUKU ? JUKU_GAS_URL : MARUNAO_GAS_URL;
 
 /* ============================================================
    単語セット — 長文ごとに1セット。Claudeが PDF から追加していく。
@@ -9750,7 +9770,7 @@ const toKata = s => String(s).replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.c
 const isOrderSet = sid => /^ord-/.test(sid);
 /* ============================================================ */
 const MASTER_STREAK = 2;      // 要復習から外れるまでの連続正解数
-const STORE_KEY = "marunao-tango-v1";
+const STORE_KEY = JUKU ? "marutan-juku-v1" : "marunao-tango-v1";   // 他塾モードの記録はマル直の記録と分けて保存
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const wkey = (sid, w) => sid + "::" + w.en;
@@ -9995,13 +10015,13 @@ function render(){
 
 function header(){
   return `<header class="top">
-    <div class="brand"><small>学びの場マル直</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
+    <div class="brand"><small>学びの場マル直${JUKU&&JA.jukuName?`　｜　${esc(JA.jukuName)}`:""}</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
     <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ${newSkins().length?`<span class="skinnew">NEW</span>`:""}</button>`:""}</div>
   </header>`;
 }
 
 function viewLogin(){
-  return header() + viewRosterLogin();
+  return header() + (JUKU ? viewJukuLogin() : viewRosterLogin());
 }
 function viewLoginOld(){
   const names = Object.keys(mem.users);
@@ -10059,6 +10079,7 @@ function viewHome(){
       <button role="tab" aria-selected="${ui.tab==="sets"}" data-act="tab" data-tab="sets">セットを選ぶ</button>
       <button role="tab" aria-selected="${ui.tab==="review"}" data-act="tab" data-tab="review">まちがえた語（${missAll().length}）</button>
       <button role="tab" aria-selected="${ui.tab==="dex"}" data-act="tab" data-tab="dex">単語図鑑</button>
+      ${JUKU?`<button role="tab" aria-selected="${ui.tab==="rank"}" data-act="tab" data-tab="rank">ランキング</button>`:""}
       <button role="tab" aria-selected="${ui.tab==="data"}" data-act="tab" data-tab="data">記録の引っ越し</button>
     </div>`;
 
@@ -10066,7 +10087,7 @@ function viewHome(){
   if(ui.tab==="sets"){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
-      ${ui.name ? manaPanel() : ""}
+      ${ui.name && !JUKU ? manaPanel() : ""}
       ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
       ${selBox(S)}
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
@@ -10137,6 +10158,8 @@ function viewHome(){
     </section>`;
   } else if(ui.tab==="dex"){
     body = viewDex();
+  } else if(ui.tab==="rank" && JUKU){
+    body = viewJukuRank();
   } else {
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
       <h2>記録の引っ越し</h2>
@@ -10163,12 +10186,12 @@ async function yapi(action, body={}){
 }
 
 /* ==== MAL QUEST 共通ログイン(やりきリスト・マル単で1回だけ) ==== */
-const MQ_KEY = 'mq_login';
+const MQ_KEY = JUKU ? 'marutan-juku-login' : 'mq_login';
 function mqGet(){ try{ const v = JSON.parse(localStorage.getItem(MQ_KEY) || 'null'); return v && v.nickname ? v : null; }catch(e){ return null; } }
 function mqSet(o){ try{ localStorage.setItem(MQ_KEY, JSON.stringify(Object.assign({at: Date.now()}, o))); }catch(e){} }
 function mqClear(){ try{ localStorage.removeItem(MQ_KEY); }catch(e){} }
 // この端末でログインした名前(やりきリストと共通)。ログイン画面に候補として出す
-const MQ_NAMES = 'mq_names';
+const MQ_NAMES = JUKU ? 'marutan-juku-names' : 'mq_names';
 function recentNames(){ try{ const v = JSON.parse(localStorage.getItem(MQ_NAMES) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x) : []; }catch(e){ return []; } }
 function rememberName(n){ if(!n) return; try{ const a = recentNames().filter(x => x !== n); a.unshift(n); localStorage.setItem(MQ_NAMES, JSON.stringify(a.slice(0, 8))); }catch(e){} }
 function forgetName(n){ try{ localStorage.setItem(MQ_NAMES, JSON.stringify(recentNames().filter(x => x !== n))); }catch(e){} }
@@ -10617,7 +10640,7 @@ function tick(){
 function finish(){ stopTimer(); logQuiz(); ui.view="result"; render(); }
 
 /* ---------- 先生への送信 ---------- */
-const OUTBOX_KEY = "marutan-outbox";
+const OUTBOX_KEY = JUKU ? "marutan-juku-outbox" : "marutan-outbox";
 let sendState = ["",""];
 function outbox(){ try{ return JSON.parse(localStorage.getItem(OUTBOX_KEY)||"[]"); }catch(e){ return []; } }
 function setOutbox(a){ try{ localStorage.setItem(OUTBOX_KEY, JSON.stringify(a)); }catch(e){} }
@@ -10643,8 +10666,10 @@ function logQuiz(){
       return f&&o ? dm+"/"+fm : f ? fm : dm; })(),
     limit: quiz.timed ? (quiz.sec/60)+"分チャレンジ" : done.length+"問",
     answered: done.length, correct: done.length - quiz.wrong.length,
-    seconds: Math.round((Date.now()-quiz.startedAt)/1000), wrong
+    seconds: Math.round((Date.now()-quiz.startedAt)/1000), wrong,
+    maru: SETS.filter(setDone).length
   };
+  if(JUKU){ const u=user(); if(!u || !u.jk) return; entry.jk = u.jk; }   // 他塾モード:どの塾のだれの記録か
   setOutbox([...outbox(), entry]);
   flush();
 }
@@ -10656,8 +10681,16 @@ async function flush(){
   if(q.length) setSend("", "先生に送信中…(このまま閉じても、次に開いたときに送り直します)");
   for(const entry of q){
     try{
+      let j;
+      if(JUKU){
+        if(!entry.jk){ setOutbox(outbox().filter(x=>x.id!==entry.id)); continue; }
+        const {jk, ...e} = entry;
+        j = await japi("log", {code:jk.code, sid:jk.sid, token:jk.token, entry:e});
+        if(!j.ok && j.error==="auth"){ setOutbox(outbox().filter(x=>x.id!==entry.id)); continue; }   // 暗証番号が変わった・退会など
+      } else {
       const ctl = new AbortController(); setTimeout(()=>ctl.abort(), 45000); const r = await fetch(GAS_URL + "?action=log&payload=" + encodeURIComponent(JSON.stringify(entry)), {credentials:"omit", signal:ctl.signal});
-      const j = await r.json();
+      j = await r.json();
+      }
       if(!j.ok) throw new Error(j.error||"ng");
       setOutbox(outbox().filter(x=>x.id!==entry.id));
     }catch(e){ failed = true; break; }
@@ -10797,6 +10830,152 @@ function viewResult(){
   </section>`;
 }
 
+/* ============================================================
+   他塾モード:塾コード+名前+暗証番号でログイン/塾内ランキング
+   ============================================================ */
+const JA_KEY = "marutan-juku-school";
+let JA = {code:"", jukuName:""};
+try{ const v = JSON.parse(localStorage.getItem(JA_KEY)||"null"); if(v && v.code) JA = v; }catch(e){}
+function saveJA(){ try{ localStorage.setItem(JA_KEY, JSON.stringify(JA)); }catch(e){} }
+async function japi(action, body={}){
+  if(!/^https:\/\//.test(JUKU_GAS_URL)) throw new Error("no-url");
+  const ctl = new AbortController(); const tm = setTimeout(()=>ctl.abort(), 30000);
+  try{
+    const r = await fetch(JUKU_GAS_URL, {method:"POST", body:JSON.stringify({action, ...body}), credentials:"omit", signal:ctl.signal});
+    return await r.json();
+  } finally { clearTimeout(tm); }
+}
+function viewJukuLogin(){
+  const L = ui.jlogin || (ui.jlogin = {});
+  if(!JA.code) return `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0">塾コードを入れてね</h2>
+    <p class="note" style="margin:0">塾の先生からもらった「塾コード」(英数字)を入れてください。</p>
+    <form id="jkCodeForm" class="row">
+      <input type="text" id="jkCode" placeholder="塾コード" maxlength="12" autocomplete="off" autocapitalize="characters" value="${esc(L.code||JUKU_CODE_PARAM||"")}" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.1em">
+      <button class="primary" type="submit" ${L.busy?"disabled":""}>${L.busy?"確認中…":"次へ"}</button>
+    </form>
+    <p class="send ng" style="min-height:1.2em;margin:0">${esc(L.err||"")}</p>
+  </section>`;
+  const school = `<p class="note" style="margin:0">🏫 <b>${esc(JA.jukuName)}</b>(塾コード ${esc(JA.code)})　<button class="link" data-act="jk-change">塾を変える</button></p>`;
+  if(L.name) return `<section class="panel" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    ${school}
+    <h2 style="margin:0">${esc(L.name)} さん</h2>
+    <p class="note" style="margin:0">暗証番号(4けた)を入れてね</p>
+    <div class="pins">${[0,1,2,3].map(i=>`<i class="${i<(L.pin||"").length?"on":""}"></i>`).join("")}</div>
+    <p class="send ng" style="min-height:1.2em;margin:0">${esc(L.err||"")}</p>
+    <div class="pad">${["1","2","3","4","5","6","7","8","9","","0","⌫"].map(k=>k?`<button class="pk" data-act="jk-pin" data-k="${k}" ${L.busy?"disabled":""}>${k}</button>`:"<span></span>").join("")}</div>
+    <button class="link" data-act="jk-back">← 名前を入れなおす</button>
+  </section>`;
+  const rs = recentNames();
+  return `<section class="panel" style="display:flex;flex-direction:column;gap:12px">
+    ${school}
+    <h2 style="margin:0">名前を入れてはじめよう</h2>
+    <p class="note" style="margin:0">塾の先生に登録してもらった名前を入れてね。</p>
+    <form id="jkNameForm" class="row">
+      <input type="text" id="jkName" placeholder="名前" maxlength="20" autocomplete="off" value="${esc(L.typed||"")}" style="flex:1;min-width:180px">
+      <button class="primary" type="submit">次へ</button>
+    </form>
+    <p class="send ng" style="min-height:1.2em;margin:0">${esc(L.err||"")}</p>
+    ${rs.length ? `<div><p class="label" style="margin:0">この端末で使った名前(タップで選べるよ)</p>
+      <div class="names">${rs.map(n=>`<span style="display:inline-flex;align-items:center;gap:2px"><button class="nm" data-act="jk-pick" data-name="${esc(n)}">${esc(n)}</button><button class="link" data-act="jk-forget" data-name="${esc(n)}" aria-label="${esc(n)} を消す">×</button></span>`).join("")}</div></div>` : ""}
+  </section>`;
+}
+async function jukuCheckCode(code, silent){
+  const L = ui.jlogin || (ui.jlogin = {});
+  const c = String(code||"").normalize("NFKC").replace(/\s+/g,"").toUpperCase(); if(!c) return;
+  L.code = c; L.busy = true; L.err = ""; render();
+  try{
+    const j = await japi("jukuInfo", {code:c});
+    if(j.ok){ JA = {code:j.code, jukuName:j.name}; saveJA(); ui.jlogin = {}; }
+    else L.err = silent ? "" : "塾コードが見つかりません。もう一度確かめてね";
+  }catch(e){ L.err = e.message==="no-url" ? "送信先が設定されていません(先生に伝えてね)" : "通信できませんでした。少し待ってもう一度試してね"; }
+  L.busy = false; render();
+}
+async function jukuPin(k){
+  const L = ui.jlogin; if(!L || !L.name || L.busy) return;
+  if(k==="⌫"){ L.pin = (L.pin||"").slice(0,-1); L.err=""; return render(); }
+  if((L.pin||"").length>=4) return;
+  L.pin = (L.pin||"") + k; render();
+  if(L.pin.length<4) return;
+  L.busy = true; render();
+  let j = null;
+  try{ j = await japi("login", {code:JA.code, name:L.name, pin:L.pin}); }catch(e){ L.err = "通信できませんでした。もう一度試してね"; }
+  L.busy = false;
+  if(j && j.ok) return jukuLogin(j);
+  if(j) L.err = ({name:"その名前は登録されていません。先生に確かめてね", pin:"暗証番号がちがいます。もう一度！", locked:"まちがいが続いたので、10分たってからもう一度試してね", code:"この塾コードは今使えません。先生に確かめてね"})[j.error] || "ログインできませんでした";
+  if(j && j.error==="name"){ ui.jlogin = {typed:L.name, err:L.err}; return render(); }
+  L.pin = ""; render();
+}
+function jukuLogin(j){
+  const nick = j.name;
+  const u = (mem.users[nick] ||= {rec:{}});
+  u.jk = {code:j.code, sid:j.sid, token:j.token};
+  JA = {code:j.code, jukuName:j.jukuName}; saveJA();
+  ui.name = nick; ui.jlogin = null; mem.last = nick; save();
+  mqSet({kind:'juku', nickname:nick, jk:u.jk});
+  rememberName(nick);
+  render(); flush();
+}
+function jukuAutoLogin(){
+  const m = mqGet(); if(!m || m.kind!=='juku' || !m.jk || ui.name) return;
+  const u = (mem.users[m.nickname] ||= {rec:{}});
+  u.jk = m.jk; ui.name = m.nickname; mem.last = m.nickname; save();
+}
+/* 塾内ランキング */
+const JR = {period:"week", data:null, loading:false, err:"", at:0};
+async function loadJukuRank(force){
+  const u = user(); if(!u || !u.jk) return;
+  if(JR.loading || (!force && JR.data && Date.now()-JR.at < 60000)) return;
+  JR.loading = true; JR.err = ""; render();
+  try{
+    const j = await japi("ranking", u.jk);
+    if(j.ok){ JR.data = j; JR.at = Date.now(); }
+    else JR.err = j.error==="auth" ? "ログインし直してね(暗証番号が変わったかもしれません)" : "読み込めませんでした";
+  }catch(e){ JR.err = "通信できませんでした。少し待ってもう一度試してね"; }
+  JR.loading = false; if(ui.tab==="rank") render();
+}
+function viewJukuRank(){
+  const u = user(), me = u && u.jk ? u.jk.sid : "";
+  const D = JR.data;
+  const P = [["week","今週の正解数"],["month","今月の正解数"],["maru","マルの数"]];
+  const list = D ? (D[JR.period]||[]) : [];
+  const medal = i => ["🥇","🥈","🥉"][i] || `${i+1}位`;
+  const val = x => JR.period==="maru" ? `<b>${x.maru}</b> マル` : `<b>${x.correct.toLocaleString()}</b> 問 <span class="note">/ ${x.answered.toLocaleString()}問中</span>`;
+  const rows = list.map((x,i)=>`<li class="${x.sid===me?"me":""}"><span class="rk">${medal(i)}</span><span class="nm">${esc(x.name)}${x.sid===me?"(あなた)":""}</span><span class="vl">${val(x)}</span></li>`).join("");
+  const myIdx = list.findIndex(x=>x.sid===me);
+  return `<section class="panel jrank" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <h2 style="margin:0">${esc((D&&D.jukuName)||JA.jukuName||"")} ランキング</h2>
+      <button class="link" data-act="jk-rank-reload">${JR.loading?"読み込み中…":"最新にする"}</button>
+    </div>
+    <div class="filters">${P.map(([k,l])=>`<button class="chip" aria-pressed="${JR.period===k}" data-act="jk-period" data-p="${k}">${l}</button>`).join("")}</div>
+    ${JR.err?`<p class="send ng" style="margin:0">${esc(JR.err)}</p>`:""}
+    ${D ? (list.length ? `${myIdx>=0?`<p class="note" style="margin:0">あなたは <b>${myIdx+1}位</b>！</p>`:`<p class="note" style="margin:0">テストを解くとランキングにのるよ。</p>`}<ol class="rklist">${rows}</ol>` : `<p class="empty">まだだれも記録がありません。一番のりをめざそう！</p>`) : (JR.loading?`<p class="empty">読み込み中…</p>`:"")}
+    <p class="note" style="margin:0">同じ塾の仲間だけのランキングです。記録は少し時間をおいて反映されます。</p>
+  </section>`;
+}
+document.addEventListener("submit", e=>{
+  if(!JUKU) return;
+  if(e.target.id==="jkCodeForm"){ e.preventDefault(); jukuCheckCode($("#jkCode").value); }
+  else if(e.target.id==="jkNameForm"){
+    e.preventDefault();
+    const v = $("#jkName").value.trim(); if(!v) return;
+    ui.jlogin = {name:v, pin:""}; render();
+  }
+});
+document.addEventListener("click", e=>{
+  if(!JUKU) return;
+  const b = e.target.closest("button[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a==="jk-pin") jukuPin(b.dataset.k);
+  else if(a==="jk-back"){ ui.jlogin = {typed:(ui.jlogin||{}).name||""}; render(); }
+  else if(a==="jk-pick"){ ui.jlogin = {name:b.dataset.name, pin:""}; render(); }
+  else if(a==="jk-forget"){ forgetName(b.dataset.name); render(); }
+  else if(a==="jk-change"){ JA = {code:"", jukuName:""}; saveJA(); ui.jlogin = {}; render(); }
+  else if(a==="jk-period"){ JR.period = b.dataset.p; render(); }
+  else if(a==="jk-rank-reload"){ loadJukuRank(true); }
+});
+
 /* ---------- events ---------- */
 document.addEventListener("submit", e=>{
   if(e.target.id==="rosterForm"){
@@ -10830,7 +11009,7 @@ document.addEventListener("click", async e=>{
   else if(a==="nomerge"){ user().askedMerge=true; save(); ui.modal=null; render(); }
   else if(a==="pick"){ ui.name=b.dataset.name; mem.last=ui.name; ui.modal=null; save(); render(); }
   else if(a==="logout"){ stopTimer(); mqClear(); ui.name=null; ui.login=null; ui.view="home"; ui.modal=null; render(); }
-  else if(a==="tab"){ ui.tab=b.dataset.tab; ui.dn=DEX_PAGE; render(); }
+  else if(a==="tab"){ ui.tab=b.dataset.tab; ui.dn=DEX_PAGE; render(); if(ui.tab==="rank") loadJukuRank(); }
   else if(a==="skinopen"){ ui.modal={type:"skin"}; render(); markSkinsSeen(); }
   else if(a==="skin"){ setSkin(b.dataset.v); render(); }
   else if(a==="closemodal"){ ui.modal=null; render(); }
@@ -10921,15 +11100,16 @@ document.addEventListener("input", e=>{
 document.addEventListener("compositionend", e=>{ if(e.target.id==="blankIn" && answerBlank(e.target.value)===false) e.target.value=""; });
 // やりきリストかマル単で一度ログインしていれば、そのまま入る(先生・体験の名前も残す)
 (function mqAutoLogin(){
-  const m = mqGet(); if(!m || ui.name) return;
+  const m = mqGet(); if(!m || ui.name || JUKU) return;
   const u = (mem.users[m.nickname] ||= {rec:{}});
   if(m.kind==='student' && m.id!=null) u.sid = m.id;
   ui.name = m.nickname; mem.last = m.nickname; save();
 })();
+if(JUKU) jukuAutoLogin();
 render();
 flush();
-loadRoster();
-flushDmg();
+if(!JUKU){ loadRoster(); flushDmg(); }
+else if(JUKU_CODE_PARAM && !ui.name && !JA.jukuName) jukuCheckCode(JUKU_CODE_PARAM, true);
 </script>
 <!-- MAL QUEST:ボスへの攻撃カットイン(やりきリスト・マル単 共通) v2 canvas -->
 <style>
@@ -11452,5 +11632,6 @@ function mqStrike(o){
 body{padding-bottom:72px}
 </style>
 <a class="mq-jump" href="https://manabinoba-marunao.github.io/yariki-list/yariki_list.html">⚔️ やりきリストへ</a>
+<script>if(JUKU){ const j=document.querySelector(".mq-jump"); if(j) j.remove(); document.body.style.paddingBottom="24px"; }</script>
 </body>
 </html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="teacher.webmanifest">
+<link rel="apple-touch-icon" href="icons/teacher-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-title" content="マル単塾長">
+<meta name="theme-color" content="#0F5257">
+<title>マル単 塾長用</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+html, body, * { touch-action: manipulation; }
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --accent-soft:#DCEBEA;
+  --ok:#2C7A4B; --warn:#B07A12; --ng:#B63E32; --ng-soft:#F7E0DC;
+  --en:"Literata", Georgia, serif;
+  --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111A1D; --surface:#18252A; --ink:#E7EEEC; --muted:#9AAAAE; --line:#2B3B40;
+    --accent:#5FB3AE; --accent-ink:#0B1517; --accent-soft:#1F3A3C;
+    --ok:#6CC990; --warn:#E0B04A; --ng:#EE8A7E; --ng-soft:#43231F;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ja);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand small{display:block;font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.brand h1{margin:0;font-size:24px}
+.brand h1 span{font-size:14px;font-weight:500;color:var(--muted);margin-left:8px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.link{border:none;background:none;padding:2px 4px;color:var(--accent);text-decoration:underline}
+button.danger{color:var(--ng);border-color:var(--ng)}
+button.sm{padding:3px 10px;font-size:13px}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input,textarea{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{width:100%;resize:vertical}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.label{font-size:12px;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:0 0 8px}
+h2{font-size:17px;margin:0 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.kpi b{display:block;font-family:var(--en);font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.en{font-family:var(--en);font-weight:700}
+td.wrap{white-space:normal;min-width:160px}
+td.pin{font-family:var(--en);font-weight:700;letter-spacing:.15em}
+tr.pick{cursor:pointer}
+tr.pick:hover{background:var(--accent-soft)}
+tr.on{background:var(--accent-soft)}
+tr.left td{color:var(--muted)}
+.rate{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.meter{width:60px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.pill.stop{color:var(--ng);border-color:var(--ng)}
+.note{font-size:12px;color:var(--muted)}
+.err{color:var(--ng);font-size:13px}
+.okmsg{color:var(--ok);font-size:13px}
+.empty{color:var(--muted);font-size:14px;padding:10px 0}
+.issued{border:2px solid var(--accent);border-radius:14px;padding:14px 16px;background:var(--accent-soft);display:flex;flex-direction:column;gap:6px}
+.issued dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0}
+.issued dt{color:var(--muted);font-size:13px}
+.issued dd{margin:0;font-weight:700;word-break:break-all}
+.code{font-family:var(--en);letter-spacing:.12em}
+/* ログインカード */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.lcard{border:1.5px dashed #888;border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:8px;align-items:center;background:#fff;color:#18242B;break-inside:avoid}
+.lcard .t{font-size:11px;letter-spacing:.1em;color:#5B6A70}
+.lcard .n{font-size:18px;font-weight:700;line-height:1.3}
+.lcard dl{display:grid;grid-template-columns:auto 1fr;gap:0 8px;margin:4px 0 0;font-size:13px}
+.lcard dt{color:#5B6A70}
+.lcard dd{margin:0;font-family:var(--en);font-weight:700;letter-spacing:.12em}
+.lcard .qr img,.lcard .qr canvas{width:84px!important;height:84px!important}
+@media print{
+  body{background:#fff;padding:0}
+  .noprint{display:none!important}
+  .wrap{max-width:none;gap:0}
+  .panel{border:none;padding:0}
+  .cards{grid-template-columns:repeat(3,1fr);gap:6mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* gas/juku/Code.gs をデプロイして出たURLを貼る(index.html の JUKU_GAS_URL と同じ) */
+const JUKU_GAS_URL = "";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const fmtDate = t => { if(!t) return "—"; const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const rateColor = r => r>=80 ? "var(--ok)" : r>=60 ? "var(--warn)" : "var(--ng)";
+const rateCell = r => `<span class="rate">${r}%<span class="meter"><i style="width:${r}%;background:${rateColor(r)}"></i></span></span>`;
+const BASE = new URL("./", location.href).href;
+const studentUrl = code => BASE + "?juku=" + encodeURIComponent(code);
+const adminUrl = () => BASE + "juku-admin.html";
+
+/* 状態
+   auth: {kind:"teacher", code, pass} または {kind:"admin", admin}
+   cur:  いま見ている塾 {code, name, status} */
+const S = {auth:null, loginTab:"teacher", err:"", busy:false, msg:"",
+  list:null, listDays:7, issued:null,
+  cur:null, tab:"report", days:7, report:null, student:null, students:null, showPin:false, added:null};
+try{ S.auth = JSON.parse(localStorage.getItem("marutan-jukuadmin")||"null"); }catch(e){}
+const saveAuth = () => { try{ S.auth ? localStorage.setItem("marutan-jukuadmin", JSON.stringify(S.auth)) : localStorage.removeItem("marutan-jukuadmin"); }catch(e){} };
+
+async function api(action, body={}){
+  if(!/^https:\/\//.test(JUKU_GAS_URL)) throw new Error("JUKU_GAS_URL が設定されていません(juku-admin.html の上の方)。");
+  const r = await fetch(JUKU_GAS_URL, {method:"POST", body:JSON.stringify({action, ...body}), credentials:"omit"});
+  return r.json();
+}
+/* いまの塾に対する認証パラメータ */
+function authFor(code){
+  if(!S.auth) return {};
+  return S.auth.kind==="admin" ? {admin:S.auth.admin, code} : {code:S.auth.code, pass:S.auth.pass};
+}
+const isAdmin = () => S.auth && S.auth.kind==="admin";
+async function run(fn){
+  S.busy = true; S.err = ""; render();
+  try{ await fn(); }catch(e){ S.err = e.message || "通信できませんでした。"; }
+  S.busy = false; render();
+}
+
+/* ---------- ログイン ---------- */
+async function doLogin(kind, a, b){
+  await run(async ()=>{
+    if(kind==="admin"){
+      const j = await api("auth", {admin:a});
+      if(!j.ok || !j.admin) throw new Error("合言葉がちがいます。");
+      S.auth = {kind:"admin", admin:a}; saveAuth(); await loadList();
+    } else {
+      const code = a.normalize("NFKC").replace(/\s+/g,"").toUpperCase();
+      const j = await api("auth", {code, pass:b});
+      if(!j.ok) throw new Error("塾コードかパスワードがちがいます。");
+      S.auth = {kind:"teacher", code:j.code, pass:b}; saveAuth();
+      S.cur = {code:j.code, name:j.name, status:j.status}; await loadReport();
+    }
+  });
+}
+function logout(){ S.auth=null; saveAuth(); Object.assign(S, {cur:null, list:null, report:null, students:null, issued:null, student:null}); render(); }
+
+/* ---------- 管理者:塾の一覧 ---------- */
+async function loadList(){
+  const j = await api("jukuList", {admin:S.auth.admin, days:S.listDays});
+  if(!j.ok){ if(j.error==="auth"){ logout(); throw new Error("合言葉が変わったようです。入れ直してください。"); } throw new Error("読み込めませんでした("+j.error+")"); }
+  S.list = j.juku;
+}
+async function issueJuku(name, code){
+  await run(async ()=>{
+    const j = await api("addJuku", {admin:S.auth.admin, name, code});
+    if(!j.ok) throw new Error(({"code-used":"その塾コードはもう使われています。","code-format":"塾コードは英数字3〜10文字にしてください。",empty:"塾名を入れてください。"})[j.error] || "発行できませんでした("+j.error+")");
+    S.issued = j; await loadList();
+  });
+}
+function guideText(j){
+  return `【マル単 塾ネット】${j.name} 様
+
+学びの場マル直の単語アプリ「マル単」をお使いいただけるようにしました。
+
+■ 塾長ページ(生徒の登録・成績の確認)
+${adminUrl()}
+塾コード:${j.code}
+塾長パスワード:${j.pass}
+
+■ 生徒用ページ
+${studentUrl(j.code)}
+生徒は「塾コード・名前・暗証番号(4けた)」でログインします。
+塾長ページの「生徒」で名前を登録すると暗証番号が発行され、「ログインカード」から印刷して配れます。`;
+}
+
+/* ---------- 塾:成績 ---------- */
+async function loadReport(){
+  const j = await api("report", {...authFor(S.cur.code), days:S.days});
+  if(!j.ok){ if(j.error==="auth" && !isAdmin()){ logout(); throw new Error("パスワードが変わったか、利用が止まっています。"); } throw new Error("読み込めませんでした("+j.error+")"); }
+  S.report = j; S.cur.name = j.name;
+}
+async function loadStudents(){
+  const j = await api("students", authFor(S.cur.code));
+  if(!j.ok) throw new Error("読み込めませんでした("+j.error+")");
+  S.students = j.students;
+}
+function summarize(){
+  const Ss = S.report.sessions, W = S.report.wrongs;
+  const by = {};
+  for(const s of Ss){
+    const o = by[s[1]] ||= {sid:s[1], name:String(s[2]), times:0, answered:0, correct:0, last:0};
+    o.name = String(s[2]); o.times++; o.answered += +s[6]||0; o.correct += +s[7]||0; o.last = Math.max(o.last, s[0]);
+  }
+  return {students:Object.values(by).sort((a,b)=>b.last-a.last), Ss, W};
+}
+function topWrong(W, sid){
+  const m = {};
+  for(const w of W){ if(sid && w[1]!==sid) continue;
+    const o = m[w[3]] ||= {en:w[3], ja:w[4], n:0, who:new Set()}; o.n++; o.who.add(w[1]); }
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+function viewReport(){
+  if(!S.report) return `<p class="empty">${S.busy?"読み込み中…":""}</p>`;
+  const {students, Ss, W} = summarize();
+  const totA = students.reduce((a,s)=>a+s.answered,0), totC = students.reduce((a,s)=>a+s.correct,0);
+  let h = `<div class="bar"><div class="row">${[[1,"24時間"],[7,"7日"],[30,"30日"],[0,"全期間"]].map(([d,l])=>`<button aria-pressed="${S.days===d}" data-act="days" data-d="${d}">${l}</button>`).join("")}</div>
+    <button data-act="reload">${S.busy?"読み込み中…":"最新にする"}</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${students.length}</b><span>取り組んだ生徒</span></div>
+      <div class="kpi"><b>${Ss.length}</b><span>取り組み回数</span></div>
+      <div class="kpi"><b>${totA}</b><span>解いた問題(合計)</span></div>
+      <div class="kpi"><b>${totA?Math.round(totC/totA*100):0}%</b><span>全体の正答率</span></div>
+    </div>`;
+  const sel = S.student && students.find(s=>s.sid===S.student) ? students.find(s=>s.sid===S.student) : null;
+  const table = students.length ? `<div class="tbl"><table><thead><tr><th>名前</th><th class="num">回数</th><th class="num">解いた問題</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
+    ${students.map(s=>{const r=s.answered?Math.round(s.correct/s.answered*100):0;return `<tr class="pick ${sel&&sel.sid===s.sid?"on":""}" data-act="student" data-sid="${esc(s.sid)}"><td><b>${esc(s.name)}</b></td><td class="num">${s.times}</td><td class="num">${s.answered}</td><td class="num">${rateCell(r)}</td><td class="num">${fmtDate(s.last)}</td></tr>`}).join("")}
+    </tbody></table></div><p class="note">名前をタップすると、その生徒の記録とよくまちがえる語が出ます。</p>` : `<p class="empty">この期間の記録はまだありません。</p>`;
+  let right;
+  if(sel){
+    const mine = Ss.filter(s=>s[1]===sel.sid).sort((a,b)=>b[0]-a[0]);
+    const tw = topWrong(W, sel.sid).slice(0,30);
+    right = `<section class="panel"><div class="bar"><h2 style="margin:0">${esc(sel.name)} さん</h2><button class="link" data-act="student" data-sid="">全体にもどる</button></div>
+      <p class="label" style="margin-top:14px">取り組みの記録</p>
+      <div class="tbl"><table><thead><tr><th>日時</th><th>セット</th><th>形式</th><th class="num">正解/解いた</th></tr></thead><tbody>
+      ${mine.map(s=>`<tr><td>${fmtDate(s[0])}</td><td class="wrap">${esc(s[3])}<br><span class="pill">${esc(s[4])}</span></td><td>${esc(s[5])}</td><td class="num">${s[7]}/${s[6]}<br>${rateCell(+s[8]||0)}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="label" style="margin-top:16px">よくまちがえる語</p>
+      ${tw.length?`<div class="tbl"><table><thead><tr><th>ことば</th><th>意味</th><th class="num">×</th></tr></thead><tbody>
+      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
+    </section>`;
+  } else {
+    const tw = topWrong(W).slice(0,25);
+    right = `<section class="panel"><h2>みんながまちがえた語</h2>
+      ${tw.length?`<div class="tbl"><table><thead><tr><th>ことば</th><th>意味</th><th class="num">人数</th><th class="num">×</th></tr></thead><tbody>
+      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.who.size}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
+    </section>`;
+  }
+  return h + `<div class="grid"><section class="panel"><h2>生徒ごとの記録</h2>${table}</section>${right}</div>`;
+}
+
+/* ---------- 塾:生徒 ---------- */
+function viewStudents(){
+  if(!S.students) return `<p class="empty">${S.busy?"読み込み中…":""}</p>`;
+  const act = S.students.filter(s=>s.status!=="退会"), left = S.students.filter(s=>s.status==="退会");
+  const row = s => `<tr class="${s.status==="退会"?"left":""}"><td><b>${esc(s.name)}</b><br><span class="note">${esc(s.sid)}</span></td><td>${esc(s.grade||"—")}</td>
+    <td class="pin">${S.showPin?esc(s.pin):"••••"}</td><td class="num">${s.maru}</td><td>${esc(s.last||"—")}</td>
+    <td><div class="row">${s.status==="退会"
+      ? `<button class="sm" data-act="stu-back" data-sid="${esc(s.sid)}">もどす</button>`
+      : `<button class="sm" data-act="stu-edit" data-sid="${esc(s.sid)}">名前・学年</button><button class="sm" data-act="stu-pin" data-sid="${esc(s.sid)}">暗証番号を再発行</button><button class="sm danger" data-act="stu-leave" data-sid="${esc(s.sid)}">退会</button>`}</div></td></tr>`;
+  return `<section class="panel noprint">
+      <h2>生徒を登録する</h2>
+      <p class="note" style="margin:0 0 8px">1行に1人ずつ名前を入れてください。「名前,学年」の形でもOKです(例:たろう,中1)。登録すると暗証番号(4けた)が自動で決まります。<br>名前は塾内ランキングに表示されます。ニックネームでの登録もできます。</p>
+      <textarea id="newNames" rows="4" placeholder="たろう,中1&#10;はなこ,小6"></textarea>
+      <div class="row" style="margin-top:8px"><button class="primary" data-act="stu-add" ${S.busy?"disabled":""}>登録する</button></div>
+      ${S.added?`<div class="issued" style="margin-top:12px"><b>${S.added.added.length}人を登録しました</b>
+        ${S.added.added.map(a=>`<div>${esc(a.name)}　暗証番号 <span class="code">${esc(a.pin)}</span></div>`).join("")}
+        ${S.added.skipped.length?`<div class="err">同じ名前がすでにいるので登録しませんでした:${S.added.skipped.map(esc).join("、")}</div>`:""}
+        <div class="row"><button class="link" data-act="tab" data-tab="cards">ログインカードを印刷する →</button></div></div>`:""}
+    </section>
+    <section class="panel">
+      <div class="bar"><h2 style="margin:0">登録している生徒(${act.length}人)</h2>
+        <button class="sm" data-act="showpin">${S.showPin?"暗証番号をかくす":"暗証番号を表示"}</button></div>
+      ${act.length?`<div class="tbl"><table><thead><tr><th>名前</th><th>学年</th><th>暗証番号</th><th class="num">マル</th><th>最後に使った日</th><th></th></tr></thead><tbody>${act.map(row).join("")}</tbody></table></div>`:`<p class="empty">まだ生徒がいません。上で登録してください。</p>`}
+      ${left.length?`<details style="margin-top:12px"><summary class="note">退会した生徒(${left.length}人)</summary><div class="tbl"><table><tbody>${left.map(row).join("")}</tbody></table></div></details>`:""}
+    </section>`;
+}
+async function stuUpdate(sid, body, okMsg){
+  await run(async ()=>{
+    const j = await api("updateStudent", {...authFor(S.cur.code), sid, ...body});
+    if(!j.ok) throw new Error(j.error==="dup-name" ? "同じ名前の生徒がすでにいます。" : "変更できませんでした("+j.error+")");
+    await loadStudents(); S.msg = okMsg ? okMsg(j) : "";
+  });
+}
+
+/* ---------- 塾:ログインカード ---------- */
+function viewCards(){
+  if(!S.students) return `<p class="empty">${S.busy?"読み込み中…":""}</p>`;
+  const act = S.students.filter(s=>s.status!=="退会");
+  return `<section class="panel">
+    <div class="bar noprint" style="margin-bottom:12px"><p class="note" style="margin:0">切り取って生徒に配ってください。QRコードを読むと、この塾のマル単が開きます。</p><button class="primary" data-act="print">印刷する</button></div>
+    ${act.length?`<div class="cards">${act.map(s=>`<div class="lcard"><div>
+      <div class="t">マル単　${esc(S.cur.name)}</div>
+      <div class="n">${esc(s.name)} さん</div>
+      <dl><dt>塾コード</dt><dd>${esc(S.cur.code)}</dd><dt>暗証番号</dt><dd>${esc(s.pin)}</dd></dl>
+      </div><div class="qr" data-qr="${esc(studentUrl(S.cur.code))}"></div></div>`).join("")}</div>`:`<p class="empty">まだ生徒がいません。「生徒」で登録してください。</p>`}
+    <p class="note noprint" style="margin-top:12px">生徒用ページ:${esc(studentUrl(S.cur.code))}</p>
+  </section>`;
+}
+function drawQRs(){
+  if(typeof QRCode==="undefined") return;
+  document.querySelectorAll("[data-qr]").forEach(el=>{ if(el.dataset.done) return; el.dataset.done=1;
+    try{ new QRCode(el, {text:el.dataset.qr, width:168, height:168, correctLevel:QRCode.CorrectLevel.M}); }catch(e){} });
+}
+
+/* ---------- 塾:設定(管理者だけ) ---------- */
+function viewSettings(){
+  const j = (S.list||[]).find(x=>x.code===S.cur.code) || S.cur;
+  return `<section class="panel"><h2>塾の設定</h2>
+    <div class="issued" style="background:none;border-color:var(--line)"><dl>
+      <dt>塾名</dt><dd>${esc(j.name)}</dd><dt>塾コード</dt><dd class="code">${esc(j.code)}</dd>
+      <dt>塾長パスワード</dt><dd class="code">${esc(j.pass||"")}</dd><dt>状態</dt><dd>${esc(j.status)}</dd>
+      <dt>生徒用ページ</dt><dd>${esc(studentUrl(j.code))}</dd></dl></div>
+    <div class="row" style="margin-top:12px">
+      <button data-act="jk-rename">塾名を変える</button>
+      <button data-act="jk-pass">塾長パスワードを再発行</button>
+      ${j.status==="停止"?`<button class="primary" data-act="jk-status" data-s="有効">利用を再開する</button>`:`<button class="danger" data-act="jk-status" data-s="停止">利用を止める</button>`}
+      ${j.pass?`<button data-act="copy-guide">塾長さんへの案内文をコピー</button>`:""}
+    </div>
+    <p class="note">「利用を止める」と、その塾の生徒と塾長はログインできなくなります(記録は残ります)。</p>
+  </section>`;
+}
+async function jukuUpdate(body){
+  await run(async ()=>{
+    const j = await api("updateJuku", {admin:S.auth.admin, code:S.cur.code, ...body});
+    if(!j.ok) throw new Error("変更できませんでした("+j.error+")");
+    await loadList(); const x = S.list.find(x=>x.code===S.cur.code); if(x) S.cur = {code:x.code, name:x.name, status:x.status};
+    S.msg = "変更しました。";
+  });
+}
+
+/* ---------- 画面 ---------- */
+function viewLogin(){
+  const t = S.loginTab;
+  return `<section class="panel" style="display:flex;flex-direction:column;gap:12px;max-width:520px">
+    <div class="tabs"><button aria-pressed="${t==="teacher"}" data-act="ltab" data-t="teacher">塾長</button><button aria-pressed="${t==="admin"}" data-act="ltab" data-t="admin">管理者(マル直)</button></div>
+    ${t==="teacher"?`<h2 style="margin:0">塾コードと塾長パスワード</h2>
+      <form id="tForm" style="display:flex;flex-direction:column;gap:8px">
+        <input id="tCode" placeholder="塾コード" autocomplete="username" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.1em">
+        <input id="tPass" type="password" placeholder="塾長パスワード" autocomplete="current-password">
+        <button class="primary" type="submit" ${S.busy?"disabled":""}>${S.busy?"確認中…":"入る"}</button></form>`
+    :`<h2 style="margin:0">管理者の合言葉</h2>
+      <form id="aForm" class="row"><input id="aKey" type="password" placeholder="合言葉" autocomplete="current-password" style="flex:1;min-width:200px">
+        <button class="primary" type="submit" ${S.busy?"disabled":""}>${S.busy?"確認中…":"入る"}</button></form>
+      <p class="note" style="margin:0">合言葉はスプレッドシート「設定」シートの B1 です。</p>`}
+    ${S.err?`<p class="err" style="margin:0">${esc(S.err)}</p>`:""}
+  </section>`;
+}
+function viewList(){
+  const L = S.list;
+  let h = `<section class="panel">
+    <div class="bar"><h2 style="margin:0">マル単を使っている塾</h2>
+      <div class="row">${[[7,"7日"],[30,"30日"]].map(([d,l])=>`<button class="sm" aria-pressed="${S.listDays===d}" data-act="ldays" data-d="${d}">${l}</button>`).join("")}<button class="sm" data-act="lreload">${S.busy?"読み込み中…":"最新にする"}</button></div></div>
+    ${!L?`<p class="empty">読み込み中…</p>`:L.length?`<div class="tbl" style="margin-top:10px"><table><thead><tr><th>塾</th><th class="num">生徒</th><th class="num">${S.listDays}日で使った人</th><th class="num">取り組み</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
+      ${L.map(j=>`<tr class="pick" data-act="open" data-code="${esc(j.code)}"><td><b>${esc(j.name)}</b> <span class="note code">${esc(j.code)}</span>${j.status!=="有効"?` <span class="pill stop">${esc(j.status)}</span>`:""}</td>
+        <td class="num">${j.students}</td><td class="num">${j.activeStudents}</td><td class="num">${j.times}</td><td class="num">${j.answered?rateCell(Math.round(j.correct/j.answered*100)):"—"}</td><td class="num">${fmtDate(j.last)}</td></tr>`).join("")}
+      </tbody></table></div><p class="note">塾名をタップすると、その塾の成績・生徒を塾長と同じ画面で見られます。</p>`:`<p class="empty">まだ塾がありません。下で発行してください。</p>`}
+  </section>
+  <section class="panel">
+    <h2>新しい塾を発行する</h2>
+    <form id="issueForm" class="row">
+      <input id="iName" placeholder="塾名(例:○○学習塾)" style="flex:2;min-width:200px">
+      <input id="iCode" placeholder="塾コード(空なら自動)" maxlength="10" style="flex:1;min-width:150px;text-transform:uppercase">
+      <button class="primary" type="submit" ${S.busy?"disabled":""}>発行する</button>
+    </form>
+    ${S.issued?`<div class="issued" style="margin-top:12px"><b>発行しました</b>
+      <dl><dt>塾名</dt><dd>${esc(S.issued.name)}</dd><dt>塾コード</dt><dd class="code">${esc(S.issued.code)}</dd><dt>塾長パスワード</dt><dd class="code">${esc(S.issued.pass)}</dd>
+      <dt>塾長ページ</dt><dd>${esc(adminUrl())}</dd><dt>生徒用ページ</dt><dd>${esc(studentUrl(S.issued.code))}</dd></dl>
+      <div class="row"><button class="primary" data-act="copy-issued">塾長さんへの案内文をコピー</button><span class="okmsg" id="copyMsg"></span></div></div>`:""}
+  </section>`;
+  return h;
+}
+function viewJuku(){
+  const tabs = [["report","成績"],["students","生徒"],["cards","ログインカード"]].concat(isAdmin()?[["settings","設定"]]:[]);
+  return `<div class="bar noprint">
+      <div>${isAdmin()?`<button class="link" data-act="tolist">← 塾の一覧</button>`:""}<h2 style="margin:4px 0 0">${esc(S.cur.name)} <span class="note code">${esc(S.cur.code)}</span>${S.cur.status&&S.cur.status!=="有効"?` <span class="pill stop">${esc(S.cur.status)}</span>`:""}</h2></div>
+      <div class="tabs">${tabs.map(([k,l])=>`<button aria-pressed="${S.tab===k}" data-act="tab" data-tab="${k}">${l}</button>`).join("")}</div>
+    </div>
+    ${S.err?`<p class="err noprint" style="margin:0">${esc(S.err)}</p>`:""}${S.msg?`<p class="okmsg noprint" style="margin:0">${esc(S.msg)}</p>`:""}
+    ${S.tab==="report"?viewReport():S.tab==="students"?viewStudents():S.tab==="cards"?viewCards():viewSettings()}`;
+}
+function render(){
+  let h = `<header class="noprint"><div class="brand"><small>学びの場マル直</small><h1>マル単<span>${isAdmin()?"管理者":"塾長用"}</span></h1></div>
+    ${S.auth?`<button class="link" data-act="logout">ログアウト</button>`:""}</header>`;
+  if(!/^https:\/\//.test(JUKU_GAS_URL)) h += `<p class="err">JUKU_GAS_URL が設定されていません(juku-admin.html の上の方)。</p>`;
+  if(!S.auth) h += viewLogin();
+  else if(S.cur) h += viewJuku();
+  else { if(S.err) h += `<p class="err">${esc(S.err)}</p>`; h += viewList(); }
+  $("#app").innerHTML = h;
+  if(S.tab==="cards") drawQRs();
+}
+
+async function openJuku(code){
+  const j = (S.list||[]).find(x=>x.code===code); if(!j) return;
+  Object.assign(S, {cur:{code:j.code, name:j.name, status:j.status}, tab:"report", report:null, students:null, student:null, added:null, msg:""});
+  await run(loadReport);
+}
+async function switchTab(t){
+  S.tab = t; S.msg = "";
+  if((t==="students"||t==="cards") && !S.students) return run(loadStudents);
+  if(t==="report" && !S.report) return run(loadReport);
+  render();
+}
+async function copy(text){ try{ await navigator.clipboard.writeText(text); return true; }catch(e){ window.prompt("コピーしてください", text); return false; } }
+
+document.addEventListener("submit", e=>{
+  e.preventDefault();
+  const id = e.target.id;
+  if(id==="tForm"){ const c=$("#tCode").value.trim(), p=$("#tPass").value.trim(); if(c&&p) doLogin("teacher", c, p); }
+  else if(id==="aForm"){ const k=$("#aKey").value.trim(); if(k) doLogin("admin", k); }
+  else if(id==="issueForm"){ const n=$("#iName").value.trim(); if(n) issueJuku(n, $("#iCode").value.trim()); }
+});
+document.addEventListener("click", async e=>{
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act, sid = b.dataset.sid;
+  const stu = sid && S.students ? S.students.find(s=>s.sid===sid) : null;
+  if(a==="ltab"){ S.loginTab=b.dataset.t; S.err=""; render(); }
+  else if(a==="logout") logout();
+  else if(a==="ldays"){ S.listDays=+b.dataset.d; run(loadList); }
+  else if(a==="lreload") run(loadList);
+  else if(a==="open") openJuku(b.dataset.code);
+  else if(a==="tolist"){ S.cur=null; S.err=""; S.msg=""; run(loadList); }
+  else if(a==="tab") switchTab(b.dataset.tab);
+  else if(a==="days"){ S.days=+b.dataset.d; run(loadReport); }
+  else if(a==="reload") run(loadReport);
+  else if(a==="student"){ S.student=b.dataset.sid||null; render(); }
+  else if(a==="showpin"){ S.showPin=!S.showPin; render(); }
+  else if(a==="stu-add"){
+    const names = $("#newNames").value.trim(); if(!names) return;
+    run(async ()=>{ const j = await api("addStudents", {...authFor(S.cur.code), names}); if(!j.ok) throw new Error("登録できませんでした("+j.error+")"); S.added=j; await loadStudents(); });
+  }
+  else if(a==="stu-edit" && stu){
+    const nm = prompt("名前", stu.name); if(nm===null) return;
+    const gr = prompt("学年(例:中1)", stu.grade||""); if(gr===null) return;
+    stuUpdate(sid, {name:nm.trim(), grade:gr.trim()}, ()=>"変更しました。");
+  }
+  else if(a==="stu-pin" && stu){ if(confirm(`${stu.name} さんの暗証番号を新しくしますか？\n(今ログインしている端末は、新しい番号で入り直しになります)`)) stuUpdate(sid, {resetPin:true}, j=>`${stu.name} さんの新しい暗証番号:${j.pin}`); }
+  else if(a==="stu-leave" && stu){ if(confirm(`${stu.name} さんを退会にしますか？(記録は残ります。あとで「もどす」もできます)`)) stuUpdate(sid, {status:"退会"}); }
+  else if(a==="stu-back") stuUpdate(sid, {status:"有効"});
+  else if(a==="print") window.print();
+  else if(a==="copy-issued"){ const ok = await copy(guideText(S.issued)); const m=$("#copyMsg"); if(m&&ok) m.textContent="コピーしました"; }
+  else if(a==="copy-guide"){ const j=(S.list||[]).find(x=>x.code===S.cur.code); if(j && await copy(guideText(j))){ S.msg="案内文をコピーしました。"; render(); } }
+  else if(a==="jk-rename"){ const n=prompt("塾名", S.cur.name); if(n&&n.trim()) jukuUpdate({name:n.trim()}); }
+  else if(a==="jk-pass"){ if(confirm("塾長パスワードを新しくしますか？(塾長さんに新しいパスワードを伝える必要があります)")) jukuUpdate({resetPass:true}); }
+  else if(a==="jk-status"){ const s=b.dataset.s; if(s==="有効" || confirm("この塾の利用を止めますか？")) jukuUpdate({status:s}); }
+});
+
+render();
+if(S.auth){
+  if(isAdmin()) run(loadList);
+  else { S.cur = {code:S.auth.code, name:"", status:""}; run(loadReport); }
+}
+</script>
+</body>
+</html>
