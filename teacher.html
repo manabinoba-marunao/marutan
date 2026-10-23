@@ -57,7 +57,7 @@ h2{font-size:17px;margin:0 0 12px}
 .kpi b{display:block;font-family:var(--en);font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
 .kpi span{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:760px){.grid{grid-template-columns:1fr}}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .tbl{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
@@ -75,6 +75,12 @@ tr.on{background:var(--accent-soft)}
 .note{font-size:12px;color:var(--muted)}
 .err{color:var(--ng);font-size:13px}
 .empty{color:var(--muted);font-size:14px;padding:10px 0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.tabs button{white-space:nowrap;flex:0 0 auto}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+label.note{display:flex;flex-direction:column;gap:4px}
 </style>
 </head>
 <body>
@@ -82,110 +88,195 @@ tr.on{background:var(--accent-soft)}
 <script>
 /* Code.gs をデプロイして出たURLを貼る(生徒用 index.html と同じもの) */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbygC2zGvtia47xvC8QygZLhPrVkjAYdH5TMsxNlGkRq0zjcF23_yunkXsMmQj4BV0vD/exec";
+/* 他塾(マル単 塾ネット)の GAS。juku-admin.html と同じ */
+const JUKU_GAS_URL = "https://script.google.com/macros/s/AKfycby9fk31a9puiIel1E2MkqcSRg4quEsiA-q4UEw3It_CJ3mviaBqFLU5gwoWyGHk20U/exec";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const st = {key:"", days:7, data:null, loading:false, error:"", student:null};
-try{ st.key = localStorage.getItem("marutan-teacher-key") || ""; }catch(e){}
+/* tab: "all"(全体) / "marunao" / 塾コード */
+const st = {key:"", nkey:"", days:7, tab:"all", src:{}, order:[], jukuErr:"", loading:false, error:"", student:null};
+try{ st.key = localStorage.getItem("marutan-teacher-key") || ""; st.nkey = localStorage.getItem("marutan-net-admin") || ""; st.tab = localStorage.getItem("marutan-teacher-tab") || "all"; }catch(e){}
 
 const pad = n => String(n).padStart(2,"0");
-const fmtDate = t => { const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDate = t => { if(!t) return "—"; const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const rateColor = r => r>=80 ? "var(--ok)" : r>=60 ? "var(--warn)" : "var(--ng)";
 const rateCell = r => `<span class="rate">${r}%<span class="meter"><i style="width:${r}%;background:${rateColor(r)}"></i></span></span>`;
+const pct = (c,a) => a ? Math.round(c/a*100) : 0;
 
+async function getJSON(url){ const r = await fetch(url, {credentials:"omit"}); return r.json(); }
+async function postJSON(url, body){ const r = await fetch(url, {method:"POST", body:JSON.stringify(body), credentials:"omit"}); return r.json(); }
+
+/* マル直と他塾をまとめて読み込む */
 async function load(){
-  if(!/^https:\/\//.test(GAS_URL)){ st.error="GAS_URL が設定されていません(teacher.html の上の方)。"; return render(); }
-  st.loading = true; st.error=""; render();
-  try{
-    const r = await fetch(`${GAS_URL}?action=report&key=${encodeURIComponent(st.key)}&days=${st.days}`, {credentials:"omit"});
-    const j = await r.json();
-    if(!j.ok){ st.error = j.error==="key" ? "合言葉がちがいます。" : "読み込めませんでした("+j.error+")"; st.data=null; }
-    else { st.data = j; try{ localStorage.setItem("marutan-teacher-key", st.key); }catch(e){} }
-  }catch(e){ st.error = "読み込めませんでした。通信状態とGASのURLを確認してください。"; }
+  st.loading = true; st.error = ""; st.jukuErr = ""; render();
+  const src = {}, order = [];
+  const jobs = [];
+  jobs.push((async()=>{
+    try{
+      const j = await getJSON(`${GAS_URL}?action=report&key=${encodeURIComponent(st.key)}&days=${st.days}`);
+      if(!j.ok){ st.error = j.error==="key" ? "合言葉がちがいます。" : "読み込めませんでした("+j.error+")"; return; }
+      src.marunao = {name:"マル直", sessions:j.sessions, wrongs:j.wrongs};
+      try{ localStorage.setItem("marutan-teacher-key", st.key); }catch(e){}
+    }catch(e){ st.error = "読み込めませんでした。通信状態を確認してください。"; }
+  })());
+  if(st.nkey) jobs.push((async()=>{
+    try{
+      const L = await postJSON(JUKU_GAS_URL, {action:"jukuList", admin:st.nkey, days:st.days||3650});
+      if(!L.ok){ st.jukuErr = L.error==="auth" ? "塾ネットの合言葉がちがいます。" : "他塾を読み込めませんでした("+L.error+")"; return; }
+      try{ localStorage.setItem("marutan-net-admin", st.nkey); }catch(e){}
+      const list = L.juku.filter(x=>x.status!=="停止" || x.times>0);
+      const reps = await Promise.all(list.map(x=>postJSON(JUKU_GAS_URL, {action:"report", admin:st.nkey, code:x.code, days:st.days}).catch(()=>null)));
+      list.forEach((x,i)=>{ const r = reps[i]; src[x.code] = {name:x.name, students:x.students, status:x.status, sessions:r&&r.ok?r.sessions:[], wrongs:r&&r.ok?r.wrongs:[], err:!(r&&r.ok)}; order.push(x.code); });
+    }catch(e){ st.jukuErr = "他塾を読み込めませんでした。"; }
+  })());
+  await Promise.all(jobs);
+  st.src = src; st.order = order;
+  if(st.tab!=="all" && !src[st.tab]) st.tab = "all";
   st.loading = false; render();
 }
 
-/* sessions: [ts,id,name,label,mode,limit,answered,correct,rate,seconds,wrongText]
+/* 表示するデータ。sessions/wrongs の各行に塾コードをつける(生徒は 塾:id で区別)
+   sessions: [ts,id,name,label,mode,limit,answered,correct,rate,seconds,wrongText]
    wrongs:   [ts,id,name,en,ja,set] */
-function summarize(){
-  const S = st.data.sessions, W = st.data.wrongs;
-  const byName = {};
-  for(const s of S){
-    const n = String(s[2]);
-    const o = byName[n] ||= {name:n, times:0, answered:0, correct:0, last:0, secs:0};
-    o.times++; o.answered += +s[6]||0; o.correct += +s[7]||0; o.secs += +s[9]||0; o.last = Math.max(o.last, s[0]);
-  }
-  const students = Object.values(byName).sort((a,b)=>b.last-a.last);
-  return {students, S, W};
+function rowsFor(tab){
+  const codes = tab==="all" ? Object.keys(st.src) : [tab];
+  const S = [], W = [];
+  for(const c of codes){ const d = st.src[c]; if(!d) continue;
+    for(const s of d.sessions) S.push({c, sk:c+":"+(c==="marunao"?s[2]:s[1]), s});
+    for(const w of d.wrongs) W.push({c, sk:c+":"+(c==="marunao"?w[2]:w[1]), w}); }
+  return {S, W};
 }
-function topWrong(W, name){
+function students(S){
   const m = {};
-  for(const w of W){ if(name && String(w[2])!==name) continue;
-    const k = w[3]; const o = m[k] ||= {en:w[3], ja:w[4], n:0, who:new Set(), set:w[5]}; o.n++; o.who.add(String(w[2])); }
-  return Object.values(m).sort((a,b)=>b.n-a.n);
+  for(const {c,sk,s} of S){
+    const o = m[sk] ||= {sk, c, name:String(s[2]), times:0, answered:0, correct:0, last:0};
+    o.times++; o.answered += +s[6]||0; o.correct += +s[7]||0;
+    if(s[0] > o.last){ o.last = s[0]; o.name = String(s[2]); }
+  }
+  return Object.values(m).sort((a,b)=>b.last-a.last);
+}
+function topWrong(W, sk){
+  const m = {};
+  for(const {c,sk:k,w} of W){ if(sk && k!==sk) continue;
+    const key = String(w[3]).trim().toLowerCase();
+    const o = m[key] ||= {en:w[3], ja:w[4], n:0, who:new Set(), juku:new Set()}; o.n++; o.who.add(k); o.juku.add(c); }
+  return Object.values(m).sort((a,b)=>b.n-a.n || b.who.size-a.who.size);
+}
+/* セット(テストの名前)ごとの正答率 */
+function bySet(S){
+  const m = {};
+  for(const {c,sk,s} of S){
+    const k = String(s[3]);
+    const o = m[k] ||= {label:k, times:0, answered:0, correct:0, who:new Set(), juku:new Set()};
+    o.times++; o.answered += +s[6]||0; o.correct += +s[7]||0; o.who.add(sk); o.juku.add(c);
+  }
+  return Object.values(m).map(o=>({...o, rate:pct(o.correct,o.answered)}));
+}
+const jukuName = c => (st.src[c]||{}).name || c;
+const jukuPill = c => `<span class="pill">${esc(jukuName(c))}</span>`;
+
+function viewKeyForm(){
+  return `<section class="panel"><h2>合言葉を入れてください</h2>
+    <form id="keyForm" style="display:flex;flex-direction:column;gap:8px;max-width:440px">
+      <label class="note">マル直の合言葉(Code.gs の TEACHER_KEY)
+        <input type="password" id="key" value="${esc(st.key)}" placeholder="マル直の合言葉" autocomplete="current-password" style="width:100%"></label>
+      <label class="note">塾ネットの合言葉(他塾も見るとき。「マル単 塾ネット」の設定シート B1)
+        <input type="password" id="nkey" value="${esc(st.nkey)}" placeholder="塾ネットの合言葉(なくてもOK)" autocomplete="off" style="width:100%"></label>
+      <button class="primary" type="submit">${st.loading?"読み込み中…":"見る"}</button></form>
+    ${st.error?`<p class="err">${esc(st.error)}</p>`:""}</section>`;
 }
 
 function render(){
   const app = $("#app");
   let h = `<header><div class="brand"><small>学びの場マル直</small><h1>マル単<span>先生用</span></h1></div>
-    ${st.data?`<button class="link" data-act="lock">合言葉を入れ直す</button>`:""}</header>`;
-  if(!st.data){
-    h += `<section class="panel"><h2>合言葉を入れてください</h2>
-      <form id="keyForm" class="row"><input type="password" id="key" value="${esc(st.key)}" placeholder="合言葉" autocomplete="current-password" style="flex:1;min-width:200px">
-      <button class="primary" type="submit">${st.loading?"読み込み中…":"見る"}</button></form>
-      ${st.error?`<p class="err">${esc(st.error)}</p>`:""}
-      <p class="note">合言葉は Code.gs の TEACHER_KEY で決めたものです。</p></section>`;
-    return app.innerHTML = h;
-  }
-  const {students, S, W} = summarize();
-  const totA = students.reduce((a,s)=>a+s.answered,0), totC = students.reduce((a,s)=>a+s.correct,0);
+    ${st.src.marunao?`<button class="link" data-act="lock">合言葉を入れ直す</button>`:""}</header>`;
+  if(!st.src.marunao){ app.innerHTML = h + viewKeyForm(); return; }
+
+  const codes = ["marunao", ...st.order];
+  h += `<nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="${st.tab==="all"}" data-act="tab" data-t="all">全体</button>
+    ${codes.map(c=>`<button role="tab" aria-selected="${st.tab===c}" data-act="tab" data-t="${esc(c)}">${esc(jukuName(c))}${st.src[c].status==="停止"?"(停止)":""}</button>`).join("")}
+  </nav>`;
+  if(!st.nkey) h += `<form id="nkeyForm" class="panel row" style="padding:12px 14px"><span class="note" style="flex:1 1 220px">他塾の結果もここで見るには、塾ネットの合言葉(「マル単 塾ネット」の設定シート B1)を入れてください。</span>
+      <input type="password" id="nkey2" placeholder="塾ネットの合言葉" autocomplete="off" style="flex:1;min-width:160px"><button class="primary" type="submit">他塾も見る</button></form>`;
+  if(st.jukuErr) h += `<p class="err">${esc(st.jukuErr)} <button class="link" data-act="nreset">合言葉を入れ直す</button></p>`;
+
+  const {S, W} = rowsFor(st.tab);
+  const stus = students(S);
+  const isAll = st.tab==="all";
+  const totA = stus.reduce((a,s)=>a+s.answered,0), totC = stus.reduce((a,s)=>a+s.correct,0);
   h += `<div class="bar"><div class="row">${[[1,"24時間"],[7,"7日"],[30,"30日"],[0,"全期間"]].map(([d,l])=>`<button aria-pressed="${st.days===d}" data-act="days" data-d="${d}">${l}</button>`).join("")}</div>
     <button data-act="reload">${st.loading?"読み込み中…":"最新にする"}</button></div>
     ${st.error?`<p class="err">${esc(st.error)}</p>`:""}
     <div class="kpis">
-      <div class="kpi"><b>${students.length}</b><span>取り組んだ生徒</span></div>
+      ${isAll?`<div class="kpi"><b>${new Set(S.map(x=>x.c)).size}</b><span>取り組みのあった塾</span></div>`:""}
+      <div class="kpi"><b>${stus.length}</b><span>取り組んだ生徒</span></div>
       <div class="kpi"><b>${S.length}</b><span>取り組み回数</span></div>
-      <div class="kpi"><b>${totA}</b><span>解いた問題(合計)</span></div>
-      <div class="kpi"><b>${totA?Math.round(totC/totA*100):0}%</b><span>全体の正答率</span></div>
+      <div class="kpi"><b>${totA.toLocaleString()}</b><span>解いた問題(合計)</span></div>
+      <div class="kpi"><b>${pct(totC,totA)}%</b><span>全体の正答率</span></div>
     </div>`;
 
-  const sel = st.student && students.find(s=>s.name===st.student) ? st.student : null;
-  const studentTable = students.length ? `<div class="tbl"><table><thead><tr><th>名前</th><th class="num">回数</th><th class="num">解いた問題</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
-    ${students.map(s=>{const r=s.answered?Math.round(s.correct/s.answered*100):0;return `<tr class="pick ${sel===s.name?"on":""}" data-act="student" data-n="${esc(s.name)}"><td><b>${esc(s.name)}</b></td><td class="num">${s.times}</td><td class="num">${s.answered}</td><td class="num">${rateCell(r)}</td><td class="num">${fmtDate(s.last)}</td></tr>`}).join("")}
-    </tbody></table></div><p class="note">名前をクリックすると、その生徒の記録が右(スマホでは下)に出ます。</p>` : `<p class="empty">この期間の記録はまだありません。</p>`;
+  /* 全体:塾ごとの比較 */
+  if(isAll){
+    const rows = codes.map(c=>{ const ss = students(rowsFor(c).S); const a=ss.reduce((x,s)=>x+s.answered,0), k=ss.reduce((x,s)=>x+s.correct,0);
+      return {c, n:ss.length, reg:st.src[c].students, times:rowsFor(c).S.length, a, k, last:Math.max(0,...ss.map(s=>s.last))}; });
+    h += `<section class="panel"><h2>塾ごとの比較</h2><div class="tbl"><table><thead><tr><th>塾</th><th class="num">取り組んだ生徒</th><th class="num">回数</th><th class="num">解いた問題</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="pick" data-act="tab" data-t="${esc(r.c)}"><td><b>${esc(jukuName(r.c))}</b>${st.src[r.c].err?` <span class="err">読み込み失敗</span>`:""}</td><td class="num">${r.n}${r.reg!=null?` <span class="note">/ ${r.reg}人</span>`:""}</td><td class="num">${r.times}</td><td class="num">${r.a.toLocaleString()}</td><td class="num">${r.a?rateCell(pct(r.k,r.a)):"—"}</td><td class="num">${fmtDate(r.last)}</td></tr>`).join("")}
+      </tbody></table></div><p class="note">塾名をタップすると、その塾のタブに切り替わります。</p></section>`;
+  }
 
-  let right;
+  /* つまずき:正答率の低いセット と よくまちがえる語 */
+  const sets = bySet(S).filter(x=>x.answered>=5).sort((a,b)=>a.rate-b.rate || b.answered-a.answered).slice(0,15);
+  const tw = topWrong(W).slice(0,30);
+  h += `<div class="grid2">
+    <section class="panel"><h2>正答率が低いセット</h2>
+      ${sets.length?`<div class="tbl"><table><thead><tr><th>セット</th><th class="num">人数</th><th class="num">解いた</th><th class="num">正答率</th></tr></thead><tbody>
+      ${sets.map(x=>`<tr><td class="wrap">${esc(x.label)}${isAll?`<br><span class="note">${[...x.juku].map(jukuName).map(esc).join("・")}</span>`:""}</td><td class="num">${x.who.size}</td><td class="num">${x.answered}</td><td class="num">${rateCell(x.rate)}</td></tr>`).join("")}
+      </tbody></table></div><p class="note">5問以上解かれたセットだけ。正答率の低い順です。</p>`:`<p class="empty">この期間の記録はまだありません。</p>`}
+    </section>
+    <section class="panel"><h2>みんながまちがえた語</h2>
+      ${tw.length?`<div class="tbl"><table><thead><tr><th>ことば</th><th>意味</th><th class="num">人数</th>${isAll?`<th class="num">塾</th>`:""}<th class="num">×</th></tr></thead><tbody>
+      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.who.size}</td>${isAll?`<td class="num" title="${esc([...w.juku].map(jukuName).join("・"))}">${w.juku.size}</td>`:""}<td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>
+      <p class="note">まちがえた回数(×)の多い順。${isAll?"「塾」はその語をまちがえた生徒がいる塾の数です。":""}</p>`:`<p class="empty">まちがえた語はありません。</p>`}
+    </section></div>`;
+
+  /* 生徒ごと */
+  const sel = st.student && stus.find(s=>s.sk===st.student) || null;
+  const studentTable = stus.length ? `<div class="tbl"><table><thead><tr><th>名前</th>${isAll?"<th>塾</th>":""}<th class="num">回数</th><th class="num">解いた問題</th><th class="num">正答率</th><th class="num">最後</th></tr></thead><tbody>
+    ${stus.map(s=>`<tr class="pick ${sel&&sel.sk===s.sk?"on":""}" data-act="student" data-k="${esc(s.sk)}"><td><b>${esc(s.name)}</b></td>${isAll?`<td>${jukuPill(s.c)}</td>`:""}<td class="num">${s.times}</td><td class="num">${s.answered}</td><td class="num">${rateCell(pct(s.correct,s.answered))}</td><td class="num">${fmtDate(s.last)}</td></tr>`).join("")}
+    </tbody></table></div><p class="note">名前をクリックすると、その生徒の記録が右(スマホでは下)に出ます。</p>` : `<p class="empty">この期間の記録はまだありません。</p>`;
+  let right = "";
   if(sel){
-    const mine = S.filter(s=>String(s[2])===sel).sort((a,b)=>b[0]-a[0]);
-    const tw = topWrong(W, sel).slice(0,30);
-    right = `<section class="panel"><div class="bar"><h2 style="margin:0">${esc(sel)} さん</h2><button class="link" data-act="student" data-n="">全体にもどる</button></div>
+    const mine = S.filter(x=>x.sk===sel.sk).map(x=>x.s).sort((a,b)=>b[0]-a[0]);
+    const mw = topWrong(W, sel.sk).slice(0,30);
+    right = `<section class="panel"><div class="bar"><h2 style="margin:0">${esc(sel.name)} さん <span class="note">${esc(jukuName(sel.c))}</span></h2><button class="link" data-act="student" data-k="">閉じる</button></div>
       <p class="label" style="margin-top:14px">取り組みの記録</p>
       <div class="tbl"><table><thead><tr><th>日時</th><th>セット</th><th>形式</th><th class="num">正解/解いた</th></tr></thead><tbody>
       ${mine.map(s=>`<tr><td>${fmtDate(s[0])}</td><td class="wrap">${esc(s[3])}<br><span class="pill">${esc(s[4])}</span></td><td>${esc(s[5])}</td><td class="num">${s[7]}/${s[6]}<br>${rateCell(+s[8]||0)}</td></tr>`).join("")}
       </tbody></table></div>
       <p class="label" style="margin-top:16px">よくまちがえる語</p>
-      ${tw.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th class="num">×</th></tr></thead><tbody>
-      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
-    </section>`;
-  } else {
-    const tw = topWrong(W).slice(0,25);
-    right = `<section class="panel"><h2>みんながまちがえた語</h2>
-      ${tw.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th class="num">人数</th><th class="num">×</th></tr></thead><tbody>
-      ${tw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.who.size}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
+      ${mw.length?`<div class="tbl"><table><thead><tr><th>ことば</th><th>意味</th><th class="num">×</th></tr></thead><tbody>
+      ${mw.map(w=>`<tr><td class="en">${esc(w.en)}</td><td class="wrap">${esc(w.ja)}</td><td class="num">${w.n}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">まちがえた語はありません。</p>`}
     </section>`;
   }
-  h += `<div class="grid"><section class="panel"><h2>生徒ごとの記録</h2>${studentTable}</section>${right}</div>`;
+  h += `<div class="${sel?"grid":""}"><section class="panel"><h2>生徒ごとの記録</h2>${studentTable}</section>${right}</div>`;
   app.innerHTML = h;
 }
 
-document.addEventListener("submit", e=>{ if(e.target.id!=="keyForm") return; e.preventDefault(); st.key=$("#key").value.trim(); if(st.key) load(); });
+document.addEventListener("submit", e=>{
+  e.preventDefault();
+  if(e.target.id==="keyForm"){ st.key=$("#key").value.trim(); st.nkey=$("#nkey").value.trim(); if(st.key) load(); }
+  else if(e.target.id==="nkeyForm"){ const v=$("#nkey2").value.trim(); if(v){ st.nkey=v; load(); } }
+});
 document.addEventListener("click", e=>{
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act;
   if(a==="days"){ st.days=+b.dataset.d; load(); }
   else if(a==="reload") load();
-  else if(a==="student"){ st.student=b.dataset.n||null; render(); }
-  else if(a==="lock"){ st.data=null; st.key=""; try{localStorage.removeItem("marutan-teacher-key");}catch(e){} render(); }
+  else if(a==="tab"){ st.tab=b.dataset.t; st.student=null; try{localStorage.setItem("marutan-teacher-tab", st.tab);}catch(e){} render(); window.scrollTo({top:0}); }
+  else if(a==="student"){ st.student=b.dataset.k||null; render(); }
+  else if(a==="nreset"){ st.nkey=""; st.jukuErr=""; try{localStorage.removeItem("marutan-net-admin");}catch(e){} render(); }
+  else if(a==="lock"){ st.src={}; st.key=""; st.nkey=""; try{localStorage.removeItem("marutan-teacher-key");localStorage.removeItem("marutan-net-admin");}catch(e){} render(); }
 });
 render();
 if(st.key) load();
