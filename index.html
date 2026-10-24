@@ -93,6 +93,17 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .startbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .startbar .sum{margin-right:auto;font-size:13px;color:var(--muted)}
 .chip.big{font-size:15px;padding:7px 18px}
+/* バッジ */
+.bdg{border-radius:14px;padding:10px 12px;border:1px solid var(--line);background:var(--surface)}
+.bdg-hd{font-weight:700;font-size:14px;margin-bottom:6px}
+.bdg-hd span{font-weight:400;font-size:11px;color:var(--muted);margin-left:8px}
+.bdg-row{display:flex;flex-wrap:wrap;gap:6px}
+.bdg-c{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid var(--line);background:var(--bg)}
+.bdg-c.t3{background:linear-gradient(135deg,#fff3c4,#f2c94c);border-color:#d4a514;color:#5a4300}
+.bdg-c.t2{background:linear-gradient(135deg,#f4f6f8,#c9d1da);border-color:#9aa5b1;color:#2f3a46}
+.bdg-c.t1{background:linear-gradient(135deg,#f8e3d0,#d39b6a);border-color:#b07a4a;color:#4a2c12}
+.bdg-c.t4{background:linear-gradient(135deg,#2b1a5e,#6b4bd6);border-color:#6b4bd6;color:#fff}
+.bdg-next{margin-top:6px;font-size:12px;color:var(--muted)}
 .mana{border-radius:14px;padding:10px 12px;background:linear-gradient(135deg,#1c1240,#2b1a5e);color:#fff}
 .mana-hd{font-weight:700;font-size:14px;margin-bottom:6px;letter-spacing:.05em}
 .mana-hd span{font-weight:400;font-size:11px;color:#c9bff5;margin-left:8px}
@@ -494,6 +505,18 @@ td.ens{font-family:var(--en);font-size:13px}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:360px;width:100%;margin:0 auto}
 .pk{font-family:var(--en);font-size:26px;font-weight:700;padding:12px 0;min-height:58px}
 .pk.ok{grid-column:1/-1;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:22px}
+/* 計算のテンキー:4列。OKは右下に縦長で、スクロールしなくても押せる */
+.mpad{grid-template-columns:repeat(4,1fr);max-width:420px;gap:7px}
+.mpad .pk{min-height:54px;padding:8px 0}
+.mpad .pk.sm{font-size:16px;font-family:var(--ja)}
+.mpad .pk.ok{grid-column:4;grid-row:3/5}
+.mpad .pk.zero{grid-column:1/4;grid-row:4}
+.mcard{padding:14px 16px;gap:6px}
+.mcard .mans{min-height:56px}
+/* 問題を解いている間はヘッダーを小さく */
+header.top.slim{align-items:center;flex-wrap:nowrap;gap:8px}
+header.top.slim .brand h1{font-size:17px;line-height:1.2}
+header.top.slim .who{font-size:12px;gap:6px;white-space:nowrap;overflow:hidden}
 
 /* やりきリスト連携 */
 .names .nm{font-size:16px;padding:10px 16px;font-weight:700}
@@ -785,6 +808,120 @@ const SETS = [
     ]
   },
   // ===== 共通テスト 2023年度(令和5年度)本試験 リーディング =====
+  {id:"kt2022-1", course:"共通テスト", group:"2022年度 本試験", title:"第1問A ブラジルの果物の料理本", source:"令和4年度 本試験(題材の重要語)", words:[
+    "ripe|形|熟した|",
+    "sour|形|すっぱい|",
+    "bitter|形|苦い|",
+    "flavor|名|風味・味|",
+    "texture|名|食感・手ざわり|",
+    "recipe|名|作り方・レシピ|",
+    "ingredient|名|材料|",
+    "contain|動|〜を含む|",
+    "tropical|形|熱帯の|",
+    "native to|熟|〜原産の|",
+    "spoil|動|(食べ物が)悪くなる|",
+    "last|動|(食べ物が)もつ・長持ちする|",
+    "refrigerator|名|冷蔵庫|",
+    "dessert|名|デザート|"
+  ]},
+  {id:"kt2022-2", course:"共通テスト", group:"2022年度 本試験", title:"第1問B 動物園のウェブサイト(カナダ)", source:"令和4年度 本試験(題材の重要語)", words:[
+    "donate|動|〜を寄付する|",
+    "donation|名|寄付|",
+    "sponsor|動|〜を支援する・スポンサーになる|",
+    "membership|名|会員であること・会員資格|",
+    "benefit|名|特典・利益|",
+    "certificate|名|証明書|",
+    "newsletter|名|会報・お知らせ|",
+    "admission|名|入場(料)|",
+    "discount|名|割引|",
+    "exclusive|形|限定の・独占的な|",
+    "endangered|形|絶滅の危機にある|",
+    "habitat|名|生息地|",
+    "in return|熟|お返しに|",
+    "option|名|選択肢|"
+  ]},
+  {id:"kt2022-3", course:"共通テスト", group:"2022年度 本試験", title:"第2問A 図書館の利用案内(イギリス)", source:"令和4年度 本試験(題材の重要語)", words:[
+    "borrow|動|〜を借りる|",
+    "due date|名|返却期限|",
+    "overdue|形|期限切れの|",
+    "renew|動|(貸出期間)を延長する・更新する|",
+    "reserve|動|〜を予約する|",
+    "access|名|利用(する権利)・アクセス|",
+    "facility|名|施設・設備|",
+    "available|形|利用できる|",
+    "permission|名|許可|",
+    "photocopy|動|〜をコピーする|",
+    "fine|名|罰金|",
+    "opening hours|名|開館時間|",
+    "be allowed to|熟|〜してよい(許されている)|",
+    "in advance|熟|前もって|"
+  ]},
+  {id:"kt2022-4", course:"共通テスト", group:"2022年度 本試験", title:"第4問 新生活の家電の買い方(ブログ)", source:"令和4年度 本試験(題材の重要語)", words:[
+    "appliance|名|(家庭用の)電化製品|",
+    "second-hand|形|中古の|",
+    "brand-new|形|新品の|",
+    "purchase|動|〜を購入する|",
+    "warranty|名|(品質)保証|",
+    "condition|名|状態|",
+    "reasonable|形|(値段が)手ごろな|",
+    "budget|名|予算|",
+    "compare|動|〜を比べる|",
+    "delivery|名|配達|",
+    "deal|名|取引・お買い得品|",
+    "microwave|名|電子レンジ|",
+    "vacuum cleaner|名|掃除機|",
+    "save money|熟|お金を節約する|"
+  ]},
+  {id:"kt2022-5", course:"共通テスト", group:"2022年度 本試験", title:"第5問 テレビの発明者ファーンズワース(伝記)", source:"令和4年度 本試験(題材の重要語)", words:[
+    "inventor|名|発明者|",
+    "invention|名|発明(品)|",
+    "transmit|動|〜を送る・伝送する|",
+    "image|名|画像・映像|",
+    "electronic|形|電子の|",
+    "mechanical|形|機械(式)の|",
+    "patent|名|特許|",
+    "investor|名|投資家|",
+    "fund|名|資金|",
+    "laboratory|名|研究所・実験室|",
+    "device|名|装置|",
+    "demonstrate|動|〜を実演する・証明する|",
+    "credit|名|功績(を認めること)・評価|",
+    "lawsuit|名|訴訟|",
+    "competitor|名|競争相手|",
+    "recognize|動|〜を認める|"
+  ]},
+  {id:"kt2022-6", course:"共通テスト", group:"2022年度 本試験", title:"第6問A 体内時計", source:"令和4年度 本試験(題材の重要語)", words:[
+    "biological clock|名|体内時計|",
+    "rhythm|名|リズム|",
+    "regulate|動|〜を調整する・規制する|",
+    "cycle|名|周期・循環|",
+    "daylight|名|日光・昼間|",
+    "hormone|名|ホルモン|",
+    "routine|名|日課・決まった手順|",
+    "adjust to|熟|〜に適応する|",
+    "jet lag|名|時差ぼけ|",
+    "tradition|名|伝統|",
+    "religious|形|宗教の|",
+    "ancient|形|古代の|",
+    "period|名|期間・時代|",
+    "consistent|形|一貫した・安定した|"
+  ]},
+  {id:"kt2022-7", course:"共通テスト", group:"2022年度 本試験", title:"第6問B プラスチックのリサイクル", source:"令和4年度 本試験(題材の重要語)", words:[
+    "recycle|動|〜をリサイクルする|",
+    "recyclable|形|リサイクルできる|",
+    "material|名|素材・材料|",
+    "durable|形|丈夫な・長持ちする|",
+    "lightweight|形|軽い|",
+    "container|名|容器|",
+    "dispose of|熟|〜を処分する|",
+    "landfill|名|ごみの埋め立て地|",
+    "chemical|名|化学物質|",
+    "resistant|形|〜に強い・耐性がある|",
+    "symbol|名|記号・シンボル|",
+    "identify|動|〜を見分ける・特定する|",
+    "category|名|分類・区分|",
+    "reduce|動|〜を減らす|"
+  ]},
   {id:"kt2023-1", course:"共通テスト", group:"2023年度 本試験", title:"第1問 観劇の案内・英語サマーキャンプ", source:"令和5年度 本試験", words:[
     "performance|名|公演・上演|**Performances** for Friday",
     "romantic|形|恋愛の・ロマンチックな|A **romantic** play that will make you",
@@ -8413,6 +8550,24 @@ const SETS = [
     "self-employed|形|自営業の|My uncle is **self-employed** and runs a bookstore.",
     "reserve|動|〜を予約する|I **reserved** a seat in the study room.",
     "reservation|名|予約|I made a **reservation** for tomorrow."
+  ]},
+  {id:"kt-board-1025", course:"共通テスト", group:"授業の板書", title:"10/25 推論・視点・ex-(外へ)の語源", source:"共通テスト演習(板書より)", words:[
+    "infer|動|〜を推論する・推測する|What can you **infer** from the passage?",
+    "imply|動|〜をほのめかす・暗に意味する|The writer **implies** that the plan will not work.",
+    "indicate|動|〜を示す(≒show)|The graph **indicates** that sales went up.",
+    "perspective|名|視点・ものの見方|Try to see it from a different **perspective**.",
+    "a point of view|熟|観点・意見|from **a point of view** of safety",
+    "exceed|動|〜を超える|The cost must not **exceed** the budget.",
+    "explain|動|〜を説明する|Can you **explain** the rule again?",
+    "exit|名|出口|Use the **exit** on the left.",
+    "explode|動|爆発する|The bomb **exploded** at night.",
+    "exile|名|追放・亡命|He lived in **exile** for ten years.",
+    "appropriately|副|適切に|Please dress **appropriately** for the ceremony.",
+    "apply|動|〜を当てはめる・応用する|You can **apply** this rule to other cases.",
+    "withstand|動|〜に耐える|They can **withstand** extreme heat.",
+    "while|接|〜する間に/〜だが一方で|**While** I like dogs, my sister likes cats.",
+    "brochure|名|パンフレット|I got some travel **brochures** at the station.",
+    "radiation|名|放射線・放射|They can survive high levels of **radiation**."
   ]}
 ];
 
@@ -9583,9 +9738,10 @@ function mathQText(q){
 function viewMathQuiz(){
   const q = quiz.qs[quiz.i], n = quiz.qs.length, d = q.d;
   const done = q.picked!==null;
-  const keys = ["7","8","9","4","5","6","1","2","3", d.frac?"/":d.rem?"…":d.dec?".":"", "0","⌫"];
+  // 4列のテンキー:OKを右下に大きく置き、スクロールなしで答えを送れるようにする
+  const ex = d.frac?"/":d.rem?"…":d.dec?".":"";
+  const keys = ["7","8","9","⌫","4","5","6",ex,"1","2","3"];
   return header() + quizHead(n) + `<div class="card mcard ${done?(q.ok?"okc":"ngc"):""}">
-      <span class="dir">${esc(d.t)}</span>
       <span class="mq">${mathQText(q)}${typeof q.q==="object"?" を約分すると？":d.qend!=null?d.qend:d.id==="gcd"?" は？":" ＝"}</span>
       ${q.hint?`<span class="note">${esc(q.hint)}</span>`:""}
       <span class="mans ${done?(q.ok?"ok":"ng"):""}">${esc(q.input)||(done?"":"<span class='ph'>？</span>")}</span>
@@ -9593,8 +9749,9 @@ function viewMathQuiz(){
       ${done&&q.ok?`<span class="mright ok">正解！</span>`:""}
     </div>
     ${done&&!q.ok?`<button class="primary nextbig" data-act="next" id="nextBtn">${quiz.timed||quiz.i+1<n?"次へ":"結果を見る"}</button>`:`
-    <div class="pad">${keys.map(k=>k?`<button class="pk" data-act="mkey" data-k="${esc(k)}" ${done?"disabled":""}>${k==="…"?"あまり":esc(k)}</button>`:`<span></span>`).join("")}
-      <button class="pk ok" data-act="mkey" data-k="OK" ${done?"disabled":""}>OK</button></div>`}
+    <div class="pad mpad">${keys.map(k=>k?`<button class="pk${k==="…"?" sm":""}" data-act="mkey" data-k="${esc(k)}" ${done?"disabled":""}>${k==="…"?"あまり":esc(k)}</button>`:`<span></span>`).join("")}
+      <button class="pk ok" data-act="mkey" data-k="OK" ${done?"disabled":""}>OK</button>
+      <button class="pk zero" data-act="mkey" data-k="0" ${done?"disabled":""}>0</button></div>`}
     <p class="kbd">キーボードの数字でも入力できます(Enterで決定)　<button class="link" data-act="quit">やめる</button></p>`;
 }
 function mathKey(k){
@@ -9867,6 +10024,16 @@ const NOTE = {
   "envious":"envious of 〜 で「〜をうらやましく思う」。名詞は envy(うらやましさ)。"
 };
 function noteText(en){ return NOTE[String(en||"").trim().toLowerCase()] || ""; }
+/* 板書(10/25)の語源 */
+Object.assign(ETYM, {
+  "exceed":"ex(外へ)+ceed(行く)→限度の外へ行く→超える",
+  "exit":"ex(外へ)+it(行く)→外へ行く所→出口",
+  "exile":"ex(外へ)+ile(さまよう)→国の外へ出される→追放",
+  "infer":"in(中へ)+fer(運ぶ)→結論を頭の中へ運び込む→推論する",
+  "imply":"im(中に)+ply(折り込む)→意味を中に折り込む→ほのめかす",
+  "apply":"ap(〜に)+ply(折り重ねる)→〜にぴったり重ねる→当てはめる・申し込む",
+  "a point of view":"point(点)+of view(見ることの)→見る位置→観点・意見"
+});
 function noteHtml(en){ const t = noteText(en); return t ? `<div class="etym note2"><span class="lb">説明</span><span>${esc(t)}</span></div>` : ""; }
 function etymText(en){ return ETYM[String(en||"").trim().toLowerCase()] || ""; }
 function etymHtml(en){ const t = etymText(en); return t ? `<div class="etym"><span class="lb">語源</span><span>${esc(t).replace(/([a-z][a-z-]*)\(/gi,"<b>$1</b>(")}</span></div>` : ""; }
@@ -9998,6 +10165,7 @@ function viewWordSheet(id){
 function render(){
   const app = $("#app");
   applySkin();
+  document.body.classList.toggle("quizzing", !!ui.name && ui.view==="quiz");
   const y = scrollY;
   if(!ui.name){ app.innerHTML = viewLogin() + (ui.modal?.type==="skin"?viewSkinSheet():""); return; }
   if(ui.view==="home" && ui.modal){
@@ -10007,6 +10175,8 @@ function render(){
   }
   if(ui.view==="quiz"){ app.innerHTML = viewQuiz(); const bi=$("#blankIn"); if(bi) setTimeout(()=>bi.focus({preventScroll:true}),0);
     const c=document.querySelector(".card"); if(c){ const r=c.getBoundingClientRect(); if(r.top<0 || r.top>innerHeight*0.35) window.scrollTo({top:Math.max(0,scrollY+r.top-10)}); }
+    // 計算は、テンキーとOKが画面に収まるように問題の見出しを上にそろえる
+    if(quiz && quiz.math){ const h=document.querySelector(".qhead"), pd=document.querySelector(".mpad, .nextbig"); if(h && pd){ const pb=pd.getBoundingClientRect().bottom; if(pb>innerHeight-8) window.scrollTo({top:Math.max(0,scrollY+Math.min(h.getBoundingClientRect().top-6, pb-innerHeight+12))}); } }
     return; }
   if(ui.view==="result") return app.innerHTML = viewResult();
   app.innerHTML = viewHome();
@@ -10014,6 +10184,10 @@ function render(){
 }
 
 function header(){
+  if(ui.name && ui.view==="quiz") return `<header class="top slim">
+    <div class="brand"><h1>マル単</h1></div>
+    <div class="who"><span class="maru-total"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span></div>
+  </header>`;
   return `<header class="top">
     <div class="brand"><small>学びの場マル直${JUKU&&JA.jukuName?`　｜　${esc(JA.jukuName)}`:""}</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
     <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ${newSkins().length?`<span class="skinnew">NEW</span>`:""}</button>`:""}</div>
@@ -10087,7 +10261,7 @@ function viewHome(){
   if(ui.tab==="sets"){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
-      ${ui.name && !JUKU ? manaPanel() : ""}
+      ${ui.name && !JUKU ? manaPanel() + badgePanel() : ""}
       ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
       ${selBox(S)}
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
@@ -10322,6 +10496,7 @@ function dmgOnAnswer(ok, w, wasDue, nowDue){
 function dmgFinish(){
   const u = user(); if(!u || !quiz || quiz.dmgDone) return;
   quiz.dmgDone = true;
+  setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
   const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
   let raw = D.pts + D.revive*DMG.revive + maru*DMG.maru;
@@ -10407,6 +10582,67 @@ function quizSubject(){
   if(!quiz) return null; if(quiz.math) return "数学";
   const c = {}; quiz.qs.forEach(q=>{ const k = q.w && q.w.subject; if(k) c[k]=(c[k]||0)+1; });
   return Object.keys(c).sort((a,b)=>c[b]-c[a])[0] || null;
+}
+
+/* ==== バッジ:区分(英検5級など)のセットをマルにするとバッジ。やりきリストのボス画面で自慢・装備できる ==== */
+const BADGE_TIER = [null, ["🥉","銅"], ["🥈","銀"], ["🥇","金"]];
+const MARU_BADGES = [[10,"⭕"],[30,"💮"],[60,"🏵️"],[100,"👑"],[200,"🌟"]];
+function badgeGroups(){
+  const g = {};
+  SETS.forEach(st=>{ if(!st.group) return; const k = (st.subject||"")+"/"+(st.course||"")+"/"+st.group; (g[k] ||= {k, name: st.course==="並び替え" ? st.group+" 並び替え" : st.course==="共通テスト" && !/共通テスト/.test(st.group) ? "共通テスト "+st.group : st.group, subject:st.subject, sets:[]}).sets.push(st); });
+  return Object.values(g).filter(x=>x.sets.length>=3);
+}
+function badgeList(){
+  const out = [];
+  badgeGroups().forEach(x=>{
+    const done = x.sets.filter(setDone).length, total = x.sets.length, r = done/total;
+    const tier = done===total ? 3 : r>=0.6 ? 2 : r>=0.3 ? 1 : 0;
+    if(tier) out.push({id:"g:"+x.k, name:x.name, icon:BADGE_TIER[tier][0], tier, done, total});
+  });
+  const m = SETS.filter(setDone).length;
+  MARU_BADGES.forEach(([n,ic])=>{ if(m>=n) out.push({id:"m:"+n, name:"マル"+n, icon:ic, tier:4, done:m, total:n}); });
+  const rk = {3:0, 4:1, 2:2, 1:3};   // 金バッジ → マルの数 → 銀 → 銅
+  return out.sort((a,b)=>rk[a.tier]-rk[b.tier] || b.total-a.total);
+}
+function badgeNext(){
+  // いちばん近い次のバッジ
+  let best = null;
+  badgeGroups().forEach(x=>{
+    const done = x.sets.filter(setDone).length, total = x.sets.length; if(done===total) return;
+    const r = done/total, goal = r>=0.6 ? total : r>=0.3 ? Math.ceil(total*0.6) : Math.ceil(total*0.3), need = goal-done, tier = r>=0.6?3:r>=0.3?2:1;
+    if(done>0 && (!best || need<best.need)) best = {name:x.name, need, tier};
+  });
+  const m = SETS.filter(setDone).length, nx = MARU_BADGES.find(([n])=>m<n);
+  if(nx && (!best || nx[0]-m < best.need)) best = {name:"マル"+nx[0], need:nx[0]-m, icon:nx[1]};
+  return best;
+}
+function badgePanel(){
+  const L = badgeList(), nx = badgeNext();
+  return `<div class="bdg" aria-label="バッジ">
+    <div class="bdg-hd">🏅 バッジ<span>やりきリストのボス画面で自慢・装備できるよ</span></div>
+    ${L.length ? `<div class="bdg-row">${L.map(b=>`<span class="bdg-c t${b.tier}" title="${esc(b.name)} ${b.done}/${b.total}">${b.icon} ${esc(b.name)}</span>`).join("")}</div>` : `<div class="note" style="margin:0">区分(英検5級など)のセットを3割マルにすると銅、6割で銀、全部で金のバッジ！</div>`}
+    ${nx ? `<div class="bdg-next">つぎ:<b>${esc(nx.name)}</b> ${nx.icon||BADGE_TIER[nx.tier][0]} まで あと${nx.need}マル</div>` : ""}
+  </div>`;
+}
+/* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
+let badgeSyncing = false;
+async function syncBadges(){
+  const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
+  const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
+  const badges = badgeList(), maru = SETS.filter(setDone).length;
+  const key = maru + "|" + badges.map(b=>b.id+":"+b.tier).join(",");
+  if(u.mqKey === key) return;
+  badgeSyncing = true;
+  try{
+    const r = await yapi("getStudy", {studentId:u.sid});
+    if(!r || !r.ok) throw 0;
+    let obj = {}; try{ obj = r.data ? JSON.parse(r.data) : {}; }catch(e){ obj = {}; }
+    if(!obj || typeof obj !== "object") obj = {};
+    obj.mq = Object.assign({}, obj.mq || {}, {at:Date.now(), maru, subj, badges});
+    const w = await yapi("saveStudy", {studentId:u.sid, data:JSON.stringify(obj)});
+    if(w && w.ok){ u.mqKey = key; save(); }
+  }catch(e){}
+  badgeSyncing = false;
 }
 function manaPanel(){
   const subs = Object.keys(SUBJ_ELEM).filter(k=>SETS.some(s=>s.subject===k));
@@ -11108,7 +11344,7 @@ document.addEventListener("compositionend", e=>{ if(e.target.id==="blankIn" && a
 if(JUKU) jukuAutoLogin();
 render();
 flush();
-if(!JUKU){ loadRoster(); flushDmg(); }
+if(!JUKU){ loadRoster(); flushDmg(); setTimeout(syncBadges, 2500); }
 else if(JUKU_CODE_PARAM && !ui.name && !JA.jukuName) jukuCheckCode(JUKU_CODE_PARAM, true);
 </script>
 <!-- MAL QUEST:ボスへの攻撃カットイン(やりきリスト・マル単 共通) v2 canvas -->
@@ -11625,13 +11861,25 @@ function mqStrike(o){
 }
 </script>
 
-<!-- MAL QUEST:アプリ間ジャンプ -->
+<!-- MAL QUEST:アプリ間ジャンプ(左はしの小さなタブ。タップで開いてから移動。問題を解いている間は出さない) -->
 <style>
-.mq-jump{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:#143070;color:#fff;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent}
-.mq-jump:active{transform:scale(.96)}
-body{padding-bottom:72px}
+.mq-jump{position:fixed;left:0;bottom:calc(30% + env(safe-area-inset-bottom));z-index:40;display:flex;align-items:center;-webkit-tap-highlight-color:transparent;transition:transform .2s ease}
+.mq-jump .mq-tab{display:flex;align-items:center;gap:2px;height:44px;padding:0 6px 0 8px;border:none;border-radius:0 14px 14px 0;background:#143070;color:#fff;font-size:18px;line-height:1;box-shadow:2px 3px 10px rgba(0,0,0,.25);opacity:.82;cursor:pointer}
+.mq-jump .mq-tab i{font-style:normal;font-size:14px;opacity:.85}
+.mq-jump .mq-go{display:none;align-items:center;gap:6px;margin-left:6px;padding:10px 16px;border-radius:999px;background:#143070;color:#fff;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.mq-jump.open .mq-tab{opacity:1}
+.mq-jump.open .mq-tab i{transform:rotate(180deg)}
+.mq-jump.open .mq-go{display:inline-flex;animation:mqj-in .18s ease-out}
+@keyframes mqj-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+body.quizzing .mq-jump{display:none}
 </style>
-<a class="mq-jump" href="https://manabinoba-marunao.github.io/yariki-list/yariki_list.html">⚔️ やりきリストへ</a>
-<script>if(JUKU){ const j=document.querySelector(".mq-jump"); if(j) j.remove(); document.body.style.paddingBottom="24px"; }</script>
+<div class="mq-jump" id="mqJump"><button class="mq-tab" type="button" aria-label="やりきリストを開く" aria-expanded="false">⚔️<i>›</i></button><a class="mq-go" href="https://manabinoba-marunao.github.io/yariki-list/yariki_list.html">⚔️ やりきリストへ</a></div>
+<script>(function(){
+  const j=document.getElementById("mqJump"); if(!j) return; let t=null;
+  const set=o=>{ j.classList.toggle("open",o); j.querySelector(".mq-tab").setAttribute("aria-expanded",o); clearTimeout(t); if(o) t=setTimeout(()=>set(false),5000); };
+  j.querySelector(".mq-tab").addEventListener("click",e=>{ e.stopPropagation(); set(!j.classList.contains("open")); });
+  document.addEventListener("click",e=>{ if(!j.contains(e.target)) set(false); });
+})();</script>
+<script>if(JUKU){ const j=document.querySelector(".mq-jump"); if(j) j.remove(); }</script>
 </body>
 </html>
