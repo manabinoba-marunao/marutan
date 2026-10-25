@@ -10593,11 +10593,12 @@ async function flushDmg(){
         if(!j.ok) throw 0;
         e.logged = true; setDmgOutbox(dmgOutbox().map(x=>x.id===e.id?e:x));
       }
+      // ボスのHPを減らす(やりきリストと同じく、引き算はGAS側。damage を送る)
       const b = await yapi("getBoss", {});
       const boss = b && b.boss;
       if(boss && !boss.defeated){
         const cur = Number(boss.currentHp ?? boss.hp);
-        if(cur>0) await yapi("updateBossHp", {currentHp:Math.max(0, cur-e.damage), heroName:e.nick});
+        if(cur>0) await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid});
       }
       setDmgOutbox(dmgOutbox().filter(x=>x.id!==e.id));
       if(quiz && quiz.dmgResult) { quiz.dmgResult.sentOk = true; const el=$("#dmgSend"); if(el) el.textContent="ボスに届きました！"; }
@@ -10687,7 +10688,23 @@ function medalInfo(b){
   return { top: course || '', big: grp.slice(0,3), rib:['#6b4bd6','#b9a2ff'] };
 }
 let MEDAL_N = 0;
+/* マルの数は「魔法陣」の紋章:マルが増えるほど円が重なる(10→2重 … 200→6重) */
+function maruCircleSVG(b, px, noCord){
+  const n = Number(String(b.id).slice(2)) || 10, rings = ({10:2,30:3,60:4,100:5,200:6})[n] || 2, u = 'mc' + (++MEDAL_N);
+  let g = '';
+  for (let i = 0; i < rings; i++) { const r = 22 - i * (12 / Math.max(1, rings - 1)); g += `<circle cx="30" cy="55" r="${r.toFixed(1)}" fill="none" stroke="${i % 2 ? '#d6b8ff' : '#ffd700'}" stroke-width="${i ? 1.2 : 2}" ${i % 2 ? 'stroke-dasharray="2.5 2"' : ''}/>`; }
+  if (rings >= 4) { const R = 22 - 12 * 1 / (rings - 1); const pt = k => [0,1,2].map(j => { const a = -Math.PI/2 + k*Math.PI/3 + j*2*Math.PI/3; return `${(30+Math.cos(a)*R).toFixed(1)},${(55+Math.sin(a)*R).toFixed(1)}`; }).join(' ');
+    g += `<polygon points="${pt(0)}" fill="none" stroke="#ffd700" stroke-width=".8" opacity=".7"/><polygon points="${pt(1)}" fill="none" stroke="#ffd700" stroke-width=".8" opacity=".7"/>`; }
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g += `<circle cx="${(30 + Math.cos(a) * 22).toFixed(1)}" cy="${(55 + Math.sin(a) * 22).toFixed(1)}" r="1.4" fill="#ffd700"/>`; }
+  const cord = noCord ? '' : `<path d="M16 2 L30 33 L44 2" fill="none" stroke="#c9a227" stroke-width="1.6"/>`;
+  return `<svg class="medal" viewBox="0 ${noCord ? 30 : 0} 60 ${noCord ? 50 : 80}" width="${px}" height="${Math.round(px * (noCord ? 50 : 80) / 60)}" xmlns="http://www.w3.org/2000/svg" aria-label="マル${n}の魔法陣">
+    <defs><radialGradient id="${u}" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#4a2a9a"/><stop offset=".7" stop-color="#241052"/><stop offset="1" stop-color="#120830"/></radialGradient></defs>
+    ${cord}<circle cx="30" cy="55" r="24" fill="url(#${u})" stroke="#ffd700" stroke-width="1.2"/>${g}
+    <text x="30" y="51" text-anchor="middle" font-size="5.6" font-weight="800" fill="#ffe680" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">マル</text>
+    <text x="30" y="${n >= 100 ? 62 : 63}" text-anchor="middle" font-size="${n >= 100 ? 11 : 13}" font-weight="900" fill="#fff" font-family="'Hiragino Sans','Noto Sans JP',sans-serif" style="paint-order:stroke" stroke="#6b2bd6" stroke-width="1.2">${n}</text></svg>`;
+}
 function medalSVG(b, px, noRibbon){
+  if (String(b.id || '').startsWith('m:')) return maruCircleSVG(b, px, noRibbon);
   const t = MEDAL_METAL[b.tier] || MEDAL_METAL[1], I = medalInfo(b), u = 'md' + (++MEDAL_N);
   const big = String(I.big), bs = big.length >= 4 ? 10.5 : big.length === 3 ? 12 : 15, top = String(I.top), ts = top.length >= 5 ? 4.8 : 6;
   const rib = noRibbon ? '' : `<polygon points="13,0 25,0 33,38 21,38" fill="${I.rib[0]}"/><polygon points="35,0 47,0 39,38 27,38" fill="${I.rib[1]}"/><polygon points="13,0 25,0 26,5 14,5" fill="rgba(0,0,0,.18)"/><polygon points="35,0 47,0 46,5 34,5" fill="rgba(0,0,0,.18)"/>`;
