@@ -104,6 +104,8 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .bdg-c.t1{background:linear-gradient(135deg,#f8e3d0,#d39b6a);border-color:#b07a4a;color:#4a2c12}
 .bdg-c.t4{background:linear-gradient(135deg,#2b1a5e,#6b4bd6);border-color:#6b4bd6;color:#fff}
 .bdg-next{margin-top:6px;font-size:12px;color:var(--muted)}
+.bdg-m{display:inline-block;line-height:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.bdg-row{gap:4px}
 .mana{border-radius:14px;padding:10px 12px;background:linear-gradient(135deg,#1c1240,#2b1a5e);color:#fff}
 .mana-hd{font-weight:700;font-size:14px;margin-bottom:6px;letter-spacing:.05em}
 .mana-hd span{font-weight:400;font-size:11px;color:#c9bff5;margin-left:8px}
@@ -10663,12 +10665,47 @@ function badgeNext(){
   if(nx && (!best || nx[0]-m < best.need)) best = {name:"マル"+nx[0], need:nx[0]-m, icon:nx[1]};
   return best;
 }
+/* メダル:級・年度などが読めるメダル(金・銀・銅・マル)。リボンの色は区分ごと */
+const MEDAL_METAL = {
+  3:['#fff6c2','#f2c94c','#b8860b','#7a5a08'], 2:['#ffffff','#d5dce4','#8d99a6','#56616d'],
+  1:['#ffe0c2','#d48a4c','#8a4f1f','#5e3210'], 4:['#ffe1e8','#ff6b8a','#c0284f','#7a1030'] };
+function medalInfo(b){
+  const id = String(b.id || '');
+  if (id.startsWith('m:')) return { top:'マル', big:id.slice(2), rib:['#e60012','#ffffff'] };
+  const [subj, course, ...g] = id.slice(2).split('/'); const grp = g.join('/');
+  if (course === '英検' || course === '並び替え') {
+    const m = /英検(準?\d)級(プラス)?/.exec(grp) || [];
+    const big = m[1] ? m[1] + (m[2] ? '+' : '級') : (/共通テスト/.test(grp) ? '共テ' : grp.slice(0,3));
+    return { top: course === '並び替え' ? '並び替え' : '英検', big: big.replace(/^準(\d)級$/, '準$1'), rib: course === '並び替え' ? ['#6b4bd6','#ffd700'] : ['#2a6fd6','#e60012'] };
+  }
+  if (course === '共通テスト') { const y = /(\d{4})年度/.exec(grp); return { top:'共通テスト', big: y ? y[1] : '創作', rib:['#00a03c','#acc800'] }; }
+  if (/教科書/.test(grp)) return { top:'教科書', big: grp.replace(/\s*教科書.*/, ''), rib:['#ee6c00','#ffd700'] };
+  if (/まいにち英単語/.test(grp)) return { top:'まい単3000', big: /小学/.test(grp) ? '小学' : '中学', rib:['#e85d9a','#ffd1e3'] };
+  if (/必須/.test(grp)) return { top:'必須単語', big:'500', rib:['#0e8a8a','#9fe7e7'] };
+  if (/不規則/.test(grp)) return { top:'不規則', big:'動詞', rib:['#0e8a8a','#9fe7e7'] };
+  if (subj && subj !== '英語') return { top: subj, big: grp.replace(/\s/g,'').slice(0,3), rib:['#6b4bd6','#b9a2ff'] };
+  return { top: course || '', big: grp.slice(0,3), rib:['#6b4bd6','#b9a2ff'] };
+}
+let MEDAL_N = 0;
+function medalSVG(b, px, noRibbon){
+  const t = MEDAL_METAL[b.tier] || MEDAL_METAL[1], I = medalInfo(b), u = 'md' + (++MEDAL_N);
+  const big = String(I.big), bs = big.length >= 4 ? 10.5 : big.length === 3 ? 12 : 15, top = String(I.top), ts = top.length >= 5 ? 4.8 : 6;
+  const rib = noRibbon ? '' : `<polygon points="13,0 25,0 33,38 21,38" fill="${I.rib[0]}"/><polygon points="35,0 47,0 39,38 27,38" fill="${I.rib[1]}"/><polygon points="13,0 25,0 26,5 14,5" fill="rgba(0,0,0,.18)"/><polygon points="35,0 47,0 46,5 34,5" fill="rgba(0,0,0,.18)"/>`;
+  const star = b.tier === 3 ? `<path d="M47 36 l1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6z" fill="#fff"/>` : '';
+  return `<svg class="medal" viewBox="0 ${noRibbon ? 30 : 0} 60 ${noRibbon ? 50 : 80}" width="${px}" height="${Math.round(px * (noRibbon ? 50 : 80) / 60)}" xmlns="http://www.w3.org/2000/svg" aria-label="${top}${big}">
+    <defs><radialGradient id="${u}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="${t[0]}"/><stop offset=".45" stop-color="${t[1]}"/><stop offset="1" stop-color="${t[2]}"/></radialGradient></defs>
+    ${rib}<circle cx="30" cy="55" r="22" fill="url(#${u})" stroke="${t[3]}" stroke-width="2"/>
+    <circle cx="30" cy="55" r="17.5" fill="none" stroke="${t[3]}" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2 1.5"/>
+    <text x="30" y="45" text-anchor="middle" font-size="${ts}" font-weight="800" fill="${t[3]}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">${top}</text>
+    <text x="30" y="${63 - (15 - bs) * .2}" text-anchor="middle" font-size="${bs}" font-weight="900" fill="${t[3]}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">${big}</text>${star}</svg>`;
+}
+
 function badgePanel(){
   const L = badgeList(), nx = badgeNext();
   return `<div class="bdg" aria-label="バッジ">
-    <div class="bdg-hd">🏅 バッジ<span>やりきリストのボス画面で自慢・装備できるよ</span></div>
-    ${L.length ? `<div class="bdg-row">${L.map(b=>`<span class="bdg-c t${b.tier}" title="${esc(b.name)} ${b.done}/${b.total}">${b.icon} ${esc(b.name)}</span>`).join("")}</div>` : `<div class="note" style="margin:0">区分(英検5級など)のセットを3割マルにすると銅、6割で銀、全部で金のバッジ！</div>`}
-    ${nx ? `<div class="bdg-next">つぎ:<b>${esc(nx.name)}</b> ${nx.icon||BADGE_TIER[nx.tier][0]} まで あと${nx.need}マル</div>` : ""}
+    <div class="bdg-hd">🏅 メダル<span>やりきリストで1つ首にかけて自慢できるよ</span></div>
+    ${L.length ? `<div class="bdg-row">${L.map(b=>`<span class="bdg-m" title="${esc(b.name)} ${b.done}/${b.total}">${medalSVG(b, 44)}</span>`).join("")}</div>` : `<div class="note" style="margin:0">区分(英検5級など)のセットを3割マルにすると銅、6割で銀、全部で金のメダル！</div>`}
+    ${nx ? `<div class="bdg-next">つぎ:<b>${esc(nx.name)}</b> の${nx.icon ? "メダル" : ["","銅","銀","金"][nx.tier]+"メダル"}まで あと${nx.need}マル</div>` : ""}
   </div>`;
 }
 /* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
