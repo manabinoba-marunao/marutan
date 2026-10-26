@@ -10804,15 +10804,22 @@ function badgePanel(){
     <div class="bdg-hd">🏅 メダル<span>やりきリストで1つ首にかけて自慢できるよ</span></div>
     ${L.length ? `<div class="bdg-row">${L.map(b=>`<span class="bdg-m" title="${esc(b.name)} ${b.done}/${b.total}">${medalSVG(b, 44)}</span>`).join("")}</div>` : `<div class="note" style="margin:0">区分(英検5級など)のセットを3割マルにすると銅、6割で銀、全部で金のメダル！</div>`}
     ${nx ? `<div class="bdg-next">つぎ:<b>${esc(nx.name)}</b> の${nx.icon ? "メダル" : ["","銅","銀","金"][nx.tier]+"メダル"}まで あと${nx.need}マル</div>` : ""}
+    <div class="bdg-next">🎩 単元のセットを<b>ぜんぶマル</b>にすると「かぶりもの」が手に入るよ(いま ${groupsDone().length}単元)。やりきリストのボス戦で頭にのせて見せびらかそう！</div>
   </div>`;
+}
+/* ぜんぶマルになった単元(教科/区分/単元)の一覧。やりきリストで「かぶりもの」がもらえる */
+function groupsDone(){
+  const g = {};
+  SETS.forEach(st=>{ if(!st.group) return; (g[(st.subject||"")+"/"+(st.course||"")+"/"+st.group] ||= []).push(st); });
+  return Object.keys(g).filter(k=>g[k].every(setDone)).sort();
 }
 /* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
 let badgeSyncing = false;
 async function syncBadges(){
   const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
   const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
-  const badges = badgeList(), maru = SETS.filter(setDone).length;
-  const key = maru + "|" + badges.map(b=>b.id+":"+b.tier).join(",");
+  const badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone();
+  const key = maru + "|" + badges.map(b=>b.id+":"+b.tier).join(",") + "|" + gdone.join(",");
   if(u.mqKey === key) return;
   badgeSyncing = true;
   try{
@@ -10820,7 +10827,7 @@ async function syncBadges(){
     if(!r || !r.ok) throw 0;
     let obj = {}; try{ obj = r.data ? JSON.parse(r.data) : {}; }catch(e){ obj = {}; }
     if(!obj || typeof obj !== "object") obj = {};
-    obj.mq = Object.assign({}, obj.mq || {}, {at:Date.now(), maru, subj, badges});
+    obj.mq = Object.assign({}, obj.mq || {}, {at:Date.now(), maru, subj, badges, gdone});
     const w = await yapi("saveStudy", {studentId:u.sid, data:JSON.stringify(obj)});
     if(w && w.ok){ u.mqKey = key; save(); }
   }catch(e){}
