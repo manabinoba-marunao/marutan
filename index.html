@@ -10679,7 +10679,12 @@ async function flushDmg(){
       const boss = b && b.boss;
       if(boss && !boss.defeated){
         const cur = Number(boss.currentHp ?? boss.hp);
-        if(cur>0) await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid});
+        if(cur>0){
+          const r = await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid});
+          // 大魔王の結界が消えていたら(全員の力がそろったら)、この魔法でとどめ
+          if(r && r.ok && !r.defeated && r.shield && Number(r.shield.missing)===0 && Number(r.currentHp)>0)
+            await yapi("updateBossHp", {damage:Number(r.currentHp), heroName:e.nick, heroId:e.sid});
+        }
       }
       setDmgOutbox(dmgOutbox().filter(x=>x.id!==e.id));
       if(quiz && quiz.dmgResult) { quiz.dmgResult.sentOk = true; const el=$("#dmgSend"); if(el) el.textContent="ボスに届きました！"; }
