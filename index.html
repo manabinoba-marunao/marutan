@@ -10801,9 +10801,12 @@ function dmgOnAnswer(ok, w, wasDue, nowDue){
   D.pts += w.key ? ptsFor(w) : DMG.base; D.items++;
   if(wasDue && !nowDue) D.revive++;
 }
+/* テスト用アカウント(名前が「テスト」で始まる)はボスを攻撃しない(やりきリストと同じ決まり) */
+const isTesterName = n => /^テスト/.test(String(n || ""));
 function dmgFinish(){
   const u = user(); if(!u || !quiz || quiz.dmgDone) return;
   quiz.dmgDone = true;
+  if(isTesterName(ui.name)){ quiz.dmgResult = {tester:true, linked:!!u.sid}; return; }
   setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
   const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
@@ -10845,6 +10848,7 @@ function setDmgOutbox(a){ try{ localStorage.setItem(DMG_OUTBOX, JSON.stringify(a
 let dmgFlushing = false;
 async function flushDmg(){
   if(dmgFlushing) return; dmgFlushing = true;
+  setDmgOutbox(dmgOutbox().filter(x=>!isTesterName(x.nick)));   // テスト用アカウントの分は送らない
   for(const e of dmgOutbox()){
     try{
       if(!e.logged){
@@ -11035,6 +11039,7 @@ function spellElement(){
 function dmgPanel(){
   const R = quiz && quiz.dmgResult; if(!R) return "";
   if(!R.linked) return "";
+  if(R.tester) return `<div class="dmgp"><div class="note">テスト用のアカウントなので、ボスへの攻撃はしません。</div></div>`;
   const spell = (R.crit?"大":"") + spellName();
   return `<div class="dmgp magic ${R.crit?"crit":""}">
     <span class="mcircle" aria-hidden="true"></span>
