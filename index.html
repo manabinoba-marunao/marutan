@@ -92,6 +92,26 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .startbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .startbar .sum{margin-right:auto;font-size:13px;color:var(--muted)}
+/* セットを選んだら、テスト開始ボタンは画面の下に出しっぱなし(下までスクロールしなくていい) */
+.startbar.stick{position:sticky;bottom:0;z-index:5;margin:0 -18px -18px;padding:10px 18px calc(10px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);border-radius:0 0 14px 14px;box-shadow:0 -6px 14px rgba(0,0,0,.06)}
+/* レッスン(または5セットずつ)のまとまり:タップで開く・左のチェックでまとめて選ぶ */
+.chaps{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.chap{display:grid;grid-template-columns:auto 1fr;align-items:stretch;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.chap.on{border-color:var(--accent);background:var(--accent-soft)}
+.chap.part{border-color:var(--accent)}
+.chap.done{border-color:var(--ng)}
+.chap .ck{border:0;border-radius:0;background:none;padding:0 6px 0 14px;display:grid;place-items:center}
+.chap .ck i{display:grid;place-items:center;width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);font-style:normal;font-size:14px;font-weight:800;line-height:1;color:var(--accent-ink)}
+.chap.on .ck i,.chap.part .ck i{background:var(--accent);border-color:var(--accent)}
+.chap .hd{border:0;border-radius:0;background:none;text-align:left;padding:11px 12px 11px 8px;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;color:inherit;min-width:0}
+.chap .nm{font-weight:700;line-height:1.35}
+.chap .sub{display:block;font-size:12px;color:var(--muted);font-weight:400;line-height:1.4;margin-top:2px}
+.chap .cs{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;line-height:1.4}
+.chap .cs .due{color:var(--ng);font-weight:700}
+.chap .ar{font-size:13px;color:var(--muted);transition:transform .15s}
+.chap.open .ar{transform:rotate(90deg)}
+.chap-body{margin:-2px 0 4px 14px;padding-left:10px;border-left:3px solid var(--accent-soft)}
+.chap-body .set{padding:9px 12px}
 .chip.big{font-size:15px;padding:7px 18px}
 /* バッジ */
 .bdg{border-radius:14px;padding:10px 12px;border:1px solid var(--line);background:var(--surface)}
@@ -10247,7 +10267,7 @@ function load(){ try{ const r = localStorage.getItem(STORE_KEY); if(r) mem = JSO
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
 load();
 
-const ui = {mlimit:"n10", mdrill:null, view:"home", tab:"sets", subject:(mem.subject==="算数"||(SUBJ[mem.subject]&&SETS.some(s=>s.subject===mem.subject)))?mem.subject:"英語", course:null, group:null, selected:new Set(), mode:"en2ja", fmode:"mix", limit:"n10"};
+const ui = {mlimit:"n10", mdrill:null, view:"home", tab:"sets", subject:(mem.subject==="算数"||(SUBJ[mem.subject]&&SETS.some(s=>s.subject===mem.subject)))?mem.subject:"英語", course:null, group:null, selected:new Set(), openChap:new Set(), mode:"en2ja", fmode:"mix", limit:"n10"};
 let timerId = null;
 let quiz = null;
 
@@ -10540,6 +10560,78 @@ function selBox(S){
     ${courses.map(c=>`<div class="grp"><div class="gname">【${esc(c)}】</div>${Object.keys(byCourse[c]).map(g=>byCourse[c][g].map(s=>`<span class="selchip">${g!==c?`${esc(g)} › `:""}${esc(s.title)}<button data-act="unsel" data-id="${esc(s.id)}" aria-label="${esc(s.title)}を外す">✕</button></span>`).join("")).join("")}</div>`).join("")}
   </div>`;
 }
+/* セットが多い教材は、まとまりごとに折りたたむ
+   ・Lesson / Unit がある教材(教科書など):レッスンごと。Take Action! などはその前のレッスンに入れる
+   ・番号だけの教材(まいにち英単語など、9セット以上):5セットずつ */
+const CHAP_MIN = 9, CHAP_SIZE = 5;
+const LESSON_RE = /^(Lesson|Unit|Chapter|Part)\s*\d+/i;
+const chapBase = t => String(t).replace(/\s*[（(]\d+\s*\/\s*\d+[)）]\s*$/,"").trim();
+function chapters(g, gs){
+  let out = null;
+  if(gs.some(s=>LESSON_RE.test(s.title))){
+    out = []; let cur = null;
+    gs.forEach(s=>{
+      const b = chapBase(s.title);
+      if(LESSON_RE.test(b)){ if(!cur || cur.name!==b){ cur = {name:b, sets:[]}; out.push(cur); } }
+      else if(!cur || !LESSON_RE.test(cur.name)){   // 最初のレッスンより前(My Dictionary など)
+        const p = b.replace(/[①-⑳].*$/,"").trim() || b;
+        if(!cur || cur.name!==p){ cur = {name:p, sets:[]}; out.push(cur); }
+      }
+      cur.sets.push(s);
+    });
+    out.forEach(c=>{ const ex = [...new Set(c.sets.map(s=>chapBase(s.title)).filter(b=>b!==c.name))]; c.sub = LESSON_RE.test(c.name) && ex.length ? "＋" + ex.join(" ／ ") : ""; });
+  } else if(gs.length >= CHAP_MIN){
+    out = [];
+    for(let i=0; i<gs.length; i+=CHAP_SIZE){
+      const part = gs.slice(i, i+CHAP_SIZE), a = chapBase(part[0].title), z = chapBase(part[part.length-1].title);
+      out.push(chunkName(a, z, i, part));
+    }
+  }
+  if(!out || out.length >= gs.length) return null;   // まとめても減らないなら、今までどおり並べる
+  out.forEach((c,i)=>{ c.key = `${ui.subject}|${ui.course}|${g}|${i}|${c.name}`; });
+  return out;
+}
+/* 5セットずつのまとまりの名前:「中学 01〜05」(p.4〜59)、「必須500 No.1〜250」など。読めなければ「1〜5セット目」 */
+function chunkName(a, z, i, part){
+  const fb = {name:`${i+1}〜${i+part.length}セット目`, sub: part.length>1 ? `${a} 〜 ${z}` : a, sets:part};
+  if(part.length===1) return {name:a, sub:"", sets:part};
+  const pg = t => (String(t).match(/p\.\s*(\d+)\s*[〜~-]\s*(\d+)/) || []);
+  const strip = t => t.replace(/\s*[（(][^）)]*[)）]\s*$/,"").trim();
+  const A = strip(a), Z = strip(z);
+  let m1 = A.match(/^(.*?)(\d+)〜(\d+)$/), m2 = Z.match(/^(.*?)(\d+)〜(\d+)$/);
+  if(m1 && m2 && m1[1]===m2[1]) return {name:`${m1[1]}${m1[2]}〜${m2[3]}`, sub:"", sets:part};
+  m1 = A.match(/^(.*?)(\d+)$/); m2 = Z.match(/^(.*?)(\d+)$/);
+  if(m1 && m2 && m1[1]===m2[1]){ const p1 = pg(a), p2 = pg(z); return {name:`${m1[1]}${m1[2]}〜${m2[2]}`, sub: p1[1]&&p2[2] ? `p.${p1[1]}〜${p2[2]}` : "", sets:part}; }
+  return fb;
+}
+function setRow(s, S){
+  const st=setStats(s); const on=ui.selected.has(s.id);
+  return `
+        <label class="set ${on?"on":""} ${st.total&&st.done===st.total?"done":""}">
+          <input type="checkbox" data-act="sel" data-id="${esc(s.id)}" ${on?"checked":""}>
+          <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
+            <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
+            <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
+          <div class="stat">${st.total&&st.done===st.total?`<span class="maru" title="ぜんぶ覚えた！">マル</span>`:`${st.total}${isOrderSet(s.id)?"文":S.unit}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}`}</div>
+        </label>`;
+}
+function chapRow(c, S){
+  if(c.sets.length===1) return setRow(c.sets[0], S);
+  const k = c.sets.filter(s=>ui.selected.has(s.id)).length, n = c.sets.length;
+  const maru = c.sets.filter(setDone).length;
+  const due = c.sets.reduce((t,s)=>t+setStats(s).due, 0);
+  const open = ui.openChap.has(c.key);
+  const cls = [k===n?"on":k?"part":"", maru===n?"done":"", open?"open":""].join(" ");
+  return `<div class="chap ${cls}">
+      <button class="ck" data-act="selchap" data-k="${esc(c.key)}" aria-label="${esc(c.name)}を${k===n?"外す":"まとめて選ぶ"}" aria-pressed="${k===n}"><i>${k===n?"✓":k?"−":""}</i></button>
+      <button class="hd" data-act="chapopen" data-k="${esc(c.key)}" aria-expanded="${open}">
+        <span class="nm">${esc(c.name)}${c.sub?`<span class="sub">${esc(c.sub)}</span>`:""}</span>
+        <span class="cs">${n}セット${k&&k<n?`・<b>✓${k}</b>`:""}<br>${maru===n?`<span class="maru-n" style="margin:0">マル</span>`:maru?`マル ${maru}/${n}`:due?`<span class="due">要復習 ${due}</span>`:""}</span>
+        <span class="ar" aria-hidden="true">▶</span>
+      </button>
+    </div>
+    ${open?`<div class="sets chap-body">${c.sets.map(s=>setRow(s,S)).join("")}</div>`:""}`;
+}
 function viewHome(){
   const S = sj(ui.subject);
   const SS = SETS.filter(s=>s.subject===ui.subject);
@@ -10575,16 +10667,9 @@ function viewHome(){
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
       ${ui.course&&!ui.group?`<p class="empty">教材・級を選んでください。</p>`:""}
       ${ui.group?`<div><p class="label">セット（いくつでも選べます・ぜんぶ覚えたらマル！）</p>
-      ${shown.map(g=>{const gs=list.filter(s=>s.group===g);const allOn=gs.every(s=>ui.selected.has(s.id));return `
-      <div class="ghead"><span>${esc(g)}</span><button class="link" data-act="selgroup" data-g="${esc(g)}">${allOn?"選択を外す":"まとめて選ぶ"}</button></div>
-      <div class="sets">${gs.map(s=>{const st=setStats(s);const on=ui.selected.has(s.id);return `
-        <label class="set ${on?"on":""} ${st.total&&st.done===st.total?"done":""}">
-          <input type="checkbox" data-act="sel" data-id="${esc(s.id)}" ${on?"checked":""}>
-          <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
-            <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
-            <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
-          <div class="stat">${st.total&&st.done===st.total?`<span class="maru" title="ぜんぶ覚えた！">マル</span>`:`${st.total}${isOrderSet(s.id)?"文":S.unit}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}`}</div>
-        </label>`}).join("")}</div>`}).join("")}</div>`:""}
+      ${shown.map(g=>{const gs=list.filter(s=>s.group===g);const allOn=gs.every(s=>ui.selected.has(s.id));const ch=chapters(g,gs);const allOpen=ch&&ch.filter(c=>c.sets.length>1).every(c=>ui.openChap.has(c.key));return `
+      <div class="ghead"><span>${esc(g)}</span><span>${ch?`<button class="link" data-act="chapall" data-g="${esc(g)}">${allOpen?"ぜんぶとじる":"ぜんぶ開く"}</button>`:""}<button class="link" data-act="selgroup" data-g="${esc(g)}">${allOn?"選択を外す":"まとめて選ぶ"}</button></span></div>
+      ${ch?`<div class="chaps">${ch.map(c=>chapRow(c,S)).join("")}</div>`:`<div class="sets">${gs.map(s=>setRow(s,S)).join("")}</div>`}`}).join("")}</div>`:""}
       ${!ui.group&&!ui.selected.size?"":`<div class="opts">
         ${hasForm?`<div><p class="label">不規則動詞・比較の出し方</p><div class="seg">
           ${[["spell","つづり4択"],["blank","1文字うめ"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.fmode===v}" data-act="fmode" data-v="${v}">${l}</button>`).join("")}
@@ -10599,7 +10684,7 @@ function viewHome(){
           ${[["t180","3分"],["t300","5分"],["t600","10分"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
         </div></div>
       </div>
-      <div class="startbar">
+      <div class="startbar ${ui.selected.size?"stick":""}">
         <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}${selSids.every(isOrderSet)?"文":S.unit}から出題`:"セットを選んでください"}</span>
         <button data-act="start" data-only="due" ${selDue.length?"":"disabled"}>まちがえた語だけ（${selDue.length}）</button>
         <button class="primary" data-act="start" ${selWords.length?"":"disabled"}>テスト開始</button>
@@ -11707,6 +11792,14 @@ document.addEventListener("click", async e=>{
   else if(a==="unsel"){ ui.selected.delete(b.dataset.id); render(); }
   else if(a==="unselall"){ ui.selected.clear(); render(); }
   else if(a==="selgroup"){ const gs=SETS.filter(s=>s.subject===ui.subject&&s.group===b.dataset.g&&s.course===ui.course); const allOn=gs.every(s=>ui.selected.has(s.id)); gs.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); render(); }
+  else if(a==="chapopen"){ const k=b.dataset.k; ui.openChap.has(k)?ui.openChap.delete(k):ui.openChap.add(k); render(); }
+  else if(a==="selchap"||a==="chapall"){
+    const g = a==="chapall" ? b.dataset.g : b.dataset.k.split("|")[2];
+    const gs = SETS.filter(s=>s.subject===ui.subject&&s.course===ui.course&&s.group===g);
+    const ch = chapters(g, gs) || [];
+    if(a==="chapall"){ const multi=ch.filter(c=>c.sets.length>1); const allOpen=multi.every(c=>ui.openChap.has(c.key)); multi.forEach(c=>allOpen?ui.openChap.delete(c.key):ui.openChap.add(c.key)); }
+    else { const c=ch.find(c=>c.key===b.dataset.k); if(c){ const allOn=c.sets.every(s=>ui.selected.has(s.id)); c.sets.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); } }
+    render(); }
   else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
   else if(a==="fmode"){ ui.fmode=b.dataset.v; render(); }
   else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
