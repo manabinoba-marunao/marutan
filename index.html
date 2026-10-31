@@ -319,6 +319,39 @@ button,.set,.choice,.stat3,input[type=text],textarea{border-radius:var(--rs)}
 [data-skin="cute"] .brand h1::after{content:" ♡";font-size:.7em}
 [data-skin="cute"] h2{font-weight:400}
 
+/* ===== ガチャ大会の景品きせかえ(やりきリストの先生画面でわたすと使える) ===== */
+/* フクロウくん(夜の森) */
+:root[data-skin="owl"]{
+  --bg:#1B1630; --surface:#262042; --ink:#FFF6E2; --muted:#C9BDA0; --line:#5A4A7A;
+  --accent:#E8B04A; --accent-ink:#1B1630; --accent-soft:#3A2F55;
+  --marker:#5A4520; --ok:#7BD88F; --ok-soft:#1E3A2A; --ng:#FF7A6B; --ng-soft:#3E1F24;
+  --en:"Fredoka", "Arial Rounded MT Bold", sans-serif;
+  --ja:"Kiwi Maru", "Hiragino Maru Gothic ProN", system-ui, sans-serif; --head:"Mochiy Pop One", var(--ja);
+  --r:22px; --rs:14px; color-scheme:dark;
+}
+[data-skin="owl"] body{background:radial-gradient(40vmax 40vmax at 88% 6%, #FFF3B833, transparent 60%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg opacity='.18'%3E%3Cpath d='M18 30 L22 20 L28 27 Q32 25 36 27 L42 20 L46 30 Q50 44 32 50 Q14 44 18 30Z' fill='%23E8C47A'/%3E%3Ccircle cx='26' cy='34' r='5' fill='%23fff'/%3E%3Ccircle cx='38' cy='34' r='5' fill='%23fff'/%3E%3Ccircle cx='26' cy='34' r='2.4' fill='%231B1630'/%3E%3Ccircle cx='38' cy='34' r='2.4' fill='%231B1630'/%3E%3Cpath d='M32 37 L30 40 L32 43 L34 40Z' fill='%23F5A623'/%3E%3C/g%3E%3Cg fill='%23FFF6C8' opacity='.55'%3E%3Ccircle cx='72' cy='14' r='1.2'/%3E%3Ccircle cx='84' cy='60' r='.9'/%3E%3Ccircle cx='58' cy='80' r='1.1'/%3E%3Ccircle cx='8' cy='76' r='.8'/%3E%3C/g%3E%3C/svg%3E") 0 0/96px 96px, var(--bg);background-attachment:fixed}
+[data-skin="owl"] .panel{border:2px solid #8A6A3A;box-shadow:0 6px 0 #120E22, inset 0 0 0 1px #E8B04A22}
+[data-skin="owl"] .brand h1{font-weight:400;color:#F2C46B;text-shadow:0 2px 0 #120E22}
+[data-skin="owl"] .brand h1::after{content:" 🦉";font-size:.75em}
+[data-skin="owl"] h2{font-weight:400;color:#F2C46B}
+[data-skin="owl"] button.primary{box-shadow:0 4px 0 #8A5A1A}
+
+/* 塾長と世界旅行(パスポート) */
+:root[data-skin="world"]{
+  --bg:#F4EEDC; --surface:#FFFDF6; --ink:#1E2A44; --muted:#6B6650; --line:#D9CBA3;
+  --accent:#1F5FA8; --accent-ink:#FFFFFF; --accent-soft:#DDE8F5;
+  --marker:#FFE08A; --ok:#2E8B57; --ok-soft:#E1F4E8; --ng:#C8102E; --ng-soft:#FBE1E4;
+  --en:"Rubik", "Arial", sans-serif;
+  --ja:"M PLUS 1p", "Hiragino Sans", system-ui, sans-serif; --head:"Dela Gothic One", var(--ja);
+  --r:12px; --rs:8px; color-scheme:light;
+}
+[data-skin="world"] body{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120'%3E%3Cpath d='M-10 96 Q50 40 110 70 T230 40' fill='none' stroke='%231F5FA8' stroke-opacity='.22' stroke-width='1.6' stroke-dasharray='5 6'/%3E%3Cpath d='M104 66 l8 -3 l-3 8 l-1 -4z' fill='%23C8102E' fill-opacity='.35'/%3E%3Ccircle cx='30' cy='26' r='13' fill='none' stroke='%23C8102E' stroke-opacity='.25' stroke-width='1.6'/%3E%3Ccircle cx='30' cy='26' r='9.5' fill='none' stroke='%23C8102E' stroke-opacity='.18' stroke-width='.8'/%3E%3Ctext x='30' y='29' font-size='7' font-weight='700' text-anchor='middle' fill='%23C8102E' fill-opacity='.3' font-family='Arial'%3EMAL%3C/text%3E%3Crect x='120' y='86' width='26' height='18' rx='3' fill='none' stroke='%231F5FA8' stroke-opacity='.22' stroke-width='1.4' transform='rotate(-12 133 95)'/%3E%3C/svg%3E") 0 0/160px 120px, var(--bg);background-attachment:fixed}
+[data-skin="world"] .panel{border:1.5px solid var(--line);box-shadow:0 2px 0 #E6D9B6;position:relative;overflow:hidden}
+[data-skin="world"] .panel::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:repeating-linear-gradient(90deg,#C8102E 0 14px,#FFFDF6 14px 20px,#1F5FA8 20px 34px,#FFFDF6 34px 40px)}
+[data-skin="world"] .brand h1{font-weight:400;color:var(--accent)}
+[data-skin="world"] .brand h1::after{content:" ✈️";font-size:.7em}
+[data-skin="world"] h2{font-weight:400;letter-spacing:.04em}
+
 /* ===== ごほうびきせかえ(マル単のマルの数で解放) ===== */
 /* にゃんこ(動物) */
 :root[data-skin="neko"]{
@@ -10619,19 +10652,23 @@ const SKINS = [
   {id:"neko",  name:"にゃんこ 🐾",  ds:"肉球いっぱいのねこ部屋",     sw:["#FFF6E9","#F0803C","#F6D9BD","#4A3222"], fonts:"family=Fredoka:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One", need:3},
   {id:"neon",  name:"ネオン ⚡",    ds:"光る!ピカピカのネオン街",    sw:["#0B0420","#FF2BD6","#00F0FF","#5B1A7A"], fonts:"family=Orbitron:wght@500;700&family=M+PLUS+1p:wght@400;700&family=DotGothic16", need:7},
   {id:"zoo",   name:"どうぶつえん 🦁", ds:"どうぶつたちが集まる",     sw:["#EEF8E4","#3E9B4F","#FFE68A","#C9E3B0"], fonts:"family=Fredoka:wght@400;600;700&family=Kiwi+Maru:wght@400;500&family=Mochiy+Pop+One", need:12},
-  {id:"gaming",name:"ゲーミング虹 🌈", ds:"虹色に光りつづける最強版", sw:["#07070C","#FF3CAC","#18C8FF","#7CFF6B"], fonts:"family=Orbitron:wght@500;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One", need:20}
+  {id:"gaming",name:"ゲーミング虹 🌈", ds:"虹色に光りつづける最強版", sw:["#07070C","#FF3CAC","#18C8FF","#7CFF6B"], fonts:"family=Orbitron:wght@500;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One", need:20},
+  // ↓ ガチャ大会の景品:gift = やりきリストの先生画面でわたす景品のid(当たった人だけ使える)
+  {id:"owl",   name:"フクロウくん 🦉", ds:"フクロウくんと夜の森で勉強", sw:["#1B1630","#E8B04A","#5A4A7A","#FFF6E2"], fonts:"family=Fredoka:wght@400;600;700&family=Kiwi+Maru:wght@400;500&family=Mochiy+Pop+One", gift:"mt_owl"},
+  {id:"world", name:"塾長と世界旅行 ✈️", ds:"パスポートを持って世界一周", sw:["#F4EEDC","#1F5FA8","#C8102E","#FFE08A"], fonts:"family=Rubik:wght@400;600;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One", gift:"mt_world"}
 ];
-const THEME_COLOR = {base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82", neko:"#F0803C", neon:"#0B0420", zoo:"#3E9B4F", gaming:"#07070C"};
+const THEME_COLOR = {owl:"#1B1630", world:"#1F5FA8", base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82", neko:"#F0803C", neon:"#0B0420", zoo:"#3E9B4F", gaming:"#07070C"};
 function skinMaru(){ return ui.name ? SETS.filter(setDone).length : 0; }
-function skinOpen(s){ return !s.need || skinMaru() >= s.need; }
-function newSkins(){ const u = ui.name && mem.users[ui.name]; if(!u) return []; const seen = u.skinsSeen || []; return SKINS.filter(s => s.need && skinOpen(s) && !seen.includes(s.id)); }
-function markSkinsSeen(){ const u = ui.name && mem.users[ui.name]; if(!u) return; u.skinsSeen = SKINS.filter(s => s.need && skinOpen(s)).map(s => s.id); save(); }
+function skinGifts(){ const u = ui.name && mem.users[ui.name]; return u && Array.isArray(u.gifts) ? u.gifts : []; }
+function skinOpen(s){ if(s.gift) return skinGifts().includes(s.gift); return !s.need || skinMaru() >= s.need; }
+function newSkins(){ const u = ui.name && mem.users[ui.name]; if(!u) return []; const seen = u.skinsSeen || []; return SKINS.filter(s => (s.need || s.gift) && skinOpen(s) && !seen.includes(s.id)); }
+function markSkinsSeen(){ const u = ui.name && mem.users[ui.name]; if(!u) return; u.skinsSeen = SKINS.filter(s => (s.need || s.gift) && skinOpen(s)).map(s => s.id); save(); }
 const loadedFonts = new Set();
 function curSkin(){
   const id = (ui.name && mem.users[ui.name]?.skin) || mem.skin || "base";
   const s = SKINS.find(x => x.id === id);
   if(!s) return "base";
-  if(ui.name && !skinOpen(s)) return "base";   // マルが足りないごほうびきせかえは使えない
+  if((ui.name || s.gift) && !skinOpen(s)) return "base";   // マルが足りないごほうびきせかえは使えない
   return id;
 }
 function applySkin(){
@@ -10655,9 +10692,9 @@ function viewSkinSheet(){
   return `<div class="modal" data-act="closemodal"><div class="sheet" role="dialog" aria-modal="true" aria-label="きせかえ">
     <div class="top"><h2 style="margin:0">きせかえ</h2><button class="link" data-act="closemodal">とじる</button></div>
     <p class="note" style="margin:0">タップすると画面の色と文字のデザインが変わります。名前ごとに覚えておきます。<br>🔒のきせかえは、マル単で<b>マル(ぜんぶ覚えたセット)</b>を集めると使えるようになるよ。${ui.name?`いまのマル:<b>${skinMaru()}</b>こ`:""}</p>
-    <div class="skins">${SKINS.map(s=>{ const open = skinOpen(s) && (ui.name || !s.need); return `<button class="skin${open?"":" locked"}" aria-pressed="${s.id===cur}" ${open?`data-act="skin" data-v="${s.id}"`:"disabled"}>
+    <div class="skins">${SKINS.map(s=>{ const open = skinOpen(s) && (ui.name || !(s.need || s.gift)); return `<button class="skin${open?"":" locked"}" aria-pressed="${s.id===cur}" ${open?`data-act="skin" data-v="${s.id}"`:"disabled"}>
       <span class="sw" style="background:${s.sw[0]}">${s.sw.slice(1).map(c=>`<b style="background:${c}"></b>`).join("")}</span>
-      <span class="nm">${open?"":"🔒 "}${s.name}${s.id===cur?"　✓":""}</span><span class="ds">${s.ds}</span>${s.need?`<span class="lk">${open?`マル${s.need}こで解放 ✓`:ui.name?`マル${s.need}こで解放(あと${s.need-skinMaru()}こ)`:`マル${s.need}こで解放(名前を入れてね)`}</span>`:""}</button>`; }).join("")}</div>
+      <span class="nm">${open?"":"🔒 "}${s.name}${s.id===cur?"　✓":""}</span><span class="ds">${s.ds}</span>${s.gift?`<span class="lk">${open?"🎁 ガチャ大会の景品 ✓":"🎁 ガチャ大会の景品(当たった人だけ)"}</span>`:""}${s.need?`<span class="lk">${open?`マル${s.need}こで解放 ✓`:ui.name?`マル${s.need}こで解放(あと${s.need-skinMaru()}こ)`:`マル${s.need}こで解放(名前を入れてね)`}</span>`:""}</button>`; }).join("")}</div>
   </div></div>`;
 }
 
@@ -11231,6 +11268,7 @@ function dmgFinish(){
   quiz.dmgDone = true;
   if(isTesterName(ui.name)){ quiz.dmgResult = {tester:true, linked:!!u.sid}; return; }
   setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
+  setTimeout(syncGifts, 2200);
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
   const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
   let raw = D.pts + D.revive*DMG.revive + maru*DMG.maru;
@@ -11425,6 +11463,18 @@ function groupsDone(){
 }
 /* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
 let badgeSyncing = false;
+/* ガチャ大会の景品:やりきリストの先生画面でわたしたものを、学習データのセル(mq.gifts)から読む */
+async function syncGifts(){
+  const u = user(); if(JUKU || !u || !u.sid) return;
+  try{
+    const r = await yapi("getStudy", {studentId:u.sid});
+    if(!r || !r.ok) return;
+    let obj = {}; try{ obj = r.data ? JSON.parse(r.data) : {}; }catch(e){ obj = {}; }
+    const g = obj && obj.mq && Array.isArray(obj.mq.gifts) ? obj.mq.gifts : [];
+    if(JSON.stringify(g) === JSON.stringify(u.gifts || [])) return;
+    u.gifts = g; save(); applySkin(); render();
+  }catch(e){}
+}
 async function syncBadges(){
   const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
   const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
@@ -12296,7 +12346,7 @@ document.addEventListener("compositionend", e=>{ if(e.target.id==="blankIn" && a
 if(JUKU) jukuAutoLogin();
 render();
 flush();
-if(!JUKU){ loadRoster(); flushDmg(); setTimeout(syncBadges, 2500); }
+if(!JUKU){ loadRoster(); flushDmg(); setTimeout(syncBadges, 2500); setTimeout(syncGifts, 3200); }
 else if(JUKU_CODE_PARAM && !ui.name && !JA.jukuName) jukuCheckCode(JUKU_CODE_PARAM, true);
 </script>
 <!-- MAL QUEST:ボスへの攻撃カットイン(やりきリスト・マル単 共通) v2 canvas -->
