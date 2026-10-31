@@ -191,6 +191,10 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .blankrow .bl.ng{color:var(--ng);border-bottom:3px solid var(--ng)}
 .blankin{width:1.3em;height:1.35em;font:inherit;text-align:center;padding:0;border:none;border-bottom:3px solid var(--accent);border-radius:6px 6px 0 0;background:var(--accent-soft);color:var(--ink);outline:none}
 .card .en-b{font-family:var(--en)}
+.card .q.fill-q{font-family:var(--en);text-align:left;font-size:clamp(18px,4.8vw,22px);line-height:1.8}
+.fill-bl{display:inline-block;color:var(--accent);font-weight:700;letter-spacing:.05em}
+.fill-ans{background:linear-gradient(transparent 60%,var(--marker) 60%)}
+.ex.fill-s{font-size:16px}
 .formrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .formrow .fc{display:flex;flex-direction:column;align-items:center;padding:4px 10px;border-radius:8px}
 .formrow .fc small{font-size:11px;color:var(--muted)}
@@ -10387,7 +10391,160 @@ const GEO_SETS = [
 {"id":"kj-p1-2","subject":"国語","course":"漢検","group":"準1級(大学・一般)","title":"漢検準1級レベル ②","source":"マル直オリジナル(級は目安)","words":["苛まれる||さいなまれる|後悔の念に**苛まれる**。","頗る||すこぶる|今日は**頗る**調子がよい。","恰も||あたかも|**恰も**夢のような一日だった。","凌ぐ||しのぐ|雨露を**凌ぐ**。","憐れむ||あわれむ|弱い者を**憐れむ**。","曝す||さらす|危険に身を**曝す**。","嘗て||かつて|**嘗て**の栄光を取りもどす。","屯する||たむろする|若者が駅前に**屯する**。","夥しい||おびただしい|**夥しい**数の鳥が飛ぶ。","鍾乳洞||しょうにゅうどう|**鍾乳洞**を探検する。","鳩尾||みぞおち|**鳩尾**を打つ。","欅||けやき|**欅**の並木道を歩く。","柊||ひいらぎ|**柊**の葉にはとげがある。"]},
 {"id":"kj-1-1","subject":"国語","course":"漢検","group":"1級(大学・一般)","title":"漢検1級レベル ①","source":"マル直オリジナル(級は目安)","words":["贔屓||ひいき|地元のチームを**贔屓**にする。","齟齬||そご|二人の話に**齟齬**が生じる。","躊躇||ちゅうちょ|**躊躇**なく飛びこむ。","蹂躙||じゅうりん|人権を**蹂躙**する。","顰蹙||ひんしゅく|周りの**顰蹙**を買う。","瀟洒||しょうしゃ|**瀟洒**な洋館に住む。","邂逅||かいこう|旅先で旧友と**邂逅**する。","憔悴||しょうすい|**憔悴**しきった顔。","跋扈||ばっこ|悪人が**跋扈**する。","狼狽||ろうばい|突然の知らせに**狼狽**する。","驀進||ばくしん|ゴールに向かって**驀進**する。","齷齪||あくせく|**齷齪**と働く。","魑魅魍魎||ちみもうりょう|**魑魅魍魎**が跋扈する世界。"]},
 {"id":"kj-1-2","subject":"国語","course":"漢検","group":"1級(大学・一般)","title":"漢検1級レベル ②","source":"マル直オリジナル(級は目安)","words":["囁く||ささやく|耳元で**囁く**。","蠢く||うごめく|土の中で虫が**蠢く**。","誑かす||たぶらかす|甘い言葉で人を**誑かす**。","擽る||くすぐる|足の裏を**擽る**。","鬩ぐ||せめぐ|兄弟が内輪で**鬩ぐ**。","鼾||いびき|大きな**鼾**をかく。","嚔||くしゃみ|花粉で**嚔**が出る。","薔薇||ばら|**薔薇**の花束をおくる。","檸檬||れもん|**檸檬**をしぼる。","蒟蒻||こんにゃく|群馬名産の**蒟蒻**。","罵詈雑言||ばりぞうごん|**罵詈雑言**を浴びせる。","忖度||そんたく|相手の気持ちを**忖度**する。","饂飩||うどん|**饂飩**をすする。"]}];
+/* ============================================================
+   英検 第1問(短文の語句空所補充):文の( )に入る語句を4つから選ぶ
+   1行 = "級|問題文( )|正解|まちがいの選択肢3つ(カンマ区切り)|日本語訳"
+   問題はマル直オリジナル(本番の問題数にそろえて1回分ずつ)
+   ============================================================ */
+const FILL_DATA = `
+英検5級|A: What ( ) do you like? B: I like blue.|color|sport,food,animal|A:何色が好き？ B:青が好きです。
+英検5級|My sister plays the ( ) every day after school.|piano|soccer,tennis,baseball|姉は毎日、放課後にピアノをひきます。
+英検5級|It's very hot today. Let's go ( ) in the sea.|swimming|skiing,skating,shopping|今日はとても暑い。海に泳ぎに行こう。
+英検5級|A: How many ( ) are there in a week? B: Seven.|days|months,hours,years|A:1週間は何日ある？ B:7日です。
+英検5級|I usually ( ) breakfast at seven.|eat|drink,sleep,read|わたしはふだん7時に朝ごはんを食べます。
+英検5級|A: Is this your bag, Ken? B: No, it's not ( ). It's Mike's.|mine|my,me,I|A:これはあなたのかばん、ケン？ B:いいえ、ぼくのではないよ。マイクのだよ。
+英検5級|We have a math test ( ) Friday.|on|in,at,of|金曜日に数学のテストがあります。
+英検5級|A: ( ) is your birthday? B: It's May 5.|When|Who,Where,How|A:誕生日はいつ？ B:5月5日だよ。
+英検5級|Tom ( ) to school by bus every morning.|goes|go,going,to go|トムは毎朝バスで学校に行きます。
+英検5級|A: Can you ( ) English? B: Yes, a little.|speak|listen,look,watch|A:英語を話せますか。 B:はい、少し。
+英検5級|My father is a ( ). He works at a hospital.|doctor|teacher,pilot,singer|父は医者です。病院で働いています。
+英検5級|Please ( ) the window. It's cold.|close|open,wash,sit|窓を閉めてください。寒いです。
+英検5級|A: Whose notebook is this? B: It's ( ) notebook.|his|he,him,he's|A:これはだれのノート？ B:彼のノートです。
+英検5級|Ms. Brown ( ) English at our school.|teaches|teach,teaching,is teach|ブラウン先生はわたしたちの学校で英語を教えています。
+英検5級|A: Let's play tennis this afternoon. B: Sorry, I'm ( ) now.|busy|fine,happy,tall|A:今日の午後、テニスをしよう。 B:ごめん、今いそがしいんだ。
+英検4級|It started to rain, so we stayed ( ) and watched TV.|inside|ago,ever,once|雨がふり出したので、わたしたちは家の中にいてテレビを見ました。
+英検4級|My brother wants to be a ( ) because he likes cooking.|chef|pilot,nurse,farmer|兄は料理が好きなので、シェフになりたがっています。
+英検4級|A: How was your trip to Kyoto? B: It was great. I ( ) a lot of old temples.|visited|visits,visiting,visit|A:京都への旅行はどうだった？ B:最高だったよ。古いお寺をたくさん訪れたよ。
+英検4級|Mr. Sato ( ) us an interesting story in class yesterday.|told|said,spoke,talked|佐藤先生はきのうの授業で、わたしたちにおもしろい話をしてくれました。
+英検4級|The library is ( ) from 9 a.m. to 6 p.m.|open|busy,hard,full|図書館は午前9時から午後6時まで開いています。
+英検4級|I was ( ) to hear that you won the game.|glad|sorry,afraid,tired|あなたが試合に勝ったと聞いてうれしかったです。
+英検4級|Please wash your hands ( ) you eat.|before|during,until,among|食べる前に手を洗ってください。
+英検4級|Jane is good ( ) playing the guitar.|at|in,for,on|ジェーンはギターをひくのが得意です。
+英検4級|I ( ) up at six this morning.|got|took,made,put|今朝は6時に起きました。
+英検4級|There ( ) many people in the park yesterday.|were|was,are,is|きのう、公園にはたくさんの人がいました。
+英検4級|Mike runs ( ) than his brother.|faster|fast,fastest,more fast|マイクはお兄さんより速く走ります。
+英検4級|This is the ( ) building in our town.|tallest|taller,tall,most tall|これはわたしたちの町でいちばん高い建物です。
+英検4級|My mother asked me ( ) the dishes.|to wash|wash,washing,washed|母はわたしに皿を洗うようにたのみました。
+英検4級|A: ( ) did you go to the zoo with? B: With my cousins.|Who|When,Where,Why|A:だれと動物園に行ったの？ B:いとこたちとだよ。
+英検4級|I have a lot of homework, so I can't ( ) TV tonight.|watch|look,hear,find|宿題がたくさんあるので、今夜はテレビを見られません。
+英検3級|Kate is ( ) in Japanese culture, so she reads many books about it.|interested|interesting,exciting,surprising|ケイトは日本文化に興味があるので、それについての本をたくさん読みます。
+英検3級|Tom's dream is to ( ) around the world by ship.|travel|arrive,return,borrow|トムの夢は、船で世界中を旅することです。
+英検3級|The train was ( ) because of the heavy snow.|late|early,free,quiet|大雪のため、電車がおくれました。
+英検3級|Please ( ) your name and address on this card.|write|speak,build,collect|このカードにお名前とご住所を書いてください。
+英検3級|My grandfather ( ) to music in his room every evening.|listens|hears,watches,sounds|祖父は毎晩、自分の部屋で音楽を聞きます。
+英検3級|A: This bag is too expensive. Do you have a ( ) one? B: Yes, how about this one?|cheaper|heavier,busier,longer|A:このかばんは高すぎます。もっと安いものはありますか。 B:はい、こちらはいかがですか。
+英検3級|We decided to put ( ) the picnic because it was raining.|off|on,up,away|雨がふっていたので、ピクニックを延期することにしました。
+英検3級|Ken ( ) care of his little sister when his parents are out.|takes|makes,gets,gives|両親が出かけているとき、ケンは妹の世話をします。
+英検3級|Ms. Green has lived in Tokyo ( ) 2015.|since|for,from,at|グリーンさんは2015年から東京に住んでいます。
+英検3級|The man ( ) is standing by the door is my uncle.|who|which,whose,what|ドアのそばに立っている男の人は、わたしのおじです。
+英検3級|This song is ( ) by many young people.|loved|love,loving,to love|この歌は多くの若者に愛されています。
+英検3級|I'm looking forward to ( ) you next week.|seeing|see,saw,seen|来週あなたに会えるのを楽しみにしています。
+英検3級|A: Do you know ( ) the museum opens? B: At nine, I think.|what time|how many,how long,which|A:博物館が何時に開くか知っていますか。 B:9時だと思います。
+英検3級|Our school festival will be ( ) next Saturday.|held|made,taken,given|わたしたちの文化祭は今度の土曜日に開かれます。
+英検3級|Lisa had a bad cold, so she was ( ) from school yesterday.|absent|different,afraid,full|リサはひどいかぜをひいたので、きのう学校を休みました。
+英検準2級|The scientist made an important ( ) about how birds find their way home.|discovery|accident,attitude,direction|その科学者は、鳥がどうやって帰り道を見つけるかについて重要な発見をした。
+英検準2級|After the long hike, everyone was ( ) and went to bed early.|exhausted|curious,ancient,polite|長いハイキングのあと、みんなへとへとで早く寝た。
+英検準2級|The city plans to ( ) a new bridge over the river next year.|construct|predict,admire,reflect|市は来年、川に新しい橋を建設する予定だ。
+英検準2級|Please ( ) your seat belt before the plane takes off.|fasten|deliver,borrow,invent|飛行機が離陸する前にシートベルトをお締めください。
+英検準2級|Mr. Hill's ( ) is to open his own restaurant someday.|goal|habit,trade,matter|ヒルさんの目標は、いつか自分のレストランを開くことだ。
+英検準2級|Kevin always ( ) his little brother when he gets into trouble.|protects|repeats,decorates,removes|ケビンは、弟が困ったことになるといつも守ってあげる。
+英検準2級|The weather ( ) says it will be sunny tomorrow.|forecast|product,surface,victory|天気予報によると、明日は晴れるそうだ。
+英検準2級|Jim ( ) his parents to let him go to the concert.|persuaded|prevented,celebrated,arranged|ジムは、コンサートに行かせてくれるよう両親を説得した。
+英検準2級|Many people ( ) old clothes to the charity every winter.|donate|attract,destroy,expect|毎年冬になると、多くの人が古着を慈善団体に寄付する。
+英検準2級|The museum has a large ( ) of old coins from around the world.|collection|situation,population,invitation|その博物館には、世界中の古い硬貨の大きなコレクションがある。
+英検準2級|The concert was ( ) because the singer was sick.|canceled|completed,repaired,elected|歌手が病気だったので、コンサートは中止になった。
+英検準2級|Ted is very ( ). He always tells the truth.|honest|nervous,strict,silent|テッドはとても正直だ。いつも本当のことを言う。
+英検準2級|A: Can I have one of these cookies? B: Sure. ( ) yourself.|Help|Make,Take,Keep|A:このクッキーを1枚もらってもいい？ B:もちろん。自由に取ってね。
+英検準2級|Kyoko ran ( ) an old friend at the station yesterday.|into|over,through,out|キョウコはきのう、駅で昔の友だちに偶然会った。
+英検準2級|The students were told to ( ) in their reports by Friday.|hand|take,fill,break|生徒たちは、金曜日までにレポートを提出するように言われた。
+英検準2級プラス|The company had to ( ) its prices because the cost of materials went up.|raise|bury,obey,trust|材料費が上がったので、その会社は値上げせざるをえなかった。
+英検準2級プラス|Sam's ( ) to the problem was simple but very effective.|solution|pollution,emotion,tradition|サムのその問題の解決策は、単純だがとても効果的だった。
+英検準2級プラス|The volunteers worked hard to ( ) the beach after the storm.|restore|reveal,refuse,insult|嵐のあと、ボランティアたちは浜辺を元どおりにするために懸命に働いた。
+英検準2級プラス|Because of the ( ) shortage of water, people were asked to take shorter showers.|severe|fragile,generous,precise|深刻な水不足のため、人々はシャワーを短くするよう求められた。
+英検準2級プラス|Please ( ) from using your phone during the movie.|refrain|retire,rely,reduce|映画の上映中は、電話の使用をお控えください。
+英検準2級プラス|The new law will ( ) effect next April.|take|make,give,have|新しい法律は、来年の4月に施行される。
+英検準2級プラス|Emily's parents were ( ) of her when she passed the exam.|proud|ashamed,capable,careful|エミリーが試験に合格したとき、両親は彼女をほこりに思った。
+英検準2級プラス|The hotel ( ) breakfast free of charge to all guests.|provides|prohibits,pretends,proposes|そのホテルは、宿泊客全員に無料で朝食を提供している。
+英検準2級プラス|Scientists are worried about the ( ) of some animals as forests disappear.|extinction|exhibition,expression,expansion|森が消えていくにつれて、一部の動物が絶滅することを科学者たちは心配している。
+英検準2級プラス|The manager ( ) that everyone attend the meeting on time.|requested|regretted,doubted,remembered|部長は、全員が時間どおりに会議に出席するよう求めた。
+英検準2級プラス|Although the task was difficult, Linda managed to ( ) it before the deadline.|complete|compare,complain,compose|その仕事は難しかったが、リンダはなんとか締め切り前にやり終えた。
+英検準2級プラス|The museum is ( ) to everyone, and it's free on Sundays.|accessible|accurate,artificial,annual|その博物館はだれでも利用でき、日曜日は無料だ。
+英検準2級プラス|The two countries signed an ( ) to reduce pollution.|agreement|argument,accident,approach|その2か国は、汚染を減らすための協定に署名した。
+英検準2級プラス|Ben came ( ) with a great idea for the class project.|up|over,across,along|ベンはクラスのプロジェクトのためのすばらしい案を思いついた。
+英検準2級プラス|Our teacher told us not to ( ) on the internet for all of our information.|depend|consist,insist,result|先生は、情報のすべてをインターネットにたよらないようにと言った。
+英検2級|The government is trying to ( ) the number of tourists visiting the island to protect its nature.|limit|admit,inherit,polish|政府は、自然を守るために島を訪れる観光客の数を制限しようとしている。
+英検2級|The doctor told Mr. Jones that his condition was not serious and that he would make a full ( ).|recovery|discovery,delivery,survey|医師はジョーンズさんに、病状は深刻ではなく完全に回復するだろうと伝えた。
+英検2級|The bridge was designed to be ( ) enough to survive strong earthquakes.|durable|fragile,temporary,visible|その橋は、強い地震にも耐えられるほど丈夫に設計された。
+英検2級|Many young people ( ) to big cities in search of better jobs.|migrate|imitate,irritate,estimate|多くの若者が、よりよい仕事を求めて大都市へ移り住む。
+英検2級|The professor's lecture was so ( ) that many students fell asleep.|dull|vivid,thrilling,fierce|教授の講義はとても退屈だったので、多くの学生が眠ってしまった。
+英検2級|Despite their ( ) opinions, the two friends never argued.|opposing|identical,mutual,neutral|意見は正反対だったにもかかわらず、その2人の友人は決して口論しなかった。
+英検2級|The company decided to ( ) 200 new workers next year.|employ|expire,erupt,evolve|その会社は、来年200人の新しい従業員を雇うことに決めた。
+英検2級|The police are trying to ( ) the cause of the fire.|determine|decorate,dominate,dedicate|警察は火事の原因を突き止めようとしている。
+英検2級|Thanks to the ( ) of the internet, people can now work from home.|development|decline,disaster,discount|インターネットの発達のおかげで、今では人々は在宅で働くことができる。
+英検2級|Mary's teacher gave her some ( ) advice about choosing a university.|practical|physical,partial,primitive|メアリーの先生は、大学選びについて実用的なアドバイスをくれた。
+英検2級|The climbers had to ( ) their plan to reach the top because of the storm.|abandon|absorb,attach,assume|嵐のため、登山者たちは頂上に着くという計画をあきらめなければならなかった。
+英検2級|Jack ( ) for his mistake and promised to be more careful.|apologized|applied,arrived,approved|ジャックは自分のミスを謝り、もっと気をつけると約束した。
+英検2級|The meeting was put ( ) until next week because the manager was sick.|off|out,up,down|部長が病気だったので、会議は来週まで延期された。
+英検2級|Kate could not ( ) with the noise from the construction site, so she moved.|put up|make up,take up,keep up|ケイトは工事現場の騒音にがまんできず、引っ越した。
+英検2級|The festival was a big success, ( ) to the hard work of the volunteers.|thanks|according,next,similar|ボランティアの懸命な働きのおかげで、祭りは大成功だった。
+英検2級|Ms. Clark is ( ) for organizing the school trip this year.|responsible|familiar,similar,equal|今年はクラーク先生が修学旅行の計画を担当している。
+英検2級|The price of vegetables went up ( ) to the bad weather.|due|according,instead,prior|悪天候のため、野菜の値段が上がった。
+英検準1級|The politician's speech was so ( ) that nobody could understand what he actually wanted to say.|ambiguous|meticulous,lucrative,feasible|その政治家の演説はあまりにあいまいで、実際に何を言いたいのかだれにもわからなかった。
+英検準1級|After years of drought, the farmers' crops finally began to ( ) when the rains returned.|flourish|deteriorate,linger,vanish|何年もの干ばつのあと、雨がもどってくると、ついに農家の作物が生い茂り始めた。
+英検準1級|The company was forced to ( ) its plans for expansion due to financial difficulties.|shelve|endorse,accelerate,exaggerate|財政難のため、その会社は事業拡大の計画を棚上げせざるをえなかった。
+英検準1級|The detective found a small but ( ) clue that helped solve the case.|crucial|trivial,obsolete,redundant|刑事は、事件の解決に役立つ小さいが決定的な手がかりを見つけた。
+英検準1級|Workers went on strike to protest the ( ) cuts to their wages.|drastic|lenient,benign,trivial|労働者たちは、賃金の大幅な削減に抗議してストライキをした。
+英検準1級|The scientist was ( ) for her groundbreaking research on vaccines.|acclaimed|condemned,deported,detained|その科学者は、ワクチンに関する画期的な研究で称賛された。
+英検準1級|To ( ) the risk of infection, hospital staff wash their hands frequently.|mitigate|aggravate,provoke,emulate|感染のリスクをやわらげるため、病院の職員はひんぱんに手を洗う。
+英検準1級|The two leaders tried to ( ) the tension between their countries through dialogue.|defuse|ignite,inflate,deplete|2人の指導者は、対話によって両国間の緊張をやわらげようとした。
+英検準1級|His ( ) attitude toward his work worried his boss, who wanted him to show more enthusiasm.|indifferent|diligent,meticulous,ardent|仕事に対する彼の無関心な態度は、もっと熱意を見せてほしいと思っていた上司を心配させた。
+英検準1級|The novel's plot is so ( ) that readers can't put the book down.|gripping|tedious,stagnant,mundane|その小説の筋書きはとても引きこまれるので、読者は本を置くことができない。
+英検準1級|The new evidence ( ) the theory that the ancient city was destroyed by a flood.|corroborates|contaminates,confiscates,commemorates|新しい証拠は、その古代都市が洪水で滅びたという説を裏づけている。
+英検準1級|The patient's condition began to ( ) rapidly, so the doctors moved him to intensive care.|deteriorate|alleviate,consolidate,ameliorate|患者の容体が急速に悪化し始めたので、医師たちは彼を集中治療室に移した。
+英検準1級|Sales of the new product fell far ( ) of the company's expectations.|short|out,off,away|新製品の売り上げは、会社の期待を大きく下回った。
+英検準1級|The manager told the staff to ( ) up the remaining work before the holiday.|wrap|hold,cheer,tear|部長はスタッフに、休暇の前に残りの仕事を片づけるように言った。
+英検準1級|Tom tried to ( ) off his mistake as a joke, but no one laughed.|pass|lay,call,stand|トムは自分のミスを冗談としてごまかそうとしたが、だれも笑わなかった。
+英検準1級|The town decided to ( ) out the old buses and replace them with electric ones.|phase|stand,fade,stem|町は古いバスを段階的に廃止し、電気バスに置きかえることにした。
+英検準1級|Jenny's idea really ( ) on with the other students, and soon everyone was doing it.|caught|took,turned,brought|ジェニーのアイデアはほかの生徒たちの間で大流行し、すぐにみんながやるようになった。
+英検準1級|The government ( ) down on illegal parking in the city center.|cracked|settled,stepped,narrowed|政府は都心の違法駐車を厳しく取りしまった。
+英検1級|The scandal ( ) the minister's reputation, and he resigned soon after.|tarnished|burnished,embellished,replenished|そのスキャンダルは大臣の評判を傷つけ、彼はまもなく辞任した。
+英検1級|The CEO's ( ) remarks about his employees caused widespread outrage.|disparaging|laudatory,conciliatory,salubrious|従業員をけなすCEOの発言は、広く激しい怒りを引き起こした。
+英検1級|Despite the team's best efforts, the project was ( ) by constant delays and budget problems.|plagued|buttressed,galvanized,vindicated|チームの懸命な努力にもかかわらず、その計画はたえまない遅れと予算の問題に悩まされた。
+英検1級|The professor was known for his ( ) lectures, which often went on far longer than scheduled.|verbose|terse,laconic,succinct|その教授は冗長な講義で知られ、予定よりずっと長く続くことがよくあった。
+英検1級|The witness's account was riddled with ( ), so the jury did not believe her.|inconsistencies|endorsements,affinities,proclivities|証人の説明は矛盾だらけだったので、陪審は彼女を信じなかった。
+英検1級|The general refused to ( ) to the enemy's demands.|accede|recede,secede,impede|将軍は敵の要求に応じることを拒んだ。
+英検1級|The old mansion had fallen into ( ), with broken windows and a collapsing roof.|disrepair|discretion,dissent,disdain|その古い屋敷は荒れはてて、窓は割れ、屋根はくずれかけていた。
+英検1級|Her ( ) for languages allowed her to master five of them before the age of twenty.|aptitude|antipathy,apathy,animosity|語学の才能のおかげで、彼女は20歳になる前に5つの言語を習得した。
+英検1級|The government's attempt to ( ) the protest only made the demonstrators angrier.|quell|abet,foment,instigate|抗議活動をしずめようとする政府の試みは、デモ参加者をさらに怒らせただけだった。
+英検1級|The author's latest novel received ( ) reviews, with critics calling it a masterpiece.|glowing|scathing,tepid,lukewarm|その作家の最新作は絶賛され、批評家たちは傑作と呼んだ。
+英検1級|The billionaire was criticized for his ( ) lifestyle, which included several private jets.|ostentatious|austere,frugal,ascetic|その億万長者は、自家用ジェットを何機も持つような見せびらかしの生活ぶりを批判された。
+英検1級|The negotiator tried to ( ) the two sides into reaching an agreement.|cajole|rebuke,dissuade,thwart|交渉役は、両者をなだめすかして合意させようとした。
+英検1級|The ( ) of evidence suggests that the drug is safe for most patients.|preponderance|paucity,penchant,pittance|証拠の大半は、その薬がほとんどの患者にとって安全であることを示している。
+英検1級|Years of overfishing have ( ) the fish population in the bay.|decimated|replenished,bolstered,augmented|長年の乱獲で、湾の魚の数は激減した。
+英検1級|The suspect gave an ( ) answer, refusing to say where he had been that night.|evasive|candid,forthright,cogent|容疑者は、その夜どこにいたのかを言うのを拒み、言いのがれの答えをした。
+英検1級|The company's profits have been ( ) for years, showing neither growth nor decline.|stagnant|burgeoning,plummeting,soaring|その会社の利益は何年も伸びず、増えも減りもしていない。
+英検1級|The rumors about the merger turned out to be false and soon ( ) out.|petered|weeded,ironed,hashed|合併のうわさは誤りだとわかり、まもなく立ち消えになった。
+英検1級|The lawyer tried to ( ) up support for the new bill among local businesses.|drum|chalk,bottle,pine|その弁護士は、地元の企業の間で新しい法案への支持を集めようとした。
+英検1級|The two companies are expected to ( ) out the details of the deal next week.|hammer|stave,fend,ward|両社は来週、取引の詳細を話し合ってまとめる見込みだ。
+英検1級|After the scandal, the actor decided to lie ( ) for a while.|low|flat,thin,dim|スキャンダルのあと、その俳優はしばらく目立たないようにしていることにした。
+英検1級|The tourists were ( ) off by a fake taxi driver who charged them ten times the normal fare.|ripped|ticked,tipped,laid|観光客たちは、ふつうの10倍の料金をとるにせのタクシー運転手にぼったくられた。
+英検1級|The movie's success ( ) on the popularity of its lead actor.|hinged|dwelled,preyed,frowned|その映画の成功は、主演俳優の人気にかかっていた。
+`;
+const isFillSet = sid => /^fill-/.test(sid);
+function buildFillSets(){
+  const G = ["英検5級","英検4級","英検3級","英検準2級","英検準2級プラス","英検2級","英検準1級","英検1級"];
+  const by = {};
+  FILL_DATA.trim().split("\n").forEach(line=>{
+    const [g, s, ans, ds, ja] = line.split("|"); if(!ja) return;
+    (by[g] ||= []).push({en: s.replace("( )", "**"+ans+"**"), pos:"文", ja, ex:"", alt:null, style:"", fill:{s, ans, ds: ds.split(",").map(x=>x.trim())}});
+  });
+  const N = "①②③④⑤⑥⑦⑧⑨⑩", out = [];
+  G.forEach((g,gi)=>{ const ws = by[g]||[]; const short = g.replace(/^英検/,"");
+    for(let i=0;i*25<ws.length;i++) out.push({id:`fill-${gi}-${i+1}`, course:"英検 第1問", group:g, title:`${short} 第1問 空所補充 ${N[i]||i+1}`, source:"文の( )に入る語句を選ぶ", words:ws.slice(i*25,(i+1)*25)}); });
+  return out;
+}
 SETS.push(...buildOrderSets());
+SETS.push(...buildFillSets());
 SETS.push(...MORE_SETS);
 SETS.push(...GEO_SETS);
 SETS.forEach(s=>{ s.subject ||= "英語"; s.words = s.words.map(w=>{ if(typeof w!=="string") return w; const [en,pos,ja,ex="",alt=""]=w.split("|"); return {en,pos,ja,ex, alt: alt?alt.split(",").map(x=>x.trim()).filter(Boolean):null, style:s.style||""}; }); });
@@ -10547,7 +10704,7 @@ const COURSE_RANK = {"小学":0,"中学":1,"漢検":1,"高校":2,"英検":2,"共
 const DEX = (()=>{
   const m = new Map();
   for(const s of SETS){
-    if(/^(irr|cmp|ord)-/.test(s.id) || (s.subject && s.subject!=="英語")) continue;               // 不規則動詞・比較変化の表は除く(原形は別に載っている)
+    if(/^(irr|cmp|ord|fill)-/.test(s.id) || (s.subject && s.subject!=="英語")) continue;               // 不規則動詞・比較変化の表は除く(原形は別に載っている)
     for(const w of s.words){
       const id = w.en.trim().toLowerCase();
       let e = m.get(id);
@@ -10722,7 +10879,7 @@ function setStats(s){
   return {due, done, total:keys.length};
 }
 
-const COURSE_ORDER = ["小学","中学","地図・地名","漢検","高校","英検","共通テスト","AIE","並び替え"];
+const COURSE_ORDER = ["小学","中学","地図・地名","漢検","高校","英検","英検 第1問","共通テスト","AIE","並び替え"];
 function setDone(s){ const st=setStats(s); return st.total>0 && st.done===st.total; }
 /* 選んでいるセットを区分ごとにまとめて表示(区分をまたいで選んでも、何を選んだか一目でわかる) */
 function selBox(S){
@@ -10789,7 +10946,7 @@ function setRow(s, S){
           <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
             <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
             <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
-          <div class="stat">${st.total&&st.done===st.total?`<span class="maru" title="ぜんぶ覚えた！">マル</span>`:`${st.total}${isOrderSet(s.id)?"文":S.unit}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}`}</div>
+          <div class="stat">${st.total&&st.done===st.total?`<span class="maru" title="ぜんぶ覚えた！">マル</span>`:`${st.total}${isOrderSet(s.id)?"文":isFillSet(s.id)?"問":S.unit}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}`}</div>
         </label>`;
 }
 function chapRow(c, S){
@@ -10851,7 +11008,7 @@ function viewHome(){
         ${hasForm?`<div><p class="label">不規則動詞・比較の出し方</p><div class="seg">
           ${[["spell","つづり4択"],["blank","1文字うめ"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.fmode===v}" data-act="fmode" data-v="${v}">${l}</button>`).join("")}
         </div></div>`:""}
-        ${onlyForm||selSids.every(isOrderSet)?"":`<div><p class="label">出題の向き</p><div class="seg">
+        ${onlyForm||selSids.every(x=>isOrderSet(x)||isFillSet(x))?"":`<div><p class="label">出題の向き</p><div class="seg">
           ${modeLabels(S).map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
         </div></div>`}
         <div><p class="label">問題数</p><div class="seg">
@@ -10862,7 +11019,7 @@ function viewHome(){
         </div></div>
       </div>
       <div class="startbar ${ui.selected.size?"stick":""}">
-        <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}${selSids.every(isOrderSet)?"文":S.unit}から出題`:"セットを選んでください"}</span>
+        <span class="sum">${ui.selected.size?`${ui.selected.size}セット・${selWords.length}${selSids.every(isOrderSet)?"文":selSids.every(isFillSet)?"問":S.unit}から出題`:"セットを選んでください"}</span>
         <button data-act="start" data-only="due" ${selDue.length?"":"disabled"}>まちがえた語だけ（${selDue.length}）</button>
         <button class="primary" data-act="start" ${selWords.length?"":"disabled"}>テスト開始</button>
       </div>`}`}
@@ -10884,7 +11041,7 @@ function viewHome(){
         <button class="chip" aria-pressed="${ui.miss==="due"}" data-act="miss" data-v="due">要復習だけ（${dueAll.length}）</button>
       </div>
       ${shownM.length?`<div class="tbl"><table><thead><tr><th>英語</th><th>意味</th><th>状態</th><th style="text-align:right">×</th></tr></thead><tbody>
-        ${shownM.map(w=>`<tr><td class="${isOrderSet(w.sid)?"ens":sj(w.subject).en?"en":"jw"}">${esc(plainEx(w.en))}</td><td>${esc(w.ja)}<div class="note">${esc(w.setTitle)}</div></td><td>${isDue(w.key)?'<span class="st-ng">要復習</span>':'<span class="st-ok">克服✓</span>'}</td><td class="num">${user().rec[w.key].w}</td></tr>`).join("")}
+        ${shownM.map(w=>`<tr><td class="${isOrderSet(w.sid)||isFillSet(w.sid)?"ens":sj(w.subject).en?"en":"jw"}">${esc(plainEx(w.en))}</td><td>${esc(w.ja)}<div class="note">${esc(w.setTitle)}</div></td><td>${isDue(w.key)?'<span class="st-ng">要復習</span>':'<span class="st-ok">克服✓</span>'}</td><td class="num">${user().rec[w.key].w}</td></tr>`).join("")}
         </tbody></table></div>`:`<p class="empty">要復習の語はありません。ぜんぶ克服しています！</p>`}
       <div class="opts">
         <div><p class="label">出題の向き</p><div class="seg">
@@ -11477,13 +11634,14 @@ function answerBlank(v){
 function makeQuestion(w){
   if(isFormSet(w.sid)) return makeFormQuestion(w);
   if(isOrderSet(w.sid)) return makeOrderQuestion(w);
+  if(isFillSet(w.sid)) return {w, fill:true, choices: shuffle([w.fill.ans, ...w.fill.ds]), picked:null};
   const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : ui.mode;
   const field = mapOf(w) ? "en" : dir==="en2ja" ? "ja" : "en";   // 地図の問題は、名前(または地図)を選ぶ
   const seen = new Set([w[field]]); const distract = [];
   // 答えが「表」の問題で、手書きのまちがい選択肢があれば優先して使う
   if(field==="en" && w.alt) for(const a of shuffle(w.alt)){ if(!seen.has(a) && distract.length<3){ seen.add(a); distract.push({en:a, ja:"", key:"alt::"+a}); } }
   // 同じ教科の中で、同じセット・同じ品詞を優先して紛らわしい選択肢をつくる
-  const pool = allWords.filter(x=>x.subject===w.subject && (x.style||"")===(w.style||"") && !isOrderSet(x.sid) && x.key!==w.key && x[field]!==w[field]);
+  const pool = allWords.filter(x=>x.subject===w.subject && (x.style||"")===(w.style||"") && !isOrderSet(x.sid) && !isFillSet(x.sid) && x.key!==w.key && x[field]!==w[field]);
   const rank = x => (x.sid===w.sid?2:0) + (x.pos===w.pos?1:0) + Math.random();
   for(const x of pool.sort((a,b)=>rank(b)-rank(a))){ if(distract.length>=3) break; if(!seen.has(x[field])){ seen.add(x[field]); distract.push(x); } }
   return {w, dir, choices: shuffle([w, ...distract]), picked:null};
@@ -11533,7 +11691,7 @@ function logQuiz(){
   const entry = {
     action:"log", id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
     ts: Date.now(), name: ui.name, label: onlyEn ? quiz.label : `【${subjs.join("・")}】${quiz.label}`,
-    mode: (()=>{ if(quiz.math) return "暗算"; if(quiz.qs.every(q=>q.order)) return "並び替え";
+    mode: (()=>{ if(quiz.math) return "暗算"; if(quiz.qs.every(q=>q.order)) return "並び替え"; if(quiz.qs.every(q=>q.fill)) return "空所補充";
       if(!onlyEn && subjs.length===1) return (sjw(quiz.pool[0]).modes.find(m=>m[0]===ui.mode)||[,ui.mode])[1];
       const f=quiz.qs.some(q=>q.form), o=quiz.qs.some(q=>!q.form);
       const fm=({spell:"つづり4択",blank:"1文字うめ",mix:"つづり4択+1文字"})[ui.fmode];
@@ -11580,6 +11738,7 @@ function viewQuiz(){
   const q = quiz.qs[quiz.i], n = quiz.qs.length, en = q.dir==="en2ja";
   if(q.form) return viewFormQuiz(q, n);
   if(q.order) return viewOrderQuiz(q, n);
+  if(q.fill) return viewFillQuiz(q, n);
   if(mapOf(q.w)) return viewMapQuiz(q, n);
   const S = sjw(q.w);
   const f = en ? "ja" : "en";
@@ -11701,6 +11860,33 @@ function viewFormQuiz(q, n){
   return header() + quizHead(n) + viewFormCard(q, quiz.timed||quiz.i+1<n?"次へ":"結果を見る") +
     `<p class="kbd">${q.kind==="spell"?"キーボードの 1〜4 で選択、":"文字を打つと答え合わせ、"}Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
 }
+/* ---------- 英検 第1問:空所補充 ---------- */
+function fillSentHtml(q, ans){
+  const parts = esc(q.w.fill.s).split("( )");
+  const blank = ans ? `<b class="fill-ans">${esc(ans)}</b>` : `<span class="fill-bl">（　　　）</span>`;
+  return parts.join(blank).replace(/ (B:)/, "<br>$1");
+}
+function viewFillQuiz(q, n){
+  const nextLabel = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
+  const done = q.picked!==null, ok = done && q.choices[q.picked]===q.w.fill.ans;
+  const choices = q.choices.map((c,k)=>{
+    let cls = "choice en";
+    if(done){ if(c===q.w.fill.ans) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
+    return `<button class="${cls}" data-act="answer" data-k="${k}" ${done?"disabled":""}><span class="k">${k+1}</span><span>${esc(c)}</span></button>`;
+  }).join("");
+  const card = done ? `<div class="card ans ${ok?"ok":"ng"}">
+      <span class="v">${ok?"正解！":"まちがい"}</span>
+      <div class="exrow">${canSpeak?`<button class="say" data-act="sayt" data-t="${esc(plainEx(q.w.en))}" aria-label="読み上げ"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>`:""}<div class="ex fill-s">${fillSentHtml(q, q.w.fill.ans)}</div></div>
+      <div class="ja" style="font-weight:500;font-size:15px">${esc(q.w.ja)}</div>
+      <div class="ex-src">出典:${esc(q.w.setTitle)}</div>
+      <button class="primary nextbig" data-act="next" id="nextBtn">${nextLabel}</button>
+    </div>` : `<div class="card" style="gap:10px">
+      <span class="dir">( )に入るもっとも適切なものを選ぼう</span>
+      <span class="q long fill-q">${fillSentHtml(q)}</span>
+    </div>`;
+  return header() + quizHead(n) + card + `<div class="choices">${choices}</div>
+    <p class="kbd">キーボードの 1〜4 で選択、Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
+}
 /* ---------- 発音(端末の読み上げ機能) ---------- */
 const canSpeak = typeof window!=="undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 function sayBtn(kind, label){ return canSpeak ? `<button class="say" data-act="say" data-kind="${kind}" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>` : ""; }
@@ -11728,7 +11914,7 @@ function posName(p){ return ({"名":"名詞","動":"動詞","形":"形容詞","�
 
 function answer(k){
   const q = quiz.qs[quiz.i]; if(q.picked!==null || q.order || !q.choices || k>=q.choices.length) return;
-  judge(q, q.form ? q.choices[k]===q.target : q.choices[k].key===q.w.key, k);
+  judge(q, q.form ? q.choices[k]===q.target : q.fill ? q.choices[k]===q.w.fill.ans : q.choices[k].key===q.w.key, k);
 }
 function judge(q, ok, k){
   q.picked = k; q.ok = ok;
@@ -11763,7 +11949,7 @@ function viewResult(){
       <div class="stat3"><b>${rate}<small style="font-size:16px">%</small></b><span>正答率</span></div>
     </div>
     ${uniq.length?`<div><p class="label">まちがえた語</p><div class="tbl"><table><tbody>
-      ${uniq.map(w=>`<tr><td class="${isOrderSet(w.sid)?"ens":sj(w.subject).en?"en":"jw"}">${esc(plainEx(w.en))}</td><td>${esc(w.ja)}</td></tr>`).join("")}</tbody></table></div></div>`
+      ${uniq.map(w=>`<tr><td class="${isOrderSet(w.sid)||isFillSet(w.sid)?"ens":sj(w.subject).en?"en":"jw"}">${esc(plainEx(w.en))}</td><td>${esc(w.ja)}</td></tr>`).join("")}</tbody></table></div></div>`
       :`<p style="margin:0">${n?"全問正解です。":"1問も解かないうちに時間になりました。"}</p>`}
     <div class="startbar">
       <span class="sum" style="margin-right:auto"><span id="sendMsg" class="send ${sendState[0]||""}">${esc(sendState[1]||"")}</span></span>
