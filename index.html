@@ -195,6 +195,9 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .fill-bl{display:inline-block;color:var(--accent);font-weight:700;letter-spacing:.05em}
 .fill-ans{background:linear-gradient(transparent 60%,var(--marker) 60%)}
 .ex.fill-s{font-size:16px}
+.genbox{border:2px dashed var(--accent);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.genbox .hd{font-weight:700;font-size:15px}
+.genbox .hd small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
 .formrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .formrow .fc{display:flex;flex-direction:column;align-items:center;padding:4px 10px;border-radius:8px}
 .formrow .fc small{font-size:11px;color:var(--muted)}
@@ -10997,6 +11000,7 @@ function viewHome(){
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
       ${ui.name && !JUKU ? manaPanel() + badgePanel() : ""}
       ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
+      ${ui.course==="英検 第1問" ? viewGenPanel() : ""}
       ${selBox(S)}
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
       ${ui.course&&!ui.group?`<p class="empty">教材・級を選んでください。</p>`:""}
@@ -11634,6 +11638,7 @@ function answerBlank(v){
 function makeQuestion(w){
   if(isFormSet(w.sid)) return makeFormQuestion(w);
   if(isOrderSet(w.sid)) return makeOrderQuestion(w);
+  if(w.gen) return makeGenQ(w);
   if(isFillSet(w.sid)) return {w, fill:true, choices: shuffle([w.fill.ans, ...w.fill.ds]), picked:null};
   const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : ui.mode;
   const field = mapOf(w) ? "en" : dir==="en2ja" ? "ja" : "en";   // 地図の問題は、名前(または地図)を選ぶ
@@ -11860,24 +11865,67 @@ function viewFormQuiz(q, n){
   return header() + quizHead(n) + viewFormCard(q, quiz.timed||quiz.i+1<n?"次へ":"結果を見る") +
     `<p class="kbd">${q.kind==="spell"?"キーボードの 1〜4 で選択、":"文字を打つと答え合わせ、"}Enter で次へ　<button class="link" data-act="quit">やめる</button></p>`;
 }
+/* ---------- 英検 第1問:単語の例文から、空所補充の問題をその場で自動でつくる(何回でも新しい問題) ----------
+   例文の **語** を( )にして、同じ級・同じ品詞・同じ形(過去形なら過去形、-ingなら-ing)の語を、まちがいの選択肢にする */
+const GEN_LEVELS = ["英検5級","英検4級","英検3級","英検準2級","英検準2級プラス","英検2級","英検準1級","英検1級"];
+const genCache = {};
+function genPool(g){
+  if(genCache[g]) return genCache[g];
+  const sids = new Set(SETS.filter(s=>s.course==="英検" && s.group===g).map(s=>s.id));
+  const out = [];
+  allWords.forEach(w=>{
+    if(!sids.has(w.sid) || !w.ex || (w.ex.match(/\*\*/g)||[]).length!==2) return;
+    let b = /\*\*(.+?)\*\*/.exec(w.ex)[1].trim();
+    const start = /^[A-Z]/.test(b) && /^[a-z]/.test(w.en);   // 例文の中で大文字で始まっている(文の頭など)
+    if(start) b = b[0].toLowerCase() + b.slice(1);   // いったん小文字にそろえ、問題にするときに選択肢ぜんぶを大文字にする
+    const e = w.en.toLowerCase().trim(), t = b.toLowerCase();
+    const cls = t===e ? "base" : /ing$/.test(t)&&!/ing$/.test(e) ? "ing" : /ed$/.test(t)&&!/ed$/.test(e) ? "ed" : /s$/.test(t)&&!/s$/.test(e) ? "s" : "other";
+    out.push({w, b, cls, start});
+  });
+  return genCache[g] = out;
+}
+function makeGenQ(w){
+  const g = (SETS.find(s=>s.id===w.sid)||{}).group, pool = genPool(g), me = pool.find(x=>x.w.key===w.key);
+  if(!me) return {w, dir:"en2ja", choices:[w], picked:null};
+  const used = new Set([me.b.toLowerCase(), w.en.toLowerCase()]), ds = [];
+  const take = list => { for(const x of shuffle(list)){ if(ds.length>=3) break; const k=x.b.toLowerCase(); if(used.has(k) || used.has(x.w.en.toLowerCase())) continue; used.add(k); ds.push(x.b); } };
+  const near = GEN_LEVELS.slice(Math.max(0,GEN_LEVELS.indexOf(g)-1), GEN_LEVELS.indexOf(g)+2).flatMap(genPool);
+  take(pool.filter(x=>x.w.pos===me.w.pos && x.cls===me.cls));
+  if(ds.length<3) take(near.filter(x=>x.w.pos===me.w.pos && x.cls===me.cls));
+  if(ds.length<3) take(near.filter(x=>x.w.pos===me.w.pos));
+  if(ds.length<3) take(near);
+  const cap = t => me.start ? t[0].toUpperCase()+t.slice(1) : t;
+  const ans = cap(me.b);
+  return {w, fill:true, f:{s: w.ex.replace(/\*\*.+?\*\*/, "( )"), ans, ja:`${w.en}(${posName(w.pos)}):${w.ja}`}, choices: shuffle([ans, ...ds.map(cap)]), picked:null};
+}
+function viewGenPanel(){
+  const g = ui.glevel || "英検3級", n = genPool(g).length;
+  return `<div class="genbox">
+    <div class="hd">∞ 自動でつくる問題 <small>単語の例文から、毎回ちがう問題をつくります</small></div>
+    <div class="filters">${GEN_LEVELS.map(x=>`<button class="chip" aria-pressed="${g===x}" data-act="glevel" data-v="${esc(x)}">${esc(x.replace(/^英検/,""))}</button>`).join("")}</div>
+    <div class="seg">${[["n10","10問"],["n20","20問"],["t180","3分"],["t300","5分"]].map(([v,l])=>`<button aria-pressed="${(ui.glimit||"n10")===v}" data-act="glimit" data-v="${v}">${l}</button>`).join("")}</div>
+    <div class="startbar"><span class="sum">${esc(g)}の単語 ${n}語から出題</span><button class="primary" data-act="gstart" ${n>=4?"":"disabled"}>スタート</button></div>
+  </div>`;
+}
 /* ---------- 英検 第1問:空所補充 ---------- */
 function fillSentHtml(q, ans){
-  const parts = esc(q.w.fill.s).split("( )");
+  const parts = esc((q.f||q.w.fill).s).split("( )");
   const blank = ans ? `<b class="fill-ans">${esc(ans)}</b>` : `<span class="fill-bl">（　　　）</span>`;
   return parts.join(blank).replace(/ (B:)/, "<br>$1");
 }
 function viewFillQuiz(q, n){
   const nextLabel = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
-  const done = q.picked!==null, ok = done && q.choices[q.picked]===q.w.fill.ans;
+  const F = q.f || q.w.fill;
+  const done = q.picked!==null, ok = done && q.choices[q.picked]===F.ans;
   const choices = q.choices.map((c,k)=>{
     let cls = "choice en";
-    if(done){ if(c===q.w.fill.ans) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
+    if(done){ if(c===F.ans) cls+=" right"; else if(k===q.picked) cls+=" wrong"; }
     return `<button class="${cls}" data-act="answer" data-k="${k}" ${done?"disabled":""}><span class="k">${k+1}</span><span>${esc(c)}</span></button>`;
   }).join("");
   const card = done ? `<div class="card ans ${ok?"ok":"ng"}">
       <span class="v">${ok?"正解！":"まちがい"}</span>
-      <div class="exrow">${canSpeak?`<button class="say" data-act="sayt" data-t="${esc(plainEx(q.w.en))}" aria-label="読み上げ"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>`:""}<div class="ex fill-s">${fillSentHtml(q, q.w.fill.ans)}</div></div>
-      <div class="ja" style="font-weight:500;font-size:15px">${esc(q.w.ja)}</div>
+      <div class="exrow">${canSpeak?`<button class="say" data-act="sayt" data-t="${esc(plainEx(q.w.en))}" aria-label="読み上げ"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>`:""}<div class="ex fill-s">${fillSentHtml(q, F.ans)}</div></div>
+      <div class="ja" style="font-weight:500;font-size:15px">${esc(q.f ? q.f.ja : q.w.ja)}</div>
       <div class="ex-src">出典:${esc(q.w.setTitle)}</div>
       <button class="primary nextbig" data-act="next" id="nextBtn">${nextLabel}</button>
     </div>` : `<div class="card" style="gap:10px">
@@ -11914,7 +11962,7 @@ function posName(p){ return ({"名":"名詞","動":"動詞","形":"形容詞","�
 
 function answer(k){
   const q = quiz.qs[quiz.i]; if(q.picked!==null || q.order || !q.choices || k>=q.choices.length) return;
-  judge(q, q.form ? q.choices[k]===q.target : q.fill ? q.choices[k]===q.w.fill.ans : q.choices[k].key===q.w.key, k);
+  judge(q, q.form ? q.choices[k]===q.target : q.fill ? q.choices[k]===(q.f||q.w.fill).ans : q.choices[k].key===q.w.key, k);
 }
 function judge(q, ok, k){
   q.picked = k; q.ok = ok;
@@ -12163,6 +12211,9 @@ document.addEventListener("click", async e=>{
     if(a==="chapall"){ const multi=ch.filter(c=>c.sets.length>1); const allOpen=multi.every(c=>ui.openChap.has(c.key)); multi.forEach(c=>allOpen?ui.openChap.delete(c.key):ui.openChap.add(c.key)); }
     else { const c=ch.find(c=>c.key===b.dataset.k); if(c){ const allOn=c.sets.every(s=>ui.selected.has(s.id)); c.sets.forEach(s=>allOn?ui.selected.delete(s.id):ui.selected.add(s.id)); } }
     render(); }
+  else if(a==="glevel"){ ui.glevel=b.dataset.v; render(); }
+  else if(a==="glimit"){ ui.glimit=b.dataset.v; render(); }
+  else if(a==="gstart"){ const g=ui.glevel||"英検3級"; startQuiz(genPool(g).map(x=>({...x.w, gen:true})), `${g.replace(/^英検/,"")} 空所補充(自動)`, ui.glimit||"n10"); }
   else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
   else if(a==="fmode"){ ui.fmode=b.dataset.v; render(); }
   else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
