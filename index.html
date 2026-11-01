@@ -11296,6 +11296,7 @@ function dmgFinish(){
   if(isTesterName(ui.name)){ quiz.dmgResult = {tester:true, linked:!!u.sid}; return; }
   setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
   setTimeout(syncGifts, 2200);
+  setTimeout(()=>cloudSync(false), 2800);
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
   const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
   let raw = D.pts + D.revive*DMG.revive + maru*DMG.maru;
@@ -11498,6 +11499,73 @@ function groupsDone(){
 }
 /* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
 let badgeSyncing = false;
+/* ===== 端末をかえても記録を引きつぐ(クラウド保存) =====
+   やりきリストの学習データの表に「mt-生徒ID」の行を作り、マル・まちがい・きせかえなどを圧縮して保存する。
+   ひらいたとき・テストのあとに、サーバーと手元の記録を合わせる(単語ごとに、答えた回数が多いほうを残す) */
+const CLOUD_CHUNK = 40000;
+async function zip(str){
+  if(typeof CompressionStream === "undefined") return "j:" + str;
+  const cs = new Blob([str]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const buf = new Uint8Array(await new Response(cs).arrayBuffer());
+  let bin = ""; for(let i=0;i<buf.length;i+=0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i,i+0x8000));
+  return "z:" + btoa(bin);
+}
+async function unzip(s){
+  if(s.startsWith("j:")) return s.slice(2);
+  const bin = atob(s.slice(2)), buf = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+  const ds = new Blob([buf]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return await new Response(ds).text();
+}
+function packUser(u){
+  const rec = {}; for(const [k,r] of Object.entries(u.rec||{})){ if(r && (r.c||r.w)) rec[k] = [r.c||0, r.w||0, r.streak||0, r.due?1:0]; }
+  return {rec, skin:u.skin||"", seen:u.skinsSeen||[], math:u.math||{}, lang:u.lang, voice:u.voice, rate:u.rate};
+}
+function mergeCloud(u, d){
+  let changed = false;
+  for(const [k,a] of Object.entries(d.rec||{})){
+    const r = {c:a[0], w:a[1], streak:a[2], due:!!a[3]}, c = u.rec[k];
+    if(!c || (r.c+r.w) > ((c.c||0)+(c.w||0))){ u.rec[k] = r; changed = true; }
+  }
+  if(d.math){ u.math ||= {}; for(const [k,v] of Object.entries(d.math)){ const c=(u.math[k] ||= {}); for(const f of ["t60","t180","total"]){ if((v[f]||0) > (c[f]||0)){ c[f]=v[f]; changed=true; } } } }
+  if(d.skin && !u.skin){ u.skin = d.skin; changed = true; }
+  if(Array.isArray(d.seen)){ const s = new Set(u.skinsSeen||[]); const n = s.size; d.seen.forEach(x=>s.add(x)); if(s.size!==n){ u.skinsSeen=[...s]; changed=true; } }
+  ["lang","voice","rate"].forEach(f=>{ if(d[f]!=null && u[f]==null){ u[f]=d[f]; changed=true; } });
+  return changed;
+}
+async function cloudGet(sid){
+  const r = await yapi("getStudy", {studentId:"mt-"+sid}); if(!r || !r.ok) throw 0;
+  if(!r.data) return null;
+  const h = JSON.parse(r.data); if(!h || !h.mt) return null;
+  let z = h.z || "";
+  for(let i=1;i<(h.parts||1);i++){ const q = await yapi("getStudy", {studentId:"mt-"+sid+"-"+i}); if(!q || !q.ok || !q.data) throw 0; z += JSON.parse(q.data).z || ""; }
+  return JSON.parse(await unzip(z));
+}
+async function cloudPut(sid, d){
+  const z = await zip(JSON.stringify(d)), parts = Math.max(1, Math.ceil(z.length / CLOUD_CHUNK));
+  for(let i=parts-1;i>=0;i--){
+    const piece = z.slice(i*CLOUD_CHUNK, (i+1)*CLOUD_CHUNK);
+    const body = i===0 ? {mt:1, at:Date.now(), parts, z:piece} : {mt:1, part:i, z:piece};
+    const w = await yapi("saveStudy", {studentId:"mt-"+sid+(i?"-"+i:""), data:JSON.stringify(body)});
+    if(!w || !w.ok) throw 0;
+  }
+}
+let cloudBusy = false, cloudTimer = null;
+async function cloudSync(push){
+  const u = user(); if(JUKU || !u || !u.sid || cloudBusy) return;
+  cloudBusy = true;
+  try{
+    const d = await cloudGet(u.sid);
+    const got = d ? mergeCloud(u, d) : false;
+    if(got){ save(); applySkin(); render(); }
+    const mine = JSON.stringify(packUser(u));
+    if(push || !d || mine !== JSON.stringify(d)){
+      await cloudPut(u.sid, packUser(u)); u.cloudAt = Date.now(); save();
+    }
+  }catch(e){}
+  cloudBusy = false;
+}
+function cloudSoon(){ clearTimeout(cloudTimer); cloudTimer = setTimeout(()=>cloudSync(true), 4000); }
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden" && cloudTimer){ clearTimeout(cloudTimer); cloudTimer=null; cloudSync(true); } });
 /* ガチャ大会の景品:やりきリストの先生画面でわたしたものを、学習データのセル(mq.gifts)から読む */
 async function syncGifts(){
   const u = user(); if(JUKU || !u || !u.sid) return;
@@ -11795,6 +11863,7 @@ function logQuiz(){
   if(JUKU){ const u=user(); if(!u || !u.jk) return; entry.jk = u.jk; }   // 他塾モード:どの塾のだれの記録か
   setOutbox([...outbox(), entry]);
   flush();
+  cloudSoon();
 }
 let flushing = false;
 async function flush(){
@@ -12381,7 +12450,7 @@ document.addEventListener("compositionend", e=>{ if(e.target.id==="blankIn" && a
 if(JUKU) jukuAutoLogin();
 render();
 flush();
-if(!JUKU){ loadRoster(); flushDmg(); setTimeout(syncBadges, 2500); setTimeout(syncGifts, 3200); }
+if(!JUKU){ loadRoster(); flushDmg(); setTimeout(syncBadges, 2500); setTimeout(syncGifts, 3200); setTimeout(()=>cloudSync(false), 4000); }
 else if(JUKU_CODE_PARAM && !ui.name && !JA.jukuName) jukuCheckCode(JUKU_CODE_PARAM, true);
 </script>
 <!-- MAL QUEST:ボスへの攻撃カットイン(やりきリスト・マル単 共通) v2 canvas -->
