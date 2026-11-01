@@ -592,6 +592,19 @@ td.ens{font-family:var(--en);font-size:13px}
 .mpad .pk.ok{grid-column:4;grid-row:3/5}
 .mpad .pk.zero{grid-column:1/4;grid-row:4}
 .mcard{padding:14px 16px;gap:6px}
+.kcard{align-items:stretch}
+.kq{font-size:clamp(17px,4.6vw,21px);font-weight:700;line-height:1.6;text-align:left}
+.kq .uon{margin:8px auto 0;max-width:340px}
+.kq .uon svg{width:100%;height:auto;color:var(--ink)}
+.kq .uon figcaption{font-size:12px;font-weight:500;color:var(--muted);text-align:center}
+.kcard .mans{align-self:center}
+.kcard .mright{align-self:center}
+.kex{font-size:13px;line-height:1.7;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.kpg table{border-collapse:collapse;width:100%;font-size:14px}
+.kpg th{text-align:left;white-space:nowrap;padding:4px 10px 4px 0;color:var(--muted);font-weight:700;vertical-align:top}
+.kpg td{padding:4px 0}
+.kpg .note{margin-top:6px}
+.ksub h3{margin:6px 0 4px;font-size:16px}
 .mcard .mans{min-height:56px}
 /* 問題を解いている間はヘッダーを小さく */
 header.top.slim{align-items:center;flex-wrap:nowrap;gap:8px}
@@ -10162,7 +10175,245 @@ const MATH_DRILLS = [
   {g:"小数", id:"dmul", t:"小数 × 1けた", dec:true, f:()=>{const a=ri(11,99),b=ri(2,9);return [`${fmtDec(a,1)} × ${b}`, fmtDec(a*b,1)];}},
   {g:"わり算の筆算", id:"mul2b", t:"2けた×1けた(商の確かめ)", f:()=>{const a=ri(12,98),b=ri(3,9);return [`${a} × ${b}`, a*b];}}
 ];
-const MATH_BY = Object.fromEntries(MATH_DRILLS.map(d=>[d.id,d]));
+/* ============================================================
+   期末対策:学校・学年ごとの範囲と、自動でつくる問題(毎回ちがう数字)
+   KD の f() は [問題文, 答え, ヒント, 選択肢] を返す。
+   ch:true … 選択肢で答える / neg:true … − キー / dec:true … 小数点キー
+   ============================================================ */
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuf = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const nz = (a,b) => { let v; do{ v=ri(a,b); }while(v===0); return v; };
+const sg = n => n<0 ? "−"+(-n) : String(n);                       // 数の表示(マイナスは全角の−)
+const term = (c,x,first) => { if(c===0) return ""; const s=c<0?"−":(first?"":"＋"); const a=Math.abs(c); return (first?s:` ${s} `)+(a===1&&x?"":a)+(x||""); };
+const poly = (...ts) => { let out="", first=true; for(const [c,x] of ts){ if(!c) continue; out += term(c,x,first); first=false; } return out||"0"; };
+const pt = (x,y) => `(${sg(x)}, ${sg(y)})`;
+/* 選択肢:正解+まちがいから3つ */
+const choose = (ans, pool, n=4) => shuf([ans, ...shuf([...new Set(pool)].filter(x=>x!==ans)).slice(0,n-1)]);
+
+/* ---------- 雨温図 ---------- */
+const CLIM_W = [
+  ["シンガポール","熱帯雨林気候",[26.5,27.1,27.5,28,28.3,28.3,27.9,27.9,27.6,27.6,27,26.4],[243,159,185,179,172,162,158,176,169,194,256,288]],
+  ["バンコク","サバナ気候",[27,28.3,29.5,30.5,30,29.5,29,28.8,28.4,28.2,27.7,26.4],[13,22,46,79,214,174,185,212,322,247,53,10]],
+  ["リヤド","砂漠気候",[14.5,17,21.5,27,32.5,35,36.5,36,33,27.5,20.5,15.5],[14,9,23,26,6,0,0,0,0,2,10,14]],
+  ["東京","温暖湿潤気候",[5.4,6.1,9.4,14.3,18.8,21.9,25.7,26.9,23.3,18,12.5,7.7],[60,57,116,133,140,168,156,155,225,235,96,58]],
+  ["パリ","西岸海洋性気候",[5,5.6,8.8,11.6,15.4,18.6,20.8,20.5,16.9,13,8.3,5.5],[50,41,48,53,65,55,63,50,48,62,52,58]],
+  ["ローマ","地中海性気候",[8,8.9,11.3,14,18.4,22.4,25.3,25.4,21.8,17.4,12.5,9],[67,73,58,81,53,34,19,37,73,113,115,81]],
+  ["モスクワ","冷帯(亜寒帯)気候",[-6.5,-6.7,-1,6.7,13.2,17,19.2,17,11.3,5.2,-1.2,-5.2],[53,44,39,37,61,78,84,78,66,70,52,51]],
+  ["ウトキアグヴィク(アラスカ)","ツンドラ気候",[-25,-26.5,-25,-17.5,-6,1.5,4.5,3.5,-0.5,-9,-17.5,-23],[5,4,4,5,4,9,26,26,16,12,6,5]],
+  ["クスコ(ペルー)","高山気候",[9.6,9.7,9.6,9,7.6,6.4,6.2,7.4,8.9,10.3,10.7,10.2],[160,130,105,40,8,3,4,8,22,45,75,120]]
+];
+const CLIM_J = [
+  ["札幌","北海道の気候",[-3.2,-2.7,1.1,7.3,13,17,21.1,22.3,18.6,12.1,5.2,-0.9],[108,92,78,55,56,60,91,127,142,110,114,115]],
+  ["金沢","日本海側の気候",[4,4.4,7.6,12.9,17.9,21.9,26.1,27.3,23.2,17.6,11.9,6.8],[256,163,157,144,138,170,233,179,232,177,250,301]],
+  ["高知","太平洋側の気候",[6.7,7.9,11.3,15.8,19.9,23.2,27,27.9,25.3,20.1,14.4,9],[59,107,174,225,280,359,328,281,393,194,105,58]],
+  ["東京","太平洋側の気候",[5.4,6.1,9.4,14.3,18.8,21.9,25.7,26.9,23.3,18,12.5,7.7],[60,57,116,133,140,168,156,155,225,235,96,58]],
+  ["高松","瀬戸内の気候",[5.9,6.3,9.4,14.7,19.8,23.3,27.5,28.6,24.7,19,13.2,8.1],[39,46,82,77,102,153,160,87,164,105,53,43]],
+  ["松本","内陸(中央高地)の気候",[-0.4,0.2,4,10,15.6,19.6,23.6,24.7,20.3,13.6,7.4,2.3],[36,44,80,75,100,126,138,92,156,102,55,33]],
+  ["那覇","南西諸島の気候",[17.3,17.5,19.1,21.5,24.2,27.2,29.1,29,27.9,25.5,22.5,19],[101,115,142,161,245,284,188,240,275,179,119,110]]
+];
+function climSvg(T,P){
+  const W=300,H=190,L=34,R=30,top=10,bot=24, w=W-L-R, h=H-top-bot, bw=w/12;
+  const ty = t => top + h*(40-t)/70;            // 気温 −30〜40℃
+  const py = p => top + h*(1-Math.min(p,500)/500);  // 降水量 0〜500mm
+  let g = "";
+  for(let t=-30;t<=40;t+=10){ const y=ty(t); g+=`<line x1="${L}" x2="${L+w}" y1="${y}" y2="${y}" stroke="currentColor" stroke-opacity=".15"/><text x="${L-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#e4572e">${t}</text>`; }
+  for(let p=0;p<=500;p+=100){ g+=`<text x="${L+w+4}" y="${py(p)+4}" font-size="10" fill="#3b82c4">${p}</text>`; }
+  P.forEach((p,i)=>{ g+=`<rect x="${L+i*bw+2}" y="${py(p)}" width="${bw-4}" height="${top+h-py(p)}" fill="#5aa9e6" opacity=".85"/>`; });
+  g += `<polyline fill="none" stroke="#e4572e" stroke-width="2.5" points="${T.map((t,i)=>`${L+i*bw+bw/2},${ty(t)}`).join(" ")}"/>`;
+  T.forEach((t,i)=>{ g+=`<circle cx="${L+i*bw+bw/2}" cy="${ty(t)}" r="2.6" fill="#e4572e"/>`; });
+  [1,4,7,10].forEach(m=>{ g+=`<text x="${L+(m-1)*bw+bw/2}" y="${H-8}" text-anchor="middle" font-size="10" fill="currentColor">${m}月</text>`; });
+  g += `<text x="${L-4}" y="${top-1}" text-anchor="end" font-size="9" fill="#e4572e">℃</text><text x="${L+w+4}" y="${top-1}" font-size="9" fill="#3b82c4">mm</text>`;
+  const avg = (T.reduce((a,b)=>a+b,0)/12).toFixed(1), sum = Math.round(P.reduce((a,b)=>a+b,0));
+  return `<figure class="uon"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="雨温図">${g}</svg><figcaption>年平均気温 ${avg}℃・年降水量 ${sum}mm</figcaption></figure>`;
+}
+function climQ(list){
+  const [city, type, T, P] = pick(list);
+  return [{html:`この雨温図にあてはまる気候は？` + climSvg(T,P)}, type, "", choose(type, list.map(c=>c[1])), `この雨温図は ${city}`];
+}
+
+/* ---------- 年代(どちらが先？) ---------- */
+const EV_ANC = [[-400,"稲作が九州北部に伝わる(紀元前4世紀ごろ)"],[-221,"秦の始皇帝が中国を統一する"],[57,"奴国の王が漢から金印を授かる"],[239,"卑弥呼が魏に使いを送る"],[478,"倭王武が中国の南朝に使いを送る"],[538,"百済から仏教が伝わる"],[604,"十七条の憲法が定められる"],[607,"小野妹子が遣隋使として送られる"],[645,"大化の改新が始まる"],[663,"白村江の戦い"],[672,"壬申の乱"],[701,"大宝律令が定められる"],[710,"平城京に都を移す"],[743,"墾田永年私財法が出される"],[752,"東大寺の大仏が完成する"],[794,"平安京に都を移す"]];
+const EV_HEIAN = [[797,"坂上田村麻呂が征夷大将軍になる"],[894,"遣唐使が停止される"],[939,"平将門の乱が起こる"],[1016,"藤原道長が摂政になる"],[1086,"白河上皇が院政を始める"],[1167,"平清盛が太政大臣になる"],[1185,"壇ノ浦の戦いで平氏が滅ぶ"]];
+const EV_MOD = [[1642,"イギリスで清教徒革命が起こる"],[1688,"イギリスで名誉革命が起こる"],[1776,"アメリカ独立宣言が出される"],[1789,"フランス革命が始まり、人権宣言が出される"],[1804,"ナポレオンが皇帝になる"],[1840,"アヘン戦争が始まる"],[1851,"中国で太平天国の乱が起こる"],[1853,"ペリーが浦賀に来航する"],[1854,"日米和親条約が結ばれる"],[1857,"インド大反乱が起こる"],[1858,"日米修好通商条約が結ばれる"],[1860,"桜田門外の変が起こる"],[1861,"アメリカで南北戦争が始まる"],[1866,"薩長同盟が結ばれる"],[1867,"大政奉還が行われる"],[1868,"戊辰戦争が始まる"]];
+const EV_POST = [[1945,"ポツダム宣言を受け入れて降伏する"],[1946,"日本国憲法が公布される"],[1950,"朝鮮戦争が始まる"],[1951,"サンフランシスコ平和条約が結ばれる"],[1956,"日ソ共同宣言が出され、国際連合に加盟する"],[1960,"日米安全保障条約が改定される"],[1964,"東京オリンピックが開かれる"],[1965,"日韓基本条約が結ばれる"],[1972,"沖縄が日本に復帰する"],[1973,"石油危機が起こる"],[1978,"日中平和友好条約が結ばれる"],[1989,"ベルリンの壁が崩壊する"],[1991,"ソ連が解体する"]];
+const yr = y => y<0 ? `紀元前${-y}年` : `${y}年`;
+function orderQ(ev){
+  const four = shuf(ev).slice(0,4), old = Math.random()<.6;
+  const ans = four.reduce((a,b)=> old ? (b[0]<a[0]?b:a) : (b[0]>a[0]?b:a));
+  return [`次のうち、いちばん${old?"古い":"新しい"}できごとは？`, ans[1], "", four.map(e=>e[1]), [...four].sort((a,b)=>a[0]-b[0]).map(e=>`${yr(e[0])} ${e[1]}`).join("\n")];
+}
+
+/* ---------- 一問一答(選択) ---------- */
+const factQ = (facts, lead) => { const [q,a] = pick(facts); return [lead ? lead+q : q, a, "", choose(a, facts.map(f=>f[1]))]; };
+const GAS = [["ものを燃やすはたらきがある気体","酸素"],["二酸化マンガンにオキシドールを加えると発生する気体","酸素"],["石灰水を白くにごらせる気体","二酸化炭素"],["石灰石にうすい塩酸を加えると発生する気体","二酸化炭素"],["火をつけると音を立てて燃え、水ができる気体","水素"],["亜鉛にうすい塩酸を加えると発生する気体","水素"],["もっとも密度が小さい気体","水素"],["水に非常にとけやすく、水溶液がアルカリ性の気体","アンモニア"],["特有の刺激臭があり、上方置換法で集める気体","アンモニア"],["空気の体積の約78%をしめる気体","窒素"],["黄緑色で、漂白作用や殺菌作用がある気体","塩素"]];
+const BIO = [["だ液にふくまれ、デンプンを分解する消化酵素","アミラーゼ"],["胃液にふくまれ、タンパク質を分解する消化酵素","ペプシン"],["すい液にふくまれ、脂肪を分解する消化酵素","リパーゼ"],["肝臓でつくられ、脂肪の消化を助ける液","胆汁"],["小腸の内側のかべにある、小さな突起","柔毛"],["赤血球にふくまれ、酸素を運ぶ物質","ヘモグロビン"],["出血したとき、血液を固めるはたらきをする成分","血小板"],["体内に入った細菌などをとらえる成分","白血球"],["栄養分や不要な物質をとかして運ぶ、血液の液体成分","血しょう"],["有害なアンモニアを尿素に変える器官","肝臓"],["血液中の尿素などをこしとる器官","じん臓"],["植物の細胞にある、光合成を行う緑色の粒","葉緑体"],["根から吸収した水や肥料分が通る管","道管"],["葉でつくられた栄養分が通る管","師管"],["2つの孔辺細胞に囲まれた、葉の表皮のすきま","気孔"],["刺激に対して、意識とは関係なく起こる反応","反射"]];
+const KENPO = [["第1条","天皇は日本国と日本国民統合の象徴"],["第9条","戦争の放棄・戦力をもたない"],["第11条","基本的人権は侵すことのできない永久の権利"],["第13条","個人の尊重・幸福追求の権利"],["第14条","法の下の平等"],["第21条","集会・結社・表現の自由"],["第25条","健康で文化的な最低限度の生活を営む権利(生存権)"],["第26条","教育を受ける権利"],["第27条","勤労の権利"],["第28条","団結権・団体交渉権・団体行動権"],["第96条","憲法改正の手続き"]];
+const CONG = ["3組の辺がそれぞれ等しい","2組の辺とその間の角がそれぞれ等しい","1組の辺とその両端の角がそれぞれ等しい","これだけでは合同とはいえない"];
+function congQ(){
+  const [A,B,C] = shuf(["A","B","C"]), m = {A:"D",B:"E",C:"F"}, k = ri(0,3);
+  const s = (p,q)=>`${p}${q}＝${m[p]}${m[q]}`, an = p=>`∠${p}＝∠${m[p]}`;
+  const q = [[s(A,B),s(B,C),s(C,A)], [s(A,B),an(B),s(B,C)], [s(B,C),an(B),an(C)], [s(A,B),s(B,C),an(A)]][k];
+  return [`△ABC と △DEF で、${q.join("、")}。合同条件は？`, CONG[k], "", CONG, k===3?"等しい角が、等しい2辺の「間」にないので合同とはいえない":""];
+}
+const STATES = ["固体","液体","気体"];
+function stateQ(){
+  const mp = ri(-12,8)*10, bp = mp + ri(3,20)*10;
+  let t; do{ t = ri(-15,25)*10; }while(t===mp||t===bp);
+  const a = t<mp?"固体":t<bp?"液体":"気体";
+  return [`融点 ${sg(mp)}℃、沸点 ${sg(bp)}℃ の物質は、${sg(t)}℃ のとき何の状態？`, a, "", STATES];
+}
+
+/* ---------- 理科の表 ---------- */
+const SAT = {0:4.8, 5:6.8, 10:9.4, 15:12.8, 20:17.3, 25:23.1, 30:30.4};   // 飽和水蒸気量 g/m³
+const satHint = ts => "飽和水蒸気量:" + ts.map(t=>`${t}℃→${SAT[t]}g`).join("、");
+const TEMPS = [0,5,10,15,20,25,30];
+const DENS = [["氷",0.9],["水",1.0],["アルミニウム",2.7],["鉄",7.9],["銅",8.9],["銀",10.5],["鉛",11.3],["金",19.3]];
+const MERID = [["日本(東京)",135],["ロンドン",0],["パリ",15],["カイロ",30],["ペキン",120],["シドニー",150],["ニューヨーク",-75],["ロサンゼルス",-120],["リオデジャネイロ",-45],["ホノルル",-150]];
+const lon = d => d===0 ? "経度0度" : d>0 ? `東経${d}度` : `西経${-d}度`;
+
+const KD = [
+  /* ===== 数学 中1 ===== */
+  {s:"数学", id:"k-eq1", t:"1次方程式 ax＋b＝c", neg:true, f:()=>{ const a=nz(-9,9)||2, x=nz(-9,9), b=nz(-15,15); return [`${poly([a===1||a===-1?a:a,"x"],[b,""])} ＝ ${sg(a*x+b)}`, x, "x の値を答えよう"]; }},
+  {s:"数学", id:"k-eq2", t:"1次方程式 両辺に x", neg:true, f:()=>{ let a,c; do{ a=nz(-9,9); c=nz(-9,9); }while(a===c); const x=nz(-9,9), b=nz(-12,12), d=a*x+b-c*x; return [`${poly([a,"x"],[b,""])} ＝ ${poly([c,"x"],[d,""])}`, x, "x の値を答えよう"]; }},
+  {s:"数学", id:"k-eq3", t:"かっこのある方程式", neg:true, f:()=>{ const a=nz(-6,6), b=nz(-8,8), x=nz(-9,9); const aa = a===1?"":a===-1?"−":sg(a); return [`${aa}(x ${b<0?"−":"＋"} ${Math.abs(b)}) ＝ ${sg(a*(x+b))}`, x, "x の値を答えよう"]; }},
+  {s:"数学", id:"k-eq4", t:"分数のある方程式", neg:true, f:()=>{ const a=ri(2,6), b=nz(-6,6), x=a*nz(-6,6); return [`x/${a} ${b<0?"−":"＋"} ${Math.abs(b)} ＝ ${sg(x/a+b)}`, x, "x の値を答えよう(両辺に分母をかける)"]; }},
+  {s:"数学", id:"k-prop1", t:"比例 y の値を求める", neg:true, f:()=>{ const k=nz(-6,6), x1=nz(-6,6), x2=nz(-9,9); return [`y は x に比例し、x＝${sg(x1)} のとき y＝${sg(k*x1)}。x＝${sg(x2)} のときの y は？`, k*x2, "まず y＝ax の a を求める"]; }},
+  {s:"数学", id:"k-propk", t:"比例定数を求める", neg:true, f:()=>{ const inv=Math.random()<.5; if(!inv){ const k=nz(-8,8), x=nz(-6,6); return [`y は x に比例し、x＝${sg(x)} のとき y＝${sg(k*x)}。比例定数は？`, k, "a ＝ y ÷ x"]; } const K=pick([6,8,12,18,24,36])*pick([1,-1]); const ds=[1,2,3,4,6].filter(v=>K%v===0); const x=pick(ds)*pick([1,-1]); return [`y は x に反比例し、x＝${sg(x)} のとき y＝${sg(K/x)}。比例定数は？`, K, "a ＝ x × y"]; }},
+  {s:"数学", id:"k-inv1", t:"反比例 y の値を求める", neg:true, f:()=>{ const K=pick([12,18,24,36,48,60,72])*pick([1,-1]); const ds=[1,2,3,4,6,12].filter(v=>K%v===0); const x1=pick(ds)*pick([1,-1]); let x2; do{ x2=pick(ds)*pick([1,-1]); }while(x2===x1); return [`y は x に反比例し、x＝${sg(x1)} のとき y＝${sg(K/x1)}。x＝${sg(x2)} のときの y は？`, K/x2, "まず x × y ＝ a を求める"]; }},
+  {s:"数学", id:"k-quad", t:"座標と象限", ch:true, f:()=>{ const x=nz(-9,9), y=nz(-9,9); const a = x>0?(y>0?"第1象限":"第4象限"):(y>0?"第2象限":"第3象限"); return [`点 ${pt(x,y)} があるのは？`, a, "x が＋で y が＋なら第1象限、そこから反時計回り", ["第1象限","第2象限","第3象限","第4象限"]]; }},
+  /* ===== 数学 中2 ===== */
+  {s:"数学", id:"k-lin1", t:"1次関数 y の値", neg:true, f:()=>{ const a=nz(-5,5), b=nz(-9,9), x=nz(-6,6); return [`y ＝ ${poly([a,"x"],[b,""])} で、x＝${sg(x)} のときの y は？`, a*x+b, ""]; }},
+  {s:"数学", id:"k-lin2", t:"2点を通る直線の傾き", neg:true, f:()=>{ const a=nz(-4,4), b=nz(-6,6), x1=ri(-4,2), x2=x1+ri(1,4); return [`2点 ${pt(x1,a*x1+b)}、${pt(x2,a*x2+b)} を通る直線の傾きは？`, a, "傾き ＝ y の増加量 ÷ x の増加量"]; }},
+  {s:"数学", id:"k-lin3", t:"2点を通る直線の切片", neg:true, f:()=>{ const a=nz(-4,4), b=nz(-6,6), x1=ri(-4,2), x2=x1+ri(1,4); return [`2点 ${pt(x1,a*x1+b)}、${pt(x2,a*x2+b)} を通る直線の切片は？`, b, "傾きを求めてから、1点を代入"]; }},
+  {s:"数学", id:"k-lin4", t:"y の増加量・変化の割合", neg:true, f:()=>{ const a=nz(-5,5), b=nz(-9,9), p=ri(-4,3), q=p+ri(1,5); return Math.random()<.5 ? [`y ＝ ${poly([a,"x"],[b,""])} で、x が ${sg(p)} から ${sg(q)} まで増加するときの y の増加量は？`, a*(q-p), "y の増加量 ＝ 傾き × x の増加量"] : [`y ＝ ${poly([a,"x"],[b,""])} の変化の割合は？`, a, "1次関数の変化の割合は一定"]; }},
+  {s:"数学", id:"k-lin5", t:"傾きと1点から切片", neg:true, f:()=>{ const a=nz(-4,4), p=nz(-5,5), q=nz(-9,9); return [`傾きが ${sg(a)} で、点 ${pt(p,q)} を通る直線の切片は？`, q-a*p, "y＝ax＋b に代入して b を求める"]; }},
+  {s:"数学", id:"k-ang1", t:"多角形の内角の和", f:()=>{ const n=ri(5,12); return [`${n}角形の内角の和は何度？`, 180*(n-2), "180 ×(n − 2)"]; }},
+  {s:"数学", id:"k-ang2", t:"正多角形の1つの外角・内角", f:()=>{ const n=pick([3,4,5,6,8,9,10,12,15,18,20,24,36]); return Math.random()<.5 ? [`正${n}角形の1つの外角は何度？`, 360/n, "外角の和はいつも 360°"] : [`正${n}角形の1つの内角は何度？`, 180-360/n, "180° − 1つの外角"]; }},
+  {s:"数学", id:"k-ang3", t:"外角から正何角形か", f:()=>{ const n=pick([5,6,8,9,10,12,15,18,20,24,30,36]); return Math.random()<.5 ? [`1つの外角が ${360/n}° の正多角形は、正何角形？`, n, "360 ÷ 1つの外角"] : [`1つの内角が ${180-360/n}° の正多角形は、正何角形？`, n, "まず外角を求める"]; }},
+  {s:"数学", id:"k-ang4", t:"三角形の内角と外角", f:()=>{ const a=ri(25,80), b=ri(25,150-a); return Math.random()<.5 ? [`△ABC で ∠A＝${a}°、∠B＝${b}° のとき、∠C の外角は何度？`, a+b, "外角は、となりにない2つの内角の和"] : [`△ABC で ∠A＝${a}°、∠B＝${b}° のとき、∠C は何度？`, 180-a-b, "内角の和は 180°"]; }},
+  {s:"数学", id:"k-cong", t:"三角形の合同条件", ch:true, f:congQ},
+  /* ===== 数学 中3 ===== */
+  {s:"数学", id:"k-sq1", t:"y＝ax² の y の値", neg:true, f:()=>{ const a=nz(-4,4), x=nz(-6,6); return [`y ＝ ${a===1?"":a===-1?"−":sg(a)}x² で、x＝${sg(x)} のときの y は？`, a*x*x, "x² は先に計算(マイナスの2乗は＋)"]; }},
+  {s:"数学", id:"k-sq2", t:"y＝ax² の a を求める", neg:true, f:()=>{ const a=nz(-5,5), x=nz(-5,5); return [`y は x の2乗に比例し、x＝${sg(x)} のとき y＝${sg(a*x*x)}。比例定数 a は？`, a, "a ＝ y ÷ x²"]; }},
+  {s:"数学", id:"k-sq3", t:"y＝ax² の変化の割合", neg:true, f:()=>{ const a=nz(-3,3), p=ri(-5,3), q=p+ri(1,4); return [`y ＝ ${a===1?"":a===-1?"−":sg(a)}x² で、x が ${sg(p)} から ${sg(q)} まで増加するときの変化の割合は？`, a*(p+q), "(y の増加量)÷(x の増加量)。近道は a ×(p ＋ q)"]; }},
+  {s:"数学", id:"k-sq4", t:"y＝ax² の変域", neg:true, f:()=>{ const a=nz(-3,3), p=ri(-4,-1), q=ri(1,4); const m=a*Math.max(p*p,q*q); return a>0 ? [`y ＝ ${a===1?"":sg(a)}x² で、x の変域が ${sg(p)} ≦ x ≦ ${q} のとき、y の最大値は？`, m, "x＝0 をふくむので最小値は 0"] : [`y ＝ ${a===-1?"−":sg(a)}x² で、x の変域が ${sg(p)} ≦ x ≦ ${q} のとき、y の最小値は？`, m, "x＝0 をふくむので最大値は 0"]; }},
+  {s:"数学", id:"k-sim1", t:"相似比と辺の長さ", f:()=>{ let m,n; do{ m=ri(1,5); n=ri(2,7); }while(m>=n||gcd(m,n)!==1); const k=ri(1,6); return [`△ABC ∽ △DEF で、相似比は ${m}:${n}。AB＝${m*k}cm のとき、DE は何cm？`, n*k, ""]; }},
+  {s:"数学", id:"k-sim2", t:"相似な図形の面積比・体積比", f:()=>{ let m,n; do{ m=ri(1,4); n=ri(2,5); }while(m>=n||gcd(m,n)!==1); const t=ri(1,5); return Math.random()<.6 ? [`相似比が ${m}:${n} の2つの図形がある。小さい方の面積が ${m*m*t}cm² のとき、大きい方の面積は何cm²？`, n*n*t, "面積比は 相似比の2乗"] : [`相似比が ${m}:${n} の2つの立体がある。小さい方の体積が ${m*m*m*t}cm³ のとき、大きい方の体積は何cm³？`, n*n*n*t, "体積比は 相似比の3乗"]; }},
+  {s:"数学", id:"k-sim3", t:"平行線と線分の比", f:()=>{ const m=ri(1,5), n=ri(1,5), k=ri(1,4); if(Math.random()<.5) return [`△ABC で、辺 AB 上に点 D、辺 AC 上に点 E があり DE∥BC。AD＝${m*k}cm、DB＝${n*k}cm、AE＝${m*(k+1)}cm のとき、EC は何cm？`, n*(k+1), "AD:DB ＝ AE:EC"]; const s=m+n, bc=s*ri(1,4); return [`△ABC で DE∥BC、AD:DB＝${m}:${n}、BC＝${bc}cm のとき、DE は何cm？`, bc*m/s, "AD:AB ＝ DE:BC(AB は m＋n)"]; }},
+  {s:"数学", id:"k-mid", t:"中点連結定理", f:()=>{ const k=ri(2,15); return Math.random()<.5 ? [`△ABC で、AB の中点を M、AC の中点を N とする。BC＝${2*k}cm のとき、MN は何cm？`, k, "MN∥BC、MN ＝ BC の半分"] : [`△ABC で、AB の中点を M、AC の中点を N とする。MN＝${k}cm のとき、BC は何cm？`, 2*k, "MN ＝ BC の半分"]; }},
+  /* ===== 理科 中1 ===== */
+  {s:"理科", id:"k-dens", t:"密度の計算", dec:true, f:()=>{ const [nm,d]=pick(DENS), v=ri(2,20), m=Math.round(d*v*10)/10, k=ri(0,2); return [[`体積 ${v}cm³、質量 ${m}g の物質の密度は何g/cm³？`, d, "密度 ＝ 質量 ÷ 体積"], [`密度 ${d}g/cm³ の${nm} ${v}cm³ の質量は何g？`, m, "質量 ＝ 密度 × 体積"], [`密度 ${d}g/cm³ の${nm}が ${m}g ある。体積は何cm³？`, v, "体積 ＝ 質量 ÷ 密度"]][k]; }},
+  {s:"理科", id:"k-dens2", t:"密度から物質を見分ける", ch:true, f:()=>{ const [nm,d]=pick(DENS.filter(x=>x[0]!=="水")), v=ri(2,10), m=Math.round(d*v*10)/10; return [`体積 ${v}cm³、質量 ${m}g の物質は？`, nm, DENS.map(x=>`${x[0]} ${x[1]}`).join("、")+"(g/cm³)", choose(nm, DENS.filter(x=>x[0]!=="水").map(x=>x[0]))]; }},
+  {s:"理科", id:"k-gas", t:"気体の性質", ch:true, f:()=>factQ(GAS)},
+  {s:"理科", id:"k-conc", t:"質量パーセント濃度", f:()=>{ const T=pick([50,100,200,250,400,500]); let p; do{ p=ri(2,40); }while(T*p%100); const s=T*p/100, w=T-s; return [[`水 ${w}g に食塩 ${s}g をとかした食塩水の濃度は何%？`, p, "濃度 ＝ 溶質 ÷(溶質＋水)× 100"], [`${p}% の食塩水 ${T}g にとけている食塩は何g？`, s, "溶質 ＝ 溶液 × 濃度 ÷ 100"], [`${p}% の食塩水を ${T}g つくるのに、水は何g 必要？`, w, "まず食塩の質量を求める"]][ri(0,2)]; }},
+  {s:"理科", id:"k-solub", t:"溶解度と再結晶", dec:true, f:()=>{ const lo=ri(10,40), hi=lo+ri(20,90), w=pick([100,100,50,200]); const t1=pick([60,70,80]), t2=pick([10,20,30]); return [`ある物質の溶解度(水100gにとける最大の質量)は、${t1}℃で${hi}g、${t2}℃で${lo}g。${t1}℃の水${w}gにこの物質をとけるだけとかし、${t2}℃に冷やすと、何gの結晶が出てくる？`, (hi-lo)*w/100, w===100?"とけきれなくなった分が結晶になる":`水が${w}gなので、100gのときの ${w/100}倍`]; }},
+  {s:"理科", id:"k-state", t:"融点・沸点と状態", ch:true, f:stateQ},
+  {s:"理科", id:"k-refl", t:"光の反射", f:()=>{ const x=ri(10,80); return Math.random()<.5 ? [`鏡の面と入射した光のなす角が ${x}° のとき、反射角は何度？`, 90-x, "入射角・反射角は、鏡に垂直な線からはかる"] : [`入射角が ${x}° のとき、反射角は何度？`, x, "入射角 ＝ 反射角"]; }},
+  /* ===== 理科 中2 ===== */
+  {s:"理科", id:"k-pres", t:"圧力の計算", f:()=>{ const A=pick([10,20,25,40,50,100,200,250,400,500]), F=ri(1,60); return Math.random()<.5 ? [`${F}N の力が ${A}cm² の面に垂直にはたらく。圧力は何Pa？`, F*10000/A, `1cm² ＝ 0.0001m²(${A}cm² ＝ ${A/10000}m²)`] : [`質量 ${F*100}g の物体を、底面積 ${A}cm² の面を下にして置く。圧力は何Pa？(100g の物体にはたらく重力を 1N とする)`, F*10000/A, "圧力(Pa)＝ 力(N)÷ 面積(m²)"]; }},
+  {s:"理科", id:"k-hum", t:"湿度の計算", f:()=>{ let t, v, a; do{ t=pick([15,20,25,30]); const tv=pick(TEMPS.filter(x=>x<t)); v=SAT[tv]; a=v/SAT[t]*100; }while(Math.abs(a%1-.5)<.02); return [`気温 ${t}℃ の空気 1m³ に、水蒸気が ${v}g ふくまれている。湿度は何%？(小数第1位を四捨五入)`, Math.round(a), satHint([t]) + "。湿度 ＝ 水蒸気量 ÷ 飽和水蒸気量 × 100"]; }},
+  {s:"理科", id:"k-dew", t:"露点と水滴の量", dec:true, f:()=>{ const t=pick([20,25,30]), td=pick(TEMPS.filter(x=>x<t)), v=SAT[td]; if(td===0||Math.random()<.5) return [`気温 ${t}℃ の空気 1m³ に、水蒸気が ${v}g ふくまれている。この空気の露点は何℃？`, td, satHint(TEMPS)]; const t3=pick(TEMPS.filter(x=>x<td)); return [`空気 1m³ に水蒸気が ${v}g ふくまれている。この空気を ${t3}℃ まで冷やすと、何g の水滴ができる？`, Math.round((v-SAT[t3])*10)/10, satHint(TEMPS)]; }},
+  {s:"理科", id:"k-transp", t:"蒸散の実験", dec:true, f:()=>{ const s=ri(3,12), u=ri(14,40), k=ri(1,5), f=x=>fmtDec(x,1); const k2=ri(0,2); const q=`葉の数と大きさがそろった枝で実験した。A:何もぬらない→${f(s+u+k)}mL、B:葉の表にワセリン→${f(u+k)}mL、C:葉の裏にワセリン→${f(s+k)}mL 水が減った。`; return [[q+"葉の表からの蒸散量は何mL？", f(s), "A − B"], [q+"葉の裏からの蒸散量は何mL？", f(u), "A − C"], [q+"茎からの蒸散量は何mL？", f(k), "B ＋ C − A"]][k2]; }},
+  {s:"理科", id:"k-bio", t:"消化・血液・植物のつくり", ch:true, f:()=>factQ(BIO)},
+  /* ===== 理科 中3 ===== */
+  {s:"理科", id:"k-speed", t:"平均の速さ", f:()=>{ const v=ri(2,30), t=ri(2,12); return Math.random()<.5 ? [`${v*t}m を ${t}秒 で移動した。平均の速さは何m/s？`, v, "速さ ＝ 距離 ÷ 時間"] : [`${v*t}km を ${t}時間 で移動した。平均の速さは何km/h？`, v, "速さ ＝ 距離 ÷ 時間"]; }},
+  {s:"理科", id:"k-tape", t:"記録タイマーのテープ", f:()=>{ const x=ri(12,98); return [`1秒間に50回打点する記録タイマーで、5打点ごとに切ったテープの長さが ${fmtDec(x,1)}cm。この区間の平均の速さは何cm/s？`, x, "5打点 ＝ 0.1秒"]; }},
+  {s:"理科", id:"k-fcomp", t:"力の合成", f:()=>{ const k=ri(0,2); if(k===0){ const a=ri(2,9), b=ri(2,9); return [`同じ向きに ${a}N と ${b}N の力がはたらく。合力は何N？`, a+b, ""]; } if(k===1){ const a=ri(5,12), b=ri(1,a-1); return [`反対向きに ${a}N と ${b}N の力がはたらく。合力の大きさは何N？`, a-b, ""]; } const [a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[9,12,15]]); return [`たがいに垂直な向きに ${a}N と ${b}N の力がはたらく。合力の大きさは何N？`, c, "平行四辺形(長方形)の対角線"]; }},
+  {s:"理科", id:"k-buoy", t:"浮力", dec:true, f:()=>{ const a=ri(15,60), b=ri(5,a-3); return [`ばねばかりで、空気中では ${fmtDec(a,1)}N、水中に全部しずめると ${fmtDec(b,1)}N だった。浮力は何N？`, fmtDec(a-b,1), "浮力 ＝ 空気中の重さ − 水中の重さ"]; }},
+  {s:"理科", id:"k-work", t:"仕事と仕事率", dec:true, f:()=>{ const k=ri(0,2); if(k===0){ const m=ri(1,30)*100, h=pick([0.5,1,1.5,2,3]); return [`質量 ${m}g の物体を ${h}m 持ち上げた。仕事は何J？(100g の物体にはたらく重力を 1N とする)`, Math.round(m/100*h*10)/10, "仕事 ＝ 力 × 動かした距離"]; } if(k===1){ const w=ri(2,30), s=ri(2,10); return [`${w*s}J の仕事を ${s}秒 でした。仕事率は何W？`, w, "仕事率 ＝ 仕事 ÷ 時間"]; } const F=ri(2,20)*2, h=ri(1,9)*10; return Math.random()<.5 ? [`重さ ${F}N の物体を動滑車を使って ${h}cm 持ち上げる。ひもを引く力は何N？(滑車やひもの重さは考えない)`, F/2, "動滑車:力は半分、引く距離は2倍"] : [`重さ ${F}N の物体を動滑車を使って ${h}cm 持ち上げる。ひもを何cm 引く？`, h*2, "動滑車:力は半分、引く距離は2倍"]; }},
+  {s:"理科", id:"k-gene", t:"遺伝の比", f:()=>{ const n=ri(10,250)*4; const k=ri(0,2); if(k===0) return [`丸い種子(AA)としわのある種子(aa)をかけ合わせた子(Aa)どうしをかけ合わせ、孫が ${n}個できた。しわのある種子はおよそ何個？`, n/4, "AA:Aa:aa ＝ 1:2:1、丸:しわ ＝ 3:1"]; if(k===1) return [`丸い種子(AA)としわのある種子(aa)をかけ合わせた子(Aa)どうしをかけ合わせ、孫が ${n}個できた。丸い種子はおよそ何個？`, n*3/4, "丸:しわ ＝ 3:1"]; return [`Aa の個体と aa の個体をかけ合わせ、子が ${n}個できた。aa の子はおよそ何個？`, n/2, "Aa:aa ＝ 1:1"]; }},
+  {s:"理科", id:"k-sky", t:"星の日周運動・年周運動", f:()=>{ const k=ri(0,2); if(k===0){ const h=ri(1,6); return [`星は、${h}時間で約何度 動いて見える？`, 15*h, "地球は1時間に約15°自転"]; } if(k===1){ const m=ri(1,6); return [`同じ時刻に見える星の位置は、${m}か月で約何度 西へ動く？`, 30*m, "1か月で約30°(1年で360°)"]; } const m=ri(1,4), t=pick([20,21,22,23]); return [`ある星が午後${t-12}時に南中した。${m}か月後、この星が南中するのは何時ごろ？(24時制で答える)`, t-2*m, "1か月で南中時刻は約2時間早くなる"]; }},
+  /* ===== 社会 ===== */
+  {s:"社会", id:"k-uonw", t:"雨温図(世界の気候)", ch:true, f:()=>climQ(CLIM_W)},
+  {s:"社会", id:"k-uonj", t:"雨温図(日本の気候)", ch:true, f:()=>climQ(CLIM_J)},
+  {s:"社会", id:"k-jisa", t:"時差の計算", f:()=>{ let a,b; do{ a=pick(MERID); b=pick(MERID); }while(a===b||a[1]===b[1]); if(a[0]!=="日本(東京)"&&Math.random()<.6) a=MERID[0]; if(a[1]===b[1]) b=MERID[1]; return [`${a[0]}(${lon(a[1])}) と ${b[0]}(${lon(b[1])}) の時差は何時間？`, Math.abs(a[1]-b[1])/15, "経度15度で1時間。東経と西経は足す"]; }},
+  {s:"社会", id:"k-ordA", t:"年代 古代(〜奈良)", ch:true, f:()=>orderQ(EV_ANC)},
+  {s:"社会", id:"k-ordB", t:"年代 古代〜平安", ch:true, f:()=>orderQ([...EV_ANC.slice(4),...EV_HEIAN])},
+  {s:"社会", id:"k-ordM", t:"年代 欧米の近代化と開国", ch:true, f:()=>orderQ(EV_MOD)},
+  {s:"社会", id:"k-ordP", t:"年代 戦後の日本と世界", ch:true, f:()=>orderQ(EV_POST)},
+  {s:"社会", id:"k-kenpo", t:"日本国憲法の条文", ch:true, f:()=>{ const [n,c]=pick(KENPO); return Math.random()<.5 ? [`日本国憲法 ${n} の内容は？`, c, "", choose(c, KENPO.map(x=>x[1]))] : [`「${c}」を定めているのは日本国憲法の何条？`, n, "", choose(n, KENPO.map(x=>x[0]))]; }}
+];
+KD.forEach(d=>{ d.g = "期末:" + d.s; d.qend = ""; d.kim = true; });
+
+/* ---------- 単元(教科書ページ)と範囲 ---------- */
+const KU = {
+  "m1-eq":   {s:"数学", n:"方程式(つづき)", p:"東書 p91〜116", d:["k-eq1","k-eq2","k-eq3","k-eq4"], sets:["sg-sample-1"]},
+  "m1-prop": {s:"数学", n:"比例と反比例", p:"東書 p117〜156", d:["k-prop1","k-propk","k-inv1","k-quad"], sets:["sg-sample-1"]},
+  "m2-lin":  {s:"数学", n:"1次関数", p:"東書 p57〜94", d:["k-lin1","k-lin2","k-lin3","k-lin4","k-lin5"], sets:["sg-yogo-2"]},
+  "m2-fig":  {s:"数学", n:"図形の性質(平行線と角・合同)", p:"東書 p95〜124", d:["k-ang1","k-ang2","k-ang3","k-ang4","k-cong"], sets:["sg-yogo-2"]},
+  "m3-sq":   {s:"数学", n:"関数 y＝ax²", p:"東書 p93〜126", d:["k-sq1","k-sq2","k-sq3","k-sq4"], sets:["sg-yogo-3"]},
+  "m3-sim":  {s:"数学", n:"相似な図形", p:"東書 p127〜166", d:["k-sim1","k-sim2","k-sim3","k-mid"], sets:["sg-yogo-3"]},
+  "r1-mat":  {s:"理科", n:"身のまわりの物質(物質の性質・密度・気体)", p:"東書 p70〜100", d:["k-dens","k-dens2","k-gas"], sets:["rk-ka-1","rk-sample-1"]},
+  "r1-sol":  {s:"理科", n:"水溶液(濃度・溶解度)と状態変化", p:"東書 p102〜137", d:["k-conc","k-solub","k-state"], sets:["rk-ka-1"]},
+  "r1-light":{s:"理科", n:"光の世界(反射)", p:"東書 p138〜147", d:["k-refl"], sets:["rk-bu-1"]},
+  "r2-bio":  {s:"理科", n:"生物のからだのつくりとはたらき", p:"東書 p86〜164", d:["k-transp","k-bio"], sets:["rk-se-2"]},
+  "r2-wx":   {s:"理科", n:"気象の観測(圧力・湿度・露点)", p:"東書 p165〜194", d:["k-pres","k-hum","k-dew"], sets:["rk-ch-2"]},
+  "r3-life": {s:"理科", n:"生命の連続性(細胞分裂・遺伝)", p:"東書 p72〜124", d:["k-gene"], sets:["rk-se-3"]},
+  "r3-mot":  {s:"理科", n:"運動とエネルギー", p:"東書 p130〜186", d:["k-speed","k-tape","k-fcomp","k-buoy","k-work"], sets:["rk-bu-3"]},
+  "r3-sky":  {s:"理科", n:"地球と宇宙(天体の動き)", p:"東書 p198〜218", d:["k-sky"], sets:["rk-ch-3"]},
+  "s1-jpn":  {s:"社会", n:"地理 日本の姿(時差)", p:"帝国 地理", d:["k-jisa"], sets:["geo-wm-5"]},
+  "s1-life": {s:"社会", n:"地理 世界各地の人々の生活と環境", p:"帝国 地理", d:["k-uonw"], sets:["sk-chiri-1"]},
+  "s1-asia": {s:"社会", n:"地理 アジア州・ヨーロッパ州", p:"帝国 地理", d:[], sets:["geo-wm-1","geo-wk-1","geo-wm-2","geo-wk-2","geo-wc-1","geo-wc-2"]},
+  "h1-ancA": {s:"社会", n:"歴史 文明のおこり〜古代", p:"帝国 歴史", d:["k-ordA"], sets:["sk-sample-1","sk-reki-1"]},
+  "h1-ancB": {s:"社会", n:"歴史 古代国家〜平安", p:"帝国 歴史", d:["k-ordB"], sets:["sk-sample-1","sk-reki-1"]},
+  "s2-jp":   {s:"社会", n:"地理 日本の地域的特色・九州・中国四国・近畿", p:"帝国 地理", d:["k-uonj"], sets:["sk-chiri-2","geo-jm-6","geo-jm-5","geo-jm-4","geo-pf-3","geo-cp-3"]},
+  "h2-mod":  {s:"社会", n:"歴史 欧米の近代化と開国", p:"帝国 歴史", d:["k-ordM"], sets:["sk-reki-3"]},
+  "h3-post": {s:"社会", n:"歴史 戦後の日本と世界", p:"帝国 歴史", d:["k-ordP"], sets:["sk-reki-4"]},
+  "c3-ken":  {s:"社会", n:"公民 現代社会・人権と日本国憲法", p:"日文 公民", d:["k-kenpo"], sets:["sk-kom-1"]}
+};
+/* 学校ごとの期末範囲(2026年 2学期期末)。pg は生徒に見せる教科書ページ */
+const KIM = {
+  "中1": {
+    "富中": {pg:{国語:"光村 p96〜169", 数学:"東書 p92〜156", 社会:"地理 p26〜60・歴史 p38〜77", 理科:"東書 p70〜137", 英語:"三省堂 p67〜90"},
+             u:["m1-eq","m1-prop","r1-mat","r1-sol","s1-jpn","s1-life","h1-ancB"], en:"中1 教科書"},
+    "富西": {pg:{国語:"光村 p96〜169", 数学:"東書 p92〜156", 社会:"地理 p46〜91・歴史 p26〜61", 理科:"東書 p70〜147", 英語:"三省堂 p53〜(Take Action!)"},
+             u:["m1-eq","m1-prop","r1-mat","r1-sol","r1-light","s1-life","s1-asia","h1-ancA"], en:"中1 教科書"}
+  },
+  "中2": {
+    "共通": {pg:{国語:"光村 p92〜157", 数学:"東書 p57〜124", 社会:"地理 p170〜211・歴史 p136〜159", 理科:"東書 p86〜194", 英語:"三省堂 p46〜81"},
+             u:["m2-lin","m2-fig","r2-bio","r2-wx","s2-jp","h2-mod"], en:"中2 教科書"}
+  },
+  "中3": {
+    "共通": {pg:{国語:"光村 p100〜170", 数学:"東書 p93〜166", 社会:"歴史 p264〜283・公民(日文) p8〜101", 理科:"東書 p72〜218", 英語:"三省堂 p34〜75"},
+             u:["m3-sq","m3-sim","r3-life","r3-mot","r3-sky","h3-post","c3-ken"], en:"中3 教科書"}
+  }
+};
+
+const MATH_BY = Object.fromEntries([...MATH_DRILLS, ...KD].map(d=>[d.id,d]));
+/* ---------- 期末対策の画面 ---------- */
+const KSUB = "期末対策";
+function kimUser(){ const u = user(); return u ? (u.kim ||= {}) : (ui.kimTmp ||= {}); }
+function kimSchool(){ const k = kimUser(); if(!k.g || !KIM[k.g]) return [null,null]; const ss = Object.keys(KIM[k.g]); return [k.g, ss.length===1 ? ss[0] : (ss.includes(k.sch) ? k.sch : null)]; }
+function drillBtn(d){ const b=mathBest(d.id), on=ui.mdrill===d.id; return `
+      <button class="set mset ${on?"on":""}" data-act="mdrill" data-v="${d.id}">
+        <span class="mradio" aria-hidden="true">${on?"●":"○"}</span>
+        <span><span class="t">${esc(d.t)}</span><span class="m">${d.ch?"選んで答える":d.neg?"マイナスは − キー":d.dec?"小数で答える":""}</span></span>
+        <span class="stat">${b?`1分ベスト<br><b>${b.t60||0}</b>問`:""}</span>
+      </button>`; }
+function mathOpts(sel){ return `<div class="opts">
+      <div><p class="label">問題数</p><div class="seg">${[["n10","10問"],["n20","20問"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
+      <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
+    </div>
+    <div class="startbar"><span class="sum">${sel?esc(sel.t):"問題を選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`; }
+function viewKimatsuHome(){
+  const [g, sch] = kimSchool(), k = kimUser();
+  let h = `<div><p class="label">学年</p><div class="filters">${Object.keys(KIM).map(x=>`<button class="chip big" aria-pressed="${g===x}" data-act="kgrade" data-v="${x}">${x}</button>`).join("")}</div></div>`;
+  if(g && Object.keys(KIM[g]).length>1) h += `<div><p class="label">学校</p><div class="filters">${Object.keys(KIM[g]).map(x=>`<button class="chip big" aria-pressed="${sch===x}" data-act="ksch" data-v="${esc(x)}">${esc(x)}</button>`).join("")}</div></div>`;
+  if(!g) return h + `<p class="empty">学年を選んでください(1回選べば次から覚えています)。</p>`;
+  if(!sch) return h + `<p class="empty">学校を選んでください。</p>`;
+  const R = KIM[g][sch], units = R.u.map(id=>[id,KU[id]]).filter(x=>x[1]);
+  h += `<div class="kpg"><p class="label">期末テストの範囲(教科書のページ)</p><table>${Object.entries(R.pg).map(([s,v])=>`<tr><th>${esc(s)}</th><td>${esc(v)}</td></tr>`).join("")}</table>
+    <p class="note">英語の単語は <button class="link" data-act="kgo" data-s="英語" data-g="${esc(R.en)}">${esc(R.en)}のセット</button>、国語の漢字は <button class="link" data-act="kgo" data-s="国語" data-c="漢検" data-g="">漢検のセット</button> から。</p></div>`;
+  for(const s of ["数学","理科","社会"]){
+    const us = units.filter(([,u])=>u.s===s); if(!us.length) continue;
+    h += `<div class="ksub"><h3>${esc(s)}</h3>${us.map(([id,u])=>{ const ds=u.d.map(x=>MATH_BY[x]).filter(Boolean); const hasSets=u.sets.some(x=>SETS.some(z=>z.id===x)); return `
+      <div class="ghead"><span>${esc(u.n)}</span>${hasSets?`<span><button class="link" data-act="kset" data-u="${id}">${u.s==="社会"?"用語・地図":"用語"}テスト →</button></span>`:""}</div>
+      ${ds.length?`<div class="sets">${ds.map(drillBtn).join("")}</div>`:""}`; }).join("")}</div>`;
+  }
+  const sel = ui.mdrill && MATH_BY[ui.mdrill] && MATH_BY[ui.mdrill].kim ? MATH_BY[ui.mdrill] : null;
+  return h + mathOpts(sel);
+}
+
 function mathBest(id){ return user()?.math?.[id] || null; }
 function viewMathHome(){
   const groups = [...new Set(MATH_DRILLS.map(d=>d.g))];
@@ -10180,23 +10431,25 @@ function viewMathHome(){
     </div>
     <div class="startbar"><span class="sum">${sel?esc(sel.t):"ドリルを選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`;
 }
-function makeMathQ(d){ const [q,a,hint] = d.f(); return {math:true, d, q, a:String(a), hint, input:"", picked:null}; }
+function makeMathQ(d){ const [q,a,hint,ch,ex] = d.f(); return {math:true, d, q, a:String(a), hint, ch: ch ? shuf(ch) : null, ex, input:"", picked:null}; }
 function startMath(id, limit=ui.mlimit){
   stopTimer();
   const d = MATH_BY[id]; if(!d) return;
   const timed = limit.startsWith("t"), n = timed ? 30 : +limit.slice(1);
   sendState = ["",""];
-  quiz = {math:true, drill:id, label:d.t, qs:Array.from({length:n},()=>makeMathQ(d)), i:0, wrong:[], timed, startedAt:Date.now(), pool:[{subject:"算数"}]};
+  quiz = {math:true, drill:id, label:d.t, subj:d.s||null, qs:Array.from({length:n},()=>makeMathQ(d)), i:0, wrong:[], timed, startedAt:Date.now(), pool:[{subject:d.s||"算数"}]};
   if(timed){ quiz.sec=+limit.slice(1); quiz.endAt=Date.now()+quiz.sec*1000; timerId=setInterval(tick,250); }
   ui.view="quiz"; render();
 }
 function mathQText(q){
+  if(q.q && q.q.html) return q.q.html;
   if(typeof q.q==="object") return `<span class="frac"><span>${q.q.n}</span><span>${q.q.d}</span></span>`;
   return esc(q.q);
 }
 function viewMathQuiz(){
   const q = quiz.qs[quiz.i], n = quiz.qs.length, d = q.d;
   const done = q.picked!==null;
+  if(d.kim) return viewKimQuiz(q, n, d, done);
   // 4列のテンキー:OKを右下に大きく置き、スクロールなしで答えを送れるようにする
   const ex = d.frac?"/":d.rem?"…":d.dec?".":"";
   const keys = ["7","8","9","⌫","4","5","6",ex,"1","2","3"];
@@ -10213,18 +10466,55 @@ function viewMathQuiz(){
       <button class="pk zero" data-act="mkey" data-k="0" ${done?"disabled":""}>0</button></div>`}
     <p class="kbd">キーボードの数字でも入力できます(Enterで決定)　<button class="link" data-act="quit">やめる</button></p>`;
 }
+function viewKimQuiz(q, n, d, done){
+  const nextLbl = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
+  const head = `<div class="card mcard kcard ${done?(q.ok?"okc":"ngc"):""}">
+      <span class="kq">${mathQText(q)}</span>
+      ${q.hint&&!q.ch?`<span class="note">${esc(q.hint)}</span>`:""}
+      ${q.ch?"":`<span class="mans ${done?(q.ok?"ok":"ng"):""}">${esc(String(q.input).replace(/-/g,"−"))||(done?"":"<span class='ph'>？</span>")}</span>`}
+      ${done&&!q.ok&&!q.ch?`<span class="mright">正しい答え:<b>${esc(String(q.a).replace(/-/g,"−"))}</b></span>`:""}
+      ${done&&q.ok?`<span class="mright ok">正解！</span>`:""}
+      ${done&&q.ex?`<span class="kex">${esc(q.ex).replace(/\n/g,"<br>")}</span>`:""}
+      ${done&&!q.ok&&q.ch&&q.hint?`<span class="note">${esc(q.hint)}</span>`:""}
+    </div>`;
+  if(q.ch){
+    const cs = q.ch.map((c,k)=>{ let cls="choice"; if(done){ if(c===q.a) cls+=" right"; else if(k===q.pickedK) cls+=" wrong"; } return `<button class="${cls}" data-act="mchoice" data-k="${k}" ${done?"disabled":""}><span class="k">${k+1}</span><span>${esc(c)}</span></button>`; }).join("");
+    return header() + quizHead(n) + head + `<div class="choices">${cs}</div>
+      ${done&&!q.ok?`<button class="primary nextbig" data-act="next" id="nextBtn">${nextLbl}</button>`:""}
+      <p class="kbd">キーボードの 1〜4 でも選べます　<button class="link" data-act="quit">やめる</button></p>`;
+  }
+  const ex = d.neg?"-":d.dec?".":"";
+  const keys = ["7","8","9","⌫","4","5","6",ex,"1","2","3"];
+  return header() + quizHead(n) + head + (done&&!q.ok?`<button class="primary nextbig" data-act="next" id="nextBtn">${nextLbl}</button>`:`
+    <div class="pad mpad">${keys.map(k=>k?`<button class="pk" data-act="mkey" data-k="${esc(k)}" ${done?"disabled":""}>${k==="-"?"−":esc(k)}</button>`:`<span></span>`).join("")}
+      <button class="pk ok" data-act="mkey" data-k="OK" ${done?"disabled":""}>OK</button>
+      <button class="pk zero" data-act="mkey" data-k="0" ${done?"disabled":""}>0</button></div>`) +
+    `<p class="kbd">キーボードの数字でも入力できます(Enterで決定)　<button class="link" data-act="quit">やめる</button></p>`;
+}
+function mathChoice(k){
+  const q = quiz.qs[quiz.i]; if(!q || q.picked!==null || !q.ch) return;
+  q.pickedK = k; q.input = q.ch[k];
+  q.ok = q.ch[k]===q.a; q.picked = 0;
+  dmgOnAnswer(q.ok, {}, false, false);
+  if(!q.ok) quiz.wrong.push({key:"math::"+quiz.i, en: q.q && q.q.html ? q.d.t : q.q, ja:q.a, subject:q.d.s||"算数", setTitle:q.d.t, sid:"math"});
+  render();
+  if(q.ok) setTimeout(()=>{ if(quiz && quiz.qs[quiz.i]===q) next(); }, q.ex?1400:450);
+  else setTimeout(()=>$("#nextBtn")?.focus({preventScroll:true}),0);
+}
 function mathKey(k){
   const q = quiz.qs[quiz.i]; if(!q || q.picked!==null) return;
   if(k==="OK"){ if(!q.input) return; return mathJudge(q); }
   if(k==="⌫") q.input = q.input.slice(0,-1);
+  else if(k==="-"){ q.input = q.input.startsWith("-") ? q.input.slice(1) : "-"+q.input; }
   else if(q.input.length<8) q.input += k;
   render();
 }
 function normAns(s){ return String(s).replace(/\s/g,"").replace(/\.\.\.|あまり/g,"…"); }
 function mathJudge(q){
-  q.ok = q.d.dec ? (q.input!=="" && !isNaN(+q.input) && Math.abs(+q.input - +q.a) < 1e-9) : normAns(q.input)===normAns(q.a); q.picked = 0;
+  const isN = s => /^-?\d+(\.\d+)?$/.test(s);
+  q.ok = (q.d.dec || (q.d.kim && isN(q.a))) ? (isN(q.input) && Math.abs(+q.input - +q.a) < 1e-9) : normAns(q.input)===normAns(q.a); q.picked = 0;
   dmgOnAnswer(q.ok, {}, false, false);
-  if(!q.ok) quiz.wrong.push({key:"math::"+quiz.i, en: typeof q.q==="object" ? `${q.q.n}/${q.q.d}` : q.q, ja:q.a, subject:"算数", setTitle:q.d.t, sid:"math"});
+  if(!q.ok) quiz.wrong.push({key:"math::"+quiz.i, en: q.q && q.q.html ? q.d.t : typeof q.q==="object" ? `${q.q.n}/${q.q.d}` : q.q, ja:q.a, subject:q.d.s||"算数", setTitle:q.d.t, sid:"math"});
   render();
   if(q.ok) setTimeout(()=>{ if(quiz && quiz.qs[quiz.i]===q) next(); }, 350);
   else setTimeout(()=>$("#nextBtn")?.focus({preventScroll:true}),0);
@@ -10646,7 +10936,7 @@ function modeLabels(S){
   if(st.length>1 && ui.subject!=="英語") return [["en2ja","表 → 裏(読み・意味)"],["ja2en","裏 → 表(書き・言葉)"],["mix","まぜる"]];
   return S.modes;
 }
-const SUBJECTS = [...Object.keys(SUBJ).filter(k => SETS.some(s=>s.subject===k)), "算数"];
+const SUBJECTS = [...Object.keys(SUBJ).filter(k => SETS.some(s=>s.subject===k)), "算数", "期末対策"];
 const sj = name => SUBJ[name] || TERM_SUBJ;
 const toKata = s => String(s).replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0)+0x60));
 const isOrderSet = sid => /^ord-/.test(sid);
@@ -10664,7 +10954,7 @@ function load(){ try{ const r = localStorage.getItem(STORE_KEY); if(r) mem = JSO
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
 load();
 
-const ui = {mlimit:"n10", mdrill:null, view:"home", tab:"sets", subject:(mem.subject==="算数"||(SUBJ[mem.subject]&&SETS.some(s=>s.subject===mem.subject)))?mem.subject:"英語", course:null, group:null, selected:new Set(), openChap:new Set(), mode:"en2ja", fmode:"mix", limit:"n10"};
+const ui = {mlimit:"n10", mdrill:null, view:"home", tab:"sets", subject:(mem.subject==="算数"||mem.subject==="期末対策"||(SUBJ[mem.subject]&&SETS.some(s=>s.subject===mem.subject)))?mem.subject:"英語", course:null, group:null, selected:new Set(), openChap:new Set(), mode:"en2ja", fmode:"mix", limit:"n10"};
 let timerId = null;
 let quiz = null;
 
@@ -11063,7 +11353,7 @@ function viewHome(){
     body = `<section class="panel" style="display:flex;flex-direction:column;gap:14px">
       <div class="subjects" role="group" aria-label="教科">${SUBJECTS.map(k=>{const due=allWords.filter(w=>w.subject===k&&isDue(w.key)).length;return `<button class="subj" aria-pressed="${ui.subject===k}" data-act="subject" data-s="${esc(k)}">${esc(k)}${due?`<i>${due}</i>`:""}</button>`}).join("")}</div>
       ${ui.name && !JUKU ? manaPanel() + badgePanel() : ""}
-      ${ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
+      ${ui.subject==="期末対策" ? viewKimatsuHome() : ui.subject==="算数" ? viewMathHome() : `      <div><p class="label">区分</p><div class="filters">${courses.map(c=>{const n=SS.filter(s=>s.course===c&&setDone(s)).length;const k=SS.filter(s=>s.course===c&&ui.selected.has(s.id)).length;return `<button class="chip big" aria-pressed="${ui.course===c}" data-act="course" data-c="${esc(c)}">${esc(c)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>
       ${ui.course==="英検 第1問" ? viewGenPanel() : ""}
       ${selBox(S)}
       ${!ui.course?`<p class="empty">まず区分を選んでください。</p>`:groups.length>1?`<div><p class="label">${esc(S.groupLabel)}</p><div class="filters">${groups.map(g=>{const n=inCourse.filter(s=>s.group===g&&setDone(s)).length;const k=inCourse.filter(s=>s.group===g&&ui.selected.has(s.id)).length;return `<button class="chip" aria-pressed="${ui.group===g}" data-act="group" data-g="${esc(g)}">${esc(g)}${k?`<span class="sel-n" title="選んでいるセット">✓${k}</span>`:""}${n?`<span class="maru-n">${n}</span>`:""}</button>`}).join("")}</div></div>`:""}
@@ -11316,7 +11606,7 @@ function dmgFinish(){
 /* 魔法の色:教科で属性が変わる(英語=風 数学=雷 国語=水 理科=炎 社会=大地) */
 function spellColor(){
   if(!quiz) return "#b48cff";
-  if(quiz.math) return "#ffe14d";
+  if(quiz.math) return ({"理科":"#ff7a3d","社会":"#d2a26c"})[quiz.subj] || "#ffe14d";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "#b48cff";
   return ({"英語":"#7fe0c0","数学":"#ffe14d","国語":"#5ab8ff","理科":"#ff7a3d","社会":"#d2a26c"})[ss[0]] || "#b48cff";
@@ -11374,7 +11664,7 @@ async function flushDmg(){
 /* 魔法の名前:教科・形式で変わる */
 function spellName(){
   if(!quiz) return "マル単の魔法";
-  if(quiz.math) return "雷の魔法(計算)";
+  if(quiz.math) return ({"理科":"炎の魔法","社会":"大地の魔法","数学":"雷の魔法"})[quiz.subj] || "雷の魔法(計算)";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "マル単の魔法";
   return ({order:"つなぎの魔法", "英語":"風の魔法", "国語":"水の魔法", "数学":"雷の魔法", "理科":"炎の魔法", "社会":"大地の魔法"})[ss[0]] || "マル単の魔法";
@@ -11394,7 +11684,7 @@ const MANA_MULT = [1, 1.2, 1.5, 1.8, 2, 2.5, 3, 3.5, 4, 5];   // Lv1〜10
 const manaMult = lv => MANA_MULT[Math.max(1, Math.min(10, lv)) - 1];
 const manaCap  = lv => Math.round(DMG.dayCap * manaMult(lv));   // 1日の上限も同じ倍率で増える(Lv10で3000)
 function quizSubject(){
-  if(!quiz) return null; if(quiz.math) return "数学";
+  if(!quiz) return null; if(quiz.math) return quiz.subj || "数学";
   const c = {}; quiz.qs.forEach(q=>{ const k = q.w && q.w.subject; if(k) c[k]=(c[k]||0)+1; });
   return Object.keys(c).sort((a,b)=>c[b]-c[a])[0] || null;
 }
@@ -11518,7 +11808,7 @@ async function unzip(s){
 }
 function packUser(u){
   const rec = {}; for(const [k,r] of Object.entries(u.rec||{})){ if(r && (r.c||r.w)) rec[k] = [r.c||0, r.w||0, r.streak||0, r.due?1:0]; }
-  return {rec, skin:u.skin||"", seen:u.skinsSeen||[], math:u.math||{}, lang:u.lang, voice:u.voice, rate:u.rate};
+  return {rec, skin:u.skin||"", seen:u.skinsSeen||[], math:u.math||{}, lang:u.lang, voice:u.voice, rate:u.rate, kim:u.kim||null};
 }
 function mergeCloud(u, d){
   let changed = false;
@@ -11529,6 +11819,7 @@ function mergeCloud(u, d){
   if(d.math){ u.math ||= {}; for(const [k,v] of Object.entries(d.math)){ const c=(u.math[k] ||= {}); for(const f of ["t60","t180","total"]){ if((v[f]||0) > (c[f]||0)){ c[f]=v[f]; changed=true; } } } }
   if(d.skin && !u.skin){ u.skin = d.skin; changed = true; }
   if(Array.isArray(d.seen)){ const s = new Set(u.skinsSeen||[]); const n = s.size; d.seen.forEach(x=>s.add(x)); if(s.size!==n){ u.skinsSeen=[...s]; changed=true; } }
+  if(d.kim && d.kim.g && !(u.kim && u.kim.g)){ u.kim = d.kim; changed = true; }
   ["lang","voice","rate"].forEach(f=>{ if(d[f]!=null && u[f]==null){ u[f]=d[f]; changed=true; } });
   return changed;
 }
@@ -11607,7 +11898,7 @@ function manaPanel(){
 /* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
 function spellElement(){
   if(!quiz) return "";
-  if(quiz.math) return "thunder";
+  if(quiz.math) return ({"理科":"fire","社会":"earth"})[quiz.subj] || "thunder";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "";
   return ({"英語":"wind","数学":"thunder","国語":"water","理科":"fire","社会":"earth"})[ss[0]] || "";
@@ -11849,7 +12140,7 @@ function logQuiz(){
   const entry = {
     action:"log", id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
     ts: Date.now(), name: ui.name, label: onlyEn ? quiz.label : `【${subjs.join("・")}】${quiz.label}`,
-    mode: (()=>{ if(quiz.math) return "暗算"; if(quiz.qs.every(q=>q.order)) return "並び替え"; if(quiz.qs.every(q=>q.fill)) return "空所補充";
+    mode: (()=>{ if(quiz.math) return quiz.subj ? "期末対策" : "暗算"; if(quiz.qs.every(q=>q.order)) return "並び替え"; if(quiz.qs.every(q=>q.fill)) return "空所補充";
       if(!onlyEn && subjs.length===1) return (sjw(quiz.pool[0]).modes.find(m=>m[0]===ui.mode)||[,ui.mode])[1];
       const f=quiz.qs.some(q=>q.form), o=quiz.qs.some(q=>!q.form);
       const fm=({spell:"つづり4択",blank:"1文字うめ",mix:"つづり4択+1文字"})[ui.fmode];
@@ -12386,6 +12677,11 @@ document.addEventListener("click", async e=>{
   else if(a==="mstart"){ startMath(ui.mdrill); }
   else if(a==="mretry"){ startMath(quiz.drill, quiz.timed?"t"+quiz.sec:"n"+quiz.qs.length); }
   else if(a==="mkey"){ mathKey(b.dataset.k); }
+  else if(a==="mchoice"){ mathChoice(+b.dataset.k); }
+  else if(a==="kgrade"){ const k=kimUser(); k.g=b.dataset.v; ui.mdrill=null; save(); cloudSoon(); render(); }
+  else if(a==="ksch"){ const k=kimUser(); k.sch=b.dataset.v; ui.mdrill=null; save(); cloudSoon(); render(); }
+  else if(a==="kset"){ const U=KU[b.dataset.u]; const ids=U.sets.filter(x=>SETS.some(s=>s.id===x)); const f=SETS.find(s=>s.id===ids[0]); if(f){ ui.subject=U.s; ui.course=f.course; ui.group=f.group; ui.selected=new Set(ids); ui.mode="en2ja"; mem.subject=ui.subject; save(); render(); window.scrollTo({top:0}); } }
+  else if(a==="kgo"){ ui.subject=b.dataset.s; const f=SETS.find(s=>s.subject===ui.subject && (b.dataset.g ? s.group===b.dataset.g : s.course===b.dataset.c)); ui.course=f?f.course:null; ui.group=b.dataset.g||null; ui.selected.clear(); ui.mode="en2ja"; mem.subject=ui.subject; save(); render(); window.scrollTo({top:0}); }
   else if(a==="opick"){ const q=quiz.qs[quiz.i]; if(q.picked===null){ q.placed.push(+b.dataset.id); render(); } }
   else if(a==="ounpick"){ const q=quiz.qs[quiz.i]; if(q.picked===null){ q.placed.splice(+b.dataset.i,1); render(); } }
   else if(a==="oclear"){ const q=quiz.qs[quiz.i]; if(q.picked===null){ q.placed=[]; render(); } }
@@ -12420,7 +12716,9 @@ document.addEventListener("keydown", e=>{
   if(quiz && quiz.math){
     const q=quiz.qs[quiz.i];
     if(q.picked!==null){ if(e.key==="Enter" && document.activeElement?.id!=="nextBtn"){ e.preventDefault(); next(); } return; }
+    if(q.ch){ if(/^[1-4]$/.test(e.key) && +e.key<=q.ch.length) mathChoice(+e.key-1); return; }
     if(/^[0-9]$/.test(e.key)) mathKey(e.key);
+    else if(e.key==="-" && q.d.neg) mathKey("-");
     else if(e.key==="Backspace"){ e.preventDefault(); mathKey("⌫"); }
     else if(e.key==="Enter"){ e.preventDefault(); mathKey("OK"); }
     else if(e.key==="/" && q.d.frac) mathKey("/");
