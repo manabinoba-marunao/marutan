@@ -11307,7 +11307,7 @@ function dmgFinish(){
   day.sent += dmg; save();
   quiz.dmgResult = {raw, dmg, crit:D.crit, revive:D.revive, maru, items:D.items, left:cap-day.sent, linked:!!u.sid, mlv:M.lv};
   if(dmg>0 && u.sid){
-    const q = dmgOutbox(); q.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), sid:u.sid, nick:ui.name, damage:dmg, isCrit:D.crit, date:yDay()});
+    const q = dmgOutbox(); q.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), sid:u.sid, nick:ui.name, damage:dmg, isCrit:D.crit, date:yDay(), subject:qs||""});
     setDmgOutbox(q);
     mqMagicStrike(dmg, D.crit, M.lv);   // ボスの前に出て魔法を撃つ演出(ボスの情報を先に取ってから送信)
   }
@@ -11331,6 +11331,11 @@ async function mqMagicStrike(dmg, crit, mlv){
   const B = boss ? {name:boss.name, hp:Number(boss.hp)||0, cur:Number(boss.currentHp ?? boss.hp), imgUrl:(boss.imageUrl||"").trim()} : {name:"やりきリストの大魔王"};
   mqStrike({kind:"magic", dmg, crit, hero, spell, color, element:spellElement(), mlv, boss:B});
 }
+function sealToast(msg){
+  const d = document.createElement("div"); d.textContent = msg;
+  d.style.cssText = "position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:99999;max-width:86vw;padding:12px 16px;border-radius:12px;background:linear-gradient(135deg,#3b1a5c,#1b2c4a);color:#ffe9a8;border:1px solid #c9a2ff;font-weight:bold;font-size:14px;line-height:1.5;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.4)";
+  document.body.appendChild(d); setTimeout(()=>{ d.style.transition="opacity .6s"; d.style.opacity="0"; }, 5000); setTimeout(()=>d.remove(), 5800);
+}
 function dmgOutbox(){ try{ return JSON.parse(localStorage.getItem(DMG_OUTBOX)||"[]"); }catch(e){ return []; } }
 function setDmgOutbox(a){ try{ localStorage.setItem(DMG_OUTBOX, JSON.stringify(a)); }catch(e){} }
 let dmgFlushing = false;
@@ -11340,7 +11345,7 @@ async function flushDmg(){
   for(const e of dmgOutbox()){
     try{
       if(!e.logged){
-        const j = await yapi("saveDamage", {studentId:e.sid, nickname:e.nick+"(マル単)", damage:e.damage, isCrit:e.isCrit, habitsDone:"マル単"});
+        const j = await yapi("saveDamage", {studentId:e.sid, nickname:e.nick+"(マル単)", damage:e.damage, isCrit:e.isCrit, habitsDone:"マル単", subject:e.subject||""});
         if(!j.ok) throw 0;
         e.logged = true; setDmgOutbox(dmgOutbox().map(x=>x.id===e.id?e:x));
       }
@@ -11350,7 +11355,10 @@ async function flushDmg(){
       if(boss && !boss.defeated){
         const cur = Number(boss.currentHp ?? boss.hp);
         if(cur>0){
-          const r = await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid});
+          const r = await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid, source:"magic", subject:e.subject||""});
+          // 期末の誘魔:この魔法で「誘いの盾」が割れたら知らせる
+          if(r && r.ok && r.seal && e.subject){ const sl = (r.seal.seals||[]).find(x=>x.subject===e.subject);
+            if(sl && sl.broken && Number(sl.dmg) - Number(e.damage) < Number(sl.need)) setTimeout(()=>sealToast(`${sl.icon} ${sl.el}の魔法で、期末の誘魔の「${sl.word}」の盾を打ち破った！`), 2500); }
           // 大魔王の結界が消えていたら(全員の力がそろったら)、この魔法でとどめ
           if(r && r.ok && !r.defeated && r.shield && Number(r.shield.missing)===0 && Number(r.currentHp)>0)
             await yapi("updateBossHp", {damage:Number(r.currentHp), heroName:e.nick, heroId:e.sid});
