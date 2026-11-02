@@ -8988,6 +8988,29 @@ const SETS = [
     "rural|形|田舎の・農村の|I like **rural** life.",
     "urban|形|都会の・都市の|Many people live in **urban** areas."
   ]},
+  {id:"aie-w-1102", course:"AIE", group:"AIEクラスWORLD", title:"WORLD 11/2 の単語", source:"AIEクラスWORLD(板書より)", words:[
+    "then|副|そのとき・それから|I was in Cebu **then**.",
+    "them|代|彼らを・彼らに・それらを|I like **them** very much.",
+    "thank|動|〜に感謝する|**Thank** you for your help.",
+    "anniversary|名|記念日・〜周年|Today is our school's 50th **anniversary**.",
+    "establish|動|〜を設立する・確立する|The school was **established** in 1970.",
+    "there was 〜|熟|〜があった・〜がいた|**There was** a big tree near my house.",
+    "something happened|熟|何かが起こった|**Something happened** at school today.",
+    "collapse|動|崩れる・倒壊する|The old bridge **collapsed** in the storm.",
+    "corrupt|形|腐敗した・不正な|The **corrupt** politician took the money.",
+    "offer|動|〜を申し出る・〜を提供する(過去形 offered)|She **offered** to help me.",
+    "help 人 with 〜|熟|(人)の〜を手伝う|I **helped her with** her luggage bags.",
+    "luggage|名|(旅行の)荷物|How much **luggage** do you have?",
+    "warm|形|あたたかい|It is **warm** today.",
+    "turn off|熟|(電気・機械を)消す|Please **turn off** the light.",
+    "eighteen|名|18|My sister is **eighteen** years old.",
+    "sixteen|名|16|There are **sixteen** students in the class.",
+    "sixty-eight|名|68|My grandfather is **sixty-eight** years old.",
+    "thirty-two|名|32|It was **thirty-two** degrees today.",
+    "bold|形|大胆な・(文字が)太字の|That was a **bold** idea.",
+    "genetic|形|遺伝の・遺伝子の|Eye color is **genetic**.",
+    "lesson|名|授業・教訓・(教科書の)課|I learned a **lesson** from my mistake."
+  ]},
   {id:"aie-b-1027", course:"AIE", group:"AIEクラスBRIDGE", title:"BRIDGE 10/27 の単語", source:"AIEクラスBRIDGE(板書より)", words:[
     "warm|形|あたたかい|It is **warm** today.",
     "budget|名|予算(つかえるお金)|Our **budget** is 1,000 yen.",
@@ -10355,19 +10378,325 @@ KD.push(
   {s:"国語", id:"k-nai", t:"「ない」の識別", ch:true, f:()=>{ const [s,a]=pick(NAI); return [`「${s}」の「ない」は？`, a, "", ["助動詞(打ち消し)","形容詞","補助形容詞","形容詞の一部"], "「ぬ」に言いかえられる→助動詞、直前に「は」を入れられる→補助形容詞"]; }},
   {s:"国語", id:"k-makura", t:"枕詞", ch:true, f:()=>{ const [m,a]=pick(MAKURA); return [`枕詞「${m}」がかかる言葉は？`, a, "", choose(a, MAKURA.map(x=>x[1]))]; }}
 );
+/* ---------- 期末:英語の文法・国語の漢字と文法(問題文, 答え, まちがい, 解説) ---------- */
+const bankQ = (B, lead="") => { const [q,a,w,ex] = pick(B); return [lead ? `${lead}「${q}」` : q, a, "", [a,...w], ex||""]; };
+const E1_3SG = [
+  ["Ken (　) tennis every day.","plays",["play","playing","is play"],"主語が3人称単数(Ken)で現在 → 動詞に s"],
+  ["My mother (　) TV in the evening.","watches",["watch","watchs","watching"],"watch は es をつけて watches"],
+  ["She (　) English very well.","studies",["study","studys","studyes"],"子音字＋y は y を i にかえて es → studies"],
+  ["He (　) a dog.","has",["have","haves","is have"],"have の3人称単数現在は has"],
+  ["(　) your brother like music?","Does",["Do","Is","Are"],"主語が3人称単数の疑問文は Does"],
+  ["Aya (　) like natto.","doesn't",["don't","isn't","not"],"3人称単数の否定は doesn't＋動詞の原形"],
+  ["Does Tom play soccer? ― Yes, he (　).","does",["do","is","plays"],"Does 〜? には does で答える"],
+  ["Does she (　) to school by bus?","go",["goes","going","went"],"Does のあとの動詞は原形"],
+  ["My father (　) to work at seven.","goes",["go","gos","going"],"go は es をつけて goes"],
+  ["Mr. Sato (　) math at our school.","teaches",["teach","teachs","teaching"],"teach は es をつけて teaches"]
+];
+const E1_PROG = [
+  ["I am (　) a book now.","reading",["read","reads","to read"],"現在進行形は be動詞＋動詞の ing 形"],
+  ["They (　) playing baseball now.","are",["is","am","do"],"主語 They → are"],
+  ["Look! Ken is (　) in the river.","swimming",["swiming","swim","swims"],"swim は m を重ねて swimming"],
+  ["My sister is (　) a cake.","making",["makeing","make","makes"],"e で終わる語は e をとって ing → making"],
+  ["(　) you studying now? ― Yes, I am.","Are",["Do","Is","Does"],"進行形の疑問文は be動詞を前に"],
+  ["What (　) you doing? ― I'm cooking.","are",["do","is","does"],"What are you doing? = 何をしているの？"],
+  ["He (　) running now. He is walking.","isn't",["doesn't","don't","aren't"],"進行形の否定は be動詞＋not"],
+  ["Mike is (　) in the park.","running",["runing","run","runs"],"run は n を重ねて running"],
+  ["I (　) this song.","like",["am liking","likes","liking"],"like(好きだ)のような状態を表す動詞はふつう進行形にしない"]
+];
+const E1_WH = [
+  ["(　) is that boy? ― He is my brother.","Who",["What","Whose","Where"],"人をたずねる → Who"],
+  ["(　) bag is this? ― It's mine.","Whose",["Who","Which","What"],"だれの〜？ → Whose＋名詞"],
+  ["(　) do you live? ― In Tomioka.","Where",["When","What","How"],"場所 → Where"],
+  ["(　) is your birthday? ― It's May 5.","When",["Where","What","Who"],"時 → When"],
+  ["(　) do you like, cats or dogs? ― Dogs.","Which",["What","Who","Where"],"どちら → Which"],
+  ["(　) do you go to school? ― By bike.","How",["What","Where","When"],"方法 → How"],
+  ["(　) many books do you have?","How",["What","Which","Who"],"数 → How many＋複数名詞"],
+  ["(　) time is it? ― It's ten.","What",["How","When","Which"],"時刻 → What time"],
+  ["(　) is this? ― It's 500 yen.","How much",["How many","What time","How old"],"値段 → How much"],
+  ["(　) are you? ― I'm thirteen.","How old",["How much","How many","What"],"年齢 → How old"]
+];
+const E1_PRON = [
+  ["I like Ms. Kato. I often talk with (　).","her",["she","hers","his"],"前置詞のあとは目的格 → her"],
+  ["This is Ken. (　) is my friend.","He",["His","Him","He's"],"主語になる形 → He"],
+  ["Do you know (　)? ― Yes, they are my classmates.","them",["they","their","theirs"],"動詞のあとは目的格 → them"],
+  ["That is (　) house. We live there.","our",["we","us","ours"],"「私たちの」＋名詞 → our"],
+  ["This pen is not mine. It's (　).","his",["he","him","he's"],"「彼のもの」 → his"],
+  ["Please help (　). I'm busy.","me",["I","my","mine"],"動詞のあとは目的格 → me"],
+  ["Is this your bike? ― Yes, it's (　).","mine",["my","me","I"],"「私のもの」 → mine"],
+  ["The dog is cute. I like (　) eyes.","its",["it's","it","itself"],"「それの」 → its(it's は it is)"],
+  ["Tom and Ken are brothers. I play with (　).","them",["they","their","him"],"2人 → them"]
+];
+const E2_INF = [
+  ["I want to visit Cebu.","名詞的用法(〜すること)",["副詞的用法(〜するために・〜して)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"want の目的語 → 「訪れること」"],
+  ["I went to the library to study.","副詞的用法(〜するために・〜して)",["名詞的用法(〜すること)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"「勉強するために」行った(目的)"],
+  ["I have a lot of homework to do.","形容詞的用法(〜するための・〜すべき)",["名詞的用法(〜すること)","副詞的用法(〜するために・〜して)","不定詞ではない"],"homework を後ろから説明 → 「やるべき宿題」"],
+  ["My dream is to be a teacher.","名詞的用法(〜すること)",["副詞的用法(〜するために・〜して)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"「先生になること」"],
+  ["I was happy to hear the news.","副詞的用法(〜するために・〜して)",["名詞的用法(〜すること)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"感情の原因「聞いてうれしい」も副詞的用法"],
+  ["Give me something to drink.","形容詞的用法(〜するための・〜すべき)",["名詞的用法(〜すること)","副詞的用法(〜するために・〜して)","不定詞ではない"],"something を後ろから説明 → 「飲むための何か」"],
+  ["It started to rain.","名詞的用法(〜すること)",["副詞的用法(〜するために・〜して)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"start の目的語 → 「降ること」"],
+  ["She got up early to catch the first train.","副詞的用法(〜するために・〜して)",["名詞的用法(〜すること)","形容詞的用法(〜するための・〜すべき)","不定詞ではない"],"「始発に乗るために」(目的)"],
+  ["Kyoto has many places to visit.","形容詞的用法(〜するための・〜すべき)",["名詞的用法(〜すること)","副詞的用法(〜するために・〜して)","不定詞ではない"],"places を後ろから説明 → 「訪れるべき場所」"],
+  ["I walked to the station.","不定詞ではない",["名詞的用法(〜すること)","副詞的用法(〜するために・〜して)","形容詞的用法(〜するための・〜すべき)"],"to のあとが名詞(the station) → 前置詞の to"]
+];
+const E2_GER = [
+  ["I enjoyed (　) with my friends.","talking",["to talk","talk","talked"],"enjoy のあとは動名詞(ing)だけ"],
+  ["I finished (　) my homework.","doing",["to do","do","did"],"finish のあとは動名詞だけ"],
+  ["I hope (　) you again.","to see",["seeing","see","saw"],"hope のあとは不定詞だけ"],
+  ["I decided (　) abroad.","to study",["studying","study","studied"],"decide のあとは不定詞だけ"],
+  ["Ken stopped (　) TV and went to bed.","watching",["to watch","watch","watched"],"stop 〜ing = 〜するのをやめる"],
+  ["Thank you for (　) me.","helping",["to help","help","helped"],"前置詞のあとは動名詞"],
+  ["She is good at (　) the piano.","playing",["to play","play","plays"],"be good at 〜ing = 〜が得意"],
+  ["(　) books is fun.","Reading",["Read","Reads","Readed"],"主語になる「〜すること」 → 動名詞"],
+  ["I want (　) a new bike.","to buy",["buying","buy","bought"],"want のあとは不定詞だけ"],
+  ["How about (　) to the park?","going",["to go","go","went"],"How about 〜ing? = 〜するのはどう？"]
+];
+const E2_MUST = [
+  ["You (　) run in the classroom.","must not",["don't have to","have to","must"],"must not = 〜してはいけない(禁止)"],
+  ["Tomorrow is Sunday. You (　) get up early.","don't have to",["must not","must","have to"],"don't have to = 〜しなくてよい"],
+  ["Ken (　) clean his room.","has to",["have to","must to","has"],"主語が3人称単数 → has to"],
+  ["I (　) help my mother yesterday.","had to",["must","have to","has to"],"過去のこと → had to(must に過去形はない)"],
+  ["(　) I open the window? ― Sure.","Shall",["Must","Will","Do"],"Shall I 〜? = (私が)〜しましょうか"],
+  ["Do I have to go now? ― No, you (　).","don't have to",["must not","mustn't","have not"],"Do I have to 〜? の No は don't have to"],
+  ["You must (　) quiet in the library.","be",["are","is","being"],"must のあとは動詞の原形 → be"],
+  ["(　) we go shopping? ― Yes, let's.","Shall",["Must","Do","Will"],"Shall we 〜? = いっしょに〜しませんか"]
+];
+const E2_THERE = [
+  ["There (　) a cat under the table.","is",["are","be","am"],"a cat(1つ) → is"],
+  ["There (　) many books in my room.","are",["is","be","has"],"many books(複数) → are"],
+  ["There (　) a big tree here ten years ago.","was",["were","is","are"],"過去で1つ → was"],
+  ["There (　) some students in the gym yesterday.","were",["was","are","is"],"過去で複数 → were"],
+  ["(　) there a hospital near here? ― Yes, there is.","Is",["Are","Does","Do"],"There is の疑問文は is を前に"],
+  ["How many students (　) there in your class?","are",["is","do","have"],"How many＋複数 → are there"],
+  ["There (　) any milk in the fridge.","isn't",["aren't","doesn't","not"],"milk は数えられない → isn't any"],
+  ["Something (　) yesterday.","happened",["happens","happen","was happen"],"過去のできごと → happened"]
+];
+const E2_COMP = [
+  ["Ken is (　) than Tom.","taller",["tall","tallest","more tall"],"比較級 → 〜er than"],
+  ["This book is (　) interesting than that one.","more",["most","much","very"],"長い語は more 〜 than"],
+  ["Mt. Fuji is the (　) mountain in Japan.","highest",["higher","high","most high"],"the 〜est in 〜"],
+  ["This is the (　) beautiful picture of all.","most",["more","much","best"],"長い語は the most 〜"],
+  ["I am as (　) as my father.","tall",["taller","tallest","more tall"],"as 〜 as の間は原級"],
+  ["I like summer (　) than winter.","better",["more","best","good"],"like A better than B"],
+  ["Which do you like (　), tea or coffee?","better",["best","more","good"],"2つから → better"],
+  ["Soccer is the (　) popular sport in my class.","most",["more","best","much"],"popular は the most popular"],
+  ["My bag is (　) than yours.","bigger",["biger","more big","biggest"],"big は g を重ねて bigger"],
+  ["This is the (　) day of my life.","best",["better","most good","goodest"],"good の最上級は best"]
+];
+const E2_CONJ = [
+  ["(　) I got home, my mother was cooking.","When",["If","Because","That"],"〜したとき → When"],
+  ["(　) it rains tomorrow, I'll stay home.","If",["When","Because","That"],"もし〜なら → If"],
+  ["I can't go out (　) I'm busy.","because",["if","when","but"],"理由 → because"],
+  ["I think (　) she is kind.","that",["if","because","when"],"think that 〜 = 〜だと思う"],
+  ["If it (　) sunny tomorrow, we will go hiking.","is",["will be","was","be"],"if の中は未来のことも現在形"],
+  ["I know (　) you like music.","that",["if","because","but"],"know that 〜"],
+  ["I was tired, (　) I went to bed early.","so",["because","if","that"],"〜なので(結果) → so"]
+];
+const E3_PP = [
+  ["I have (　) in Tomioka for ten years.","lived",["live","living","lives"],"have＋過去分詞"],
+  ["She has (　) this book three times.","read",["reads","readed","reading"],"read の過去分詞は read(発音はレッド)"],
+  ["I have known him (　) 2020.","since",["for","from","ago"],"since＋始まった時"],
+  ["We have been friends (　) five years.","for",["since","from","ago"],"for＋期間"],
+  ["Have you ever (　) to Cebu?","been",["gone","went","go"],"〜に行ったことがある → have been to"],
+  ["I have (　) finished my homework.","just",["yet","ever","ago"],"ちょうど〜したところ → just"],
+  ["Have you finished lunch (　)?","yet",["already","just","ever"],"疑問文の「もう」 → yet(文末)"],
+  ["How (　) have you lived here?","long",["many","much","often"],"期間をたずねる → How long"],
+  ["I have (　) seen a panda.","never",["ever","yet","since"],"一度も〜ない → never"],
+  ["It has been (　) since this morning.","raining",["rain","rained","rains"],"現在完了進行形 has been 〜ing"]
+];
+const E3_PART = [
+  ["Look at the boy (　) under the tree.","standing",["stood","stands","to stand"],"「立っている少年」→ ing形が後ろから説明"],
+  ["This is a picture (　) by my sister.","painted",["painting","paints","paint"],"「描かれた絵」→ 過去分詞"],
+  ["English is a language (　) all over the world.","spoken",["speaking","speak","spoke"],"「話されている言語」→ 過去分詞"],
+  ["The girl (　) with Ken is Aya.","talking",["talked","talks","talk"],"「話している少女」→ ing形"],
+  ["I have a car (　) in Japan.","made",["making","make","makes"],"「日本で作られた車」→ 過去分詞"],
+  ["Who is the man (　) the guitar?","playing",["played","plays","play"],"「ギターをひいている男性」→ ing形"],
+  ["This is a book (　) by Natsume Soseki.","written",["writing","wrote","writes"],"「書かれた本」→ 過去分詞"],
+  ["The language (　) in Cebu is Cebuano.","spoken",["speaking","speaks","spoke"],"「話されている言語」→ 過去分詞"]
+];
+const E3_REL = [
+  ["I have a friend (　) lives in Cebu.","who",["which","whose","what"],"先行詞が人 → who"],
+  ["This is the bus (　) goes to the station.","which",["who","whose","where"],"先行詞がもの → which"],
+  ["The cake (　) my mother made was good.","that",["who","what","whose"],"もの・目的格 → that / which"],
+  ["She is the girl (　) I met yesterday.","that",["which","what","whose"],"人・目的格 → that(who でもよい)"],
+  ["I know a boy (　) can speak three languages.","who",["which","what","where"],"先行詞が人・主格 → who"],
+  ["The book (　) is on the desk is mine.","which",["who","what","whom"],"先行詞がもの・主格 → which"],
+  ["This is the picture (　) I took in Cebu.","that",["who","what","where"],"もの・目的格 → that / which"],
+  ["I have a dog (　) has long ears.","which",["who","whose","what"],"先行詞が動物 → which"]
+];
+const E3_IND = [
+  ["Do you know where he (　)?","lives",["does live","do live","is live"],"間接疑問は 疑問詞＋主語＋動詞 の順"],
+  ["I don't know what (　).","this is",["is this","does this","this does"],"疑問詞＋主語＋動詞の順"],
+  ["Tell me when (　) .","you will come",["will you come","do you come","come you"],"疑問詞＋主語＋動詞の順"],
+  ["I want (　) to help me.","you",["your","yours","you're"],"want 人 to 〜 = 人に〜してほしい"],
+  ["My mother told me (　) my room.","to clean",["clean","cleaning","cleaned"],"tell 人 to 〜 = 人に〜するように言う"],
+  ["It is important (　) us to study English.","for",["to","of","with"],"It is 〜 for 人 to …"],
+  ["It is easy for me (　) this book.","to read",["read","reading","reads"],"It is 〜 for 人 to＋原形"],
+  ["Please let me (　) your name.","know",["to know","knowing","knows"],"let 人＋原形"],
+  ["This song makes me (　).","happy",["happily","happiness","to happy"],"make 人＋形容詞 = 人を〜にする"]
+];
+const J_DOKUN = [
+  ["友だちと駅で〔あ〕う。","会う",["合う","遭う"],"人と顔を合わせる → 会う"],
+  ["答えが〔あ〕う。","合う",["会う","遭う"],"一致する → 合う"],
+  ["事故に〔あ〕う。","遭う",["会う","合う"],"よくないことにぶつかる → 遭う"],
+  ["時間を〔はか〕る。","計る",["測る","量る","図る"],"時間・数 → 計る"],
+  ["山の高さを〔はか〕る。","測る",["計る","量る","図る"],"長さ・高さ・深さ → 測る"],
+  ["体重を〔はか〕る。","量る",["計る","測る","図る"],"重さ・容積 → 量る"],
+  ["解決を〔はか〕る。","図る",["計る","測る","量る"],"くわだてる・工夫する → 図る"],
+  ["税金を〔おさ〕める。","納める",["収める","治める","修める"],"お金や品物を渡す → 納める"],
+  ["国を〔おさ〕める。","治める",["収める","納める","修める"],"世の中をしずめる → 治める"],
+  ["学問を〔おさ〕める。","修める",["収める","納める","治める"],"身につける → 修める"],
+  ["成功を〔おさ〕める。","収める",["納める","治める","修める"],"手に入れる → 収める"],
+  ["〔あつ〕いお茶。","熱い",["暑い","厚い"],"ものの温度が高い → 熱い"],
+  ["今日は〔あつ〕い。","暑い",["熱い","厚い"],"気温が高い → 暑い"],
+  ["〔あつ〕い本。","厚い",["熱い","暑い"],"厚みがある → 厚い"],
+  ["朝〔はや〕く起きる。","早く",["速く"],"時刻・時期 → 早い"],
+  ["走るのが〔はや〕い。","速い",["早い"],"スピード → 速い"],
+  ["会社に〔つと〕める。","勤める",["努める","務める"],"勤務する → 勤める"],
+  ["解決に〔つと〕める。","努める",["勤める","務める"],"努力する → 努める"],
+  ["議長を〔つと〕める。","務める",["勤める","努める"],"役目をはたす → 務める"],
+  ["鏡に顔を〔うつ〕す。","映す",["写す","移す"],"鏡・スクリーンに → 映す"],
+  ["黒板を〔うつ〕す。","写す",["映す","移す"],"書きうつす・写真 → 写す"],
+  ["机を窓ぎわに〔うつ〕す。","移す",["映す","写す"],"場所をかえる → 移す"],
+  ["ドアを〔あ〕ける。","開ける",["空ける","明ける"],"閉じているものを → 開ける"],
+  ["席を〔あ〕ける。","空ける",["開ける","明ける"],"からにする → 空ける"],
+  ["夜が〔あ〕ける。","明ける",["開ける","空ける"],"明るくなる・期間が終わる → 明ける"]
+];
+const J_DOON = [
+  ["品質を〔ホショウ〕する。","保証",["保障","補償","補正"],"まちがいないとうけあう → 保証"],
+  ["安全を〔ホショウ〕する。","保障",["保証","補償","補正"],"守る → 保障"],
+  ["損害を〔ホショウ〕する。","補償",["保証","保障","補正"],"つぐなう → 補償"],
+  ["音楽に〔カンシン〕がある。","関心",["感心","歓心","寒心"],"興味 → 関心"],
+  ["弟の努力に〔カンシン〕する。","感心",["関心","歓心","寒心"],"心を動かされる → 感心"],
+  ["中学生を〔タイショウ〕にした本。","対象",["対照","対称","大将"],"目当て → 対象"],
+  ["二つの作品を〔タイショウ〕する。","対照",["対象","対称","大将"],"くらべ合わせる → 対照"],
+  ["左右〔タイショウ〕の図形。","対称",["対象","対照","大将"],"つり合っている形 → 対称"],
+  ["〔イガイ〕な結果。","意外",["以外","意害","異外"],"思いがけない → 意外"],
+  ["日曜〔イガイ〕は開いている。","以外",["意外","意害","異外"],"それをのぞく → 以外"],
+  ["質問に〔カイトウ〕する。","回答",["解答","会答","改答"],"問い合わせに答える → 回答"],
+  ["テストの〔カイトウ〕用紙。","解答",["回答","会答","改答"],"問題をといて答える → 解答"],
+  ["絶好の〔キカイ〕。","機会",["機械","器械","奇怪"],"チャンス → 機会"],
+  ["工場の〔キカイ〕。","機械",["機会","器会","奇怪"],"動力で動く装置 → 機械"],
+  ["真理を〔ツイキュウ〕する。","追究",["追求","追及","追窮"],"どこまでも明らかにする → 追究"],
+  ["利益を〔ツイキュウ〕する。","追求",["追究","追及","追窮"],"どこまでも追い求める → 追求"],
+  ["責任を〔ツイキュウ〕する。","追及",["追究","追求","追窮"],"どこまでも問いつめる → 追及"],
+  ["〔イドウ〕教室に行く。","移動",["異動","異同","移道"],"場所をかえる → 移動"],
+  ["四月に人事〔イドウ〕がある。","異動",["移動","異同","移道"],"職や地位がかわる → 異動"],
+  ["入学の〔ジキ〕が近づく。","時期",["時季","時機","磁気"],"ある期間・ころ → 時期"],
+  ["反撃の〔ジキ〕を待つ。","時機",["時期","時季","磁気"],"ちょうどよいチャンス → 時機"],
+  ["〔セイサン〕を済ませる。","精算",["清算","生産","成算"],"細かく計算しなおす(運賃など) → 精算"]
+];
+const J_KATSU = [
+  ["書く","五段活用",["上一段活用","下一段活用","カ行変格活用"],"「ない」をつけると書か(ア段)ない → 五段"],
+  ["読む","五段活用",["上一段活用","下一段活用","サ行変格活用"],"読ま(ア段)ない → 五段"],
+  ["話す","五段活用",["上一段活用","下一段活用","サ行変格活用"],"話さ(ア段)ない → 五段"],
+  ["起きる","上一段活用",["五段活用","下一段活用","カ行変格活用"],"起き(イ段)ない → 上一段"],
+  ["見る","上一段活用",["五段活用","下一段活用","カ行変格活用"],"見(イ段)ない → 上一段"],
+  ["借りる","上一段活用",["五段活用","下一段活用","サ行変格活用"],"借り(イ段)ない → 上一段"],
+  ["食べる","下一段活用",["五段活用","上一段活用","カ行変格活用"],"食べ(エ段)ない → 下一段"],
+  ["受ける","下一段活用",["五段活用","上一段活用","サ行変格活用"],"受け(エ段)ない → 下一段"],
+  ["寝る","下一段活用",["五段活用","上一段活用","カ行変格活用"],"寝(エ段)ない → 下一段"],
+  ["来る","カ行変格活用",["五段活用","上一段活用","サ行変格活用"],"「来る」1語だけ → カ変"],
+  ["する","サ行変格活用",["五段活用","下一段活用","カ行変格活用"],"「する」と「〜する」 → サ変"],
+  ["勉強する","サ行変格活用",["五段活用","下一段活用","カ行変格活用"],"「〜する」 → サ変"],
+  ["帰る","五段活用",["上一段活用","下一段活用","サ行変格活用"],"帰ら(ア段)ない → 五段(「帰る」は下一段ではない)"],
+  ["走る","五段活用",["上一段活用","下一段活用","カ行変格活用"],"走ら(ア段)ない → 五段"],
+  ["着る","上一段活用",["五段活用","下一段活用","カ行変格活用"],"着(イ段)ない → 上一段"]
+];
+const J_KEI = [
+  ["本を【読ま】ない。","未然形",["連用形","終止形","仮定形"],"「ない」に続く → 未然形"],
+  ["本を【読み】ます。","連用形",["未然形","終止形","連体形"],"「ます」に続く → 連用形"],
+  ["毎日本を【読む】。","終止形",["連体形","連用形","命令形"],"文がそこで終わる → 終止形"],
+  ["本を【読む】とき、","連体形",["終止形","連用形","仮定形"],"体言(とき)に続く → 連体形"],
+  ["本を【読め】ば、わかる。","仮定形",["命令形","未然形","連用形"],"「ば」に続く → 仮定形"],
+  ["早く本を【読め】。","命令形",["仮定形","終止形","未然形"],"命令して言い切る → 命令形"],
+  ["友だちと【話し】た。","連用形",["未然形","終止形","連体形"],"「た」に続く → 連用形"],
+  ["いっしょに【行こ】う。","未然形",["連用形","終止形","命令形"],"「う・よう」に続く → 未然形"],
+  ["朝早く【起きれ】ば、間に合う。","仮定形",["命令形","未然形","連用形"],"「ば」に続く → 仮定形"],
+  ["雨が【降る】日は家にいる。","連体形",["終止形","連用形","仮定形"],"体言(日)に続く → 連体形"]
+];
+const J_HINSHI = [
+  ["【美しい】花がさく。","形容詞",["形容動詞","連体詞","副詞"],"言い切りが「い」 → 形容詞"],
+  ["【静かな】部屋。","形容動詞",["形容詞","連体詞","副詞"],"言い切りが「だ」(静かだ) → 形容動詞"],
+  ["【ゆっくり】歩く。","副詞",["形容詞","連体詞","接続詞"],"用言(歩く)をくわしくする → 副詞"],
+  ["【この】本はおもしろい。","連体詞",["代名詞","副詞","形容詞"],"体言だけをくわしくし、活用しない → 連体詞"],
+  ["【これ】は私の本だ。","名詞",["連体詞","副詞","形容詞"],"主語になる・活用しない(代名詞) → 名詞"],
+  ["雨だ。【しかし】、出かけた。","接続詞",["副詞","感動詞","助詞"],"文と文をつなぐ → 接続詞"],
+  ["【ああ】、きれいだ。","感動詞",["接続詞","副詞","連体詞"],"感動・呼びかけ・応答 → 感動詞"],
+  ["毎朝ご飯を【食べる】。","動詞",["形容詞","形容動詞","名詞"],"言い切りがウ段 → 動詞"],
+  ["【大きな】木がある。","連体詞",["形容詞","形容動詞","副詞"],"「大きな」は活用しない → 連体詞(「大きい」なら形容詞)"],
+  ["花が【とても】きれいだ。","副詞",["形容詞","連体詞","形容動詞"],"用言をくわしくする → 副詞"],
+  ["ぼく【が】行く。","助詞",["助動詞","接続詞","名詞"],"活用しない付属語 → 助詞"],
+  ["明日は雨【らしい】。","助動詞",["形容詞","助詞","副詞"],"活用する付属語 → 助動詞"]
+];
+const J_SEIBUN = [
+  ["【鳥が】空を飛ぶ。","主語",["述語","修飾語","独立語"],"「何が」 → 主語"],
+  ["鳥が空を【飛ぶ】。","述語",["主語","修飾語","接続語"],"「どうする」 → 述語"],
+  ["鳥が【空を】飛ぶ。","修飾語",["主語","述語","独立語"],"「どこを」と説明 → 修飾語"],
+  ["【はい】、そうです。","独立語",["接続語","修飾語","主語"],"ほかと直接関係しない → 独立語"],
+  ["雨が降った。【だから】、中止だ。","接続語",["独立語","修飾語","述語"],"前後をつなぐ → 接続語"],
+  ["【寒いので】、上着を着た。","接続語",["修飾語","主語","独立語"],"理由を表してつなぐ → 接続語"],
+  ["【赤い】花が咲いた。","修飾語",["主語","述語","独立語"],"「どんな」花 → 修飾語"],
+  ["この花は【きれいだ】。","述語",["主語","修飾語","独立語"],"「どんなだ」 → 述語"]
+];
+const J_JUKU = [
+  ["増加","似た意味を重ねる",["反対の意味を重ねる","上が下を修飾する","下から上へ返って読む"],"増える＝加わる"],
+  ["強弱","反対の意味を重ねる",["似た意味を重ねる","上が下を修飾する","主語と述語"],"強い⇔弱い"],
+  ["青空","上が下を修飾する",["似た意味を重ねる","反対の意味を重ねる","下から上へ返って読む"],"青い空"],
+  ["登山","下から上へ返って読む",["上が下を修飾する","似た意味を重ねる","主語と述語"],"山に登る"],
+  ["日没","主語と述語",["上が下を修飾する","下から上へ返って読む","反対の意味を重ねる"],"日が没する"],
+  ["未定","打ち消しの字がつく",["上が下を修飾する","下から上へ返って読む","主語と述語"],"未(まだ〜ない)＋定"],
+  ["温暖","似た意味を重ねる",["反対の意味を重ねる","上が下を修飾する","主語と述語"],"温かい＝暖かい"],
+  ["読書","下から上へ返って読む",["上が下を修飾する","似た意味を重ねる","反対の意味を重ねる"],"書を読む"],
+  ["国立","主語と述語",["上が下を修飾する","下から上へ返って読む","似た意味を重ねる"],"国が立てる"],
+  ["非常","打ち消しの字がつく",["上が下を修飾する","似た意味を重ねる","主語と述語"],"非＋常"],
+  ["売買","反対の意味を重ねる",["似た意味を重ねる","下から上へ返って読む","主語と述語"],"売る⇔買う"],
+  ["急増","上が下を修飾する",["似た意味を重ねる","下から上へ返って読む","主語と述語"],"急に増える"]
+];
+const J_NO = [
+  ["私【の】本だ。","連体修飾語をつくる(〜の)",["主語を示す(〜が)","体言の代用(〜のもの・こと)","並立(〜の〜の)"],"「私の」が本を修飾"],
+  ["弟【の】書いた絵。","主語を示す(〜が)",["連体修飾語をつくる(〜の)","体言の代用(〜のもの・こと)","並立(〜の〜の)"],"「弟が書いた」と言いかえられる"],
+  ["走る【の】が好きだ。","体言の代用(〜のもの・こと)",["主語を示す(〜が)","連体修飾語をつくる(〜の)","並立(〜の〜の)"],"「走ること」と言いかえられる"],
+  ["行く【の】行かない【の】ともめる。","並立(〜の〜の)",["主語を示す(〜が)","連体修飾語をつくる(〜の)","体言の代用(〜のもの・こと)"],"同じ形でならべる"],
+  ["花【の】咲くころ。","主語を示す(〜が)",["連体修飾語をつくる(〜の)","体言の代用(〜のもの・こと)","並立(〜の〜の)"],"「花が咲く」"],
+  ["このかばんは兄【の】だ。","体言の代用(〜のもの・こと)",["主語を示す(〜が)","連体修飾語をつくる(〜の)","並立(〜の〜の)"],"「兄のもの」"]
+];
+KD.push(
+  {s:"英語", id:"k-e1-3sg",  t:"文法 3人称単数(does・〜s)", ch:true, f:()=>bankQ(E1_3SG)},
+  {s:"英語", id:"k-e1-prog", t:"文法 現在進行形", ch:true, f:()=>bankQ(E1_PROG)},
+  {s:"英語", id:"k-e1-wh",   t:"文法 疑問詞", ch:true, f:()=>bankQ(E1_WH)},
+  {s:"英語", id:"k-e1-pron", t:"文法 代名詞(he・his・him…)", ch:true, f:()=>bankQ(E1_PRON)},
+  {s:"英語", id:"k-e2-inf",  t:"文法 不定詞の3用法", ch:true, f:()=>bankQ(E2_INF,"この文の to 〜 の用法は？ ")},
+  {s:"英語", id:"k-e2-ger",  t:"文法 不定詞か動名詞か", ch:true, f:()=>bankQ(E2_GER)},
+  {s:"英語", id:"k-e2-must", t:"文法 must・have to・shall", ch:true, f:()=>bankQ(E2_MUST)},
+  {s:"英語", id:"k-e2-there",t:"文法 There is / was", ch:true, f:()=>bankQ(E2_THERE)},
+  {s:"英語", id:"k-e2-comp", t:"文法 比較", ch:true, f:()=>bankQ(E2_COMP)},
+  {s:"英語", id:"k-e2-conj", t:"文法 接続詞(when・if・because・that)", ch:true, f:()=>bankQ(E2_CONJ)},
+  {s:"英語", id:"k-e3-pp",   t:"文法 現在完了", ch:true, f:()=>bankQ(E3_PP)},
+  {s:"英語", id:"k-e3-part", t:"文法 後置修飾(ing・過去分詞)", ch:true, f:()=>bankQ(E3_PART)},
+  {s:"英語", id:"k-e3-rel",  t:"文法 関係代名詞", ch:true, f:()=>bankQ(E3_REL)},
+  {s:"英語", id:"k-e3-ind",  t:"文法 間接疑問・want 人 to など", ch:true, f:()=>bankQ(E3_IND)},
+  {s:"国語", id:"k-dokun",   t:"漢字 同じ訓をもつ漢字", ch:true, f:()=>bankQ(J_DOKUN,"〔 〕に合う漢字は？ ")},
+  {s:"国語", id:"k-doon",    t:"漢字 同じ音をもつ漢字(同音異義語)", ch:true, f:()=>bankQ(J_DOON,"〔 〕に合う漢字は？ ")},
+  {s:"国語", id:"k-katsu",   t:"文法 動詞の活用の種類", ch:true, f:()=>bankQ(J_KATSU,"動詞の活用の種類は？ ")},
+  {s:"国語", id:"k-katsukei",t:"文法 活用形", ch:true, f:()=>bankQ(J_KEI,"【 】の活用形は？ ")},
+  {s:"国語", id:"k-hinshi",  t:"文法 品詞の見分け", ch:true, f:()=>bankQ(J_HINSHI,"【 】の品詞は？ ")},
+  {s:"国語", id:"k-seibun",  t:"文法 文の成分", ch:true, f:()=>bankQ(J_SEIBUN,"【 】の文の成分は？ ")},
+  {s:"国語", id:"k-jukugo",  t:"漢字 熟語の構成", ch:true, f:()=>bankQ(J_JUKU,"熟語の構成は？ ")},
+  {s:"国語", id:"k-no",      t:"文法 「の」の識別", ch:true, f:()=>bankQ(J_NO,"【 】の「の」の働きは？ ")}
+);
 KD.forEach(d=>{ d.g = "期末:" + d.s; d.qend = ""; d.kim = true; });
 
 /* ---------- 単元(教科書ページ)と範囲 ---------- */
 const KU = {
   /* 国語(光村) */
-  "n1-a":    {s:"国語", n:"大人になれなかった弟たちに…… / 星の花が降るころに / 方言と共通語 / 漢字の音訓", p:"p96〜126", d:["k-onkun"], sets:[]},
-  "n1-b":    {s:"国語", n:"「言葉」をもつ鳥、シジュウカラ / 根拠を明確にして書こう / 大阿蘇", p:"p128〜150", d:[], sets:[]},
+  "n1-a":    {s:"国語", n:"大人になれなかった弟たちに…… / 星の花が降るころに / 方言と共通語 / 漢字の音訓", p:"p96〜126", d:["k-onkun","k-hinshi","k-dokun"], sets:[]},
+  "n1-b":    {s:"国語", n:"「言葉」をもつ鳥、シジュウカラ / 根拠を明確にして書こう / 大阿蘇", p:"p128〜150", d:["k-seibun","k-hinshi"], sets:[]},
   "n1-c":    {s:"国語", n:"古典の世界 / いろは歌 / 蓬莱の玉の枝(竹取物語) / 古典の言葉", p:"p152〜169", d:["k-kana"], sets:[]},
-  "n2-a":    {s:"国語", n:"ヒューマノイド / 字のない葉書 / 敬語 / 同じ訓・同じ音をもつ漢字", p:"p92〜120", d:["k-keigo"], sets:[]},
-  "n2-b":    {s:"国語", n:"モアイは語る / 根拠の吟味 / 月夜の浜辺", p:"p122〜138", d:[], sets:[]},
+  "n2-a":    {s:"国語", n:"ヒューマノイド / 字のない葉書 / 敬語 / 同じ訓・同じ音をもつ漢字", p:"p92〜120", d:["k-dokun","k-doon","k-keigo"], sets:[]},
+  "n2-b":    {s:"国語", n:"モアイは語る / 根拠の吟味 / 月夜の浜辺", p:"p122〜138", d:["k-katsu","k-katsukei","k-hinshi"], sets:[]},
   "n2-c":    {s:"国語", n:"平家物語 / 扇の的 / 仁和寺にある法師(徒然草) / 係り結び", p:"p140〜157", d:["k-kana","k-kakari"], sets:[]},
-  "n3-a":    {s:"国語", n:"挨拶 / 故郷 / 慣用句・ことわざ・故事成語 / 漢字の造語力", p:"p100〜126", d:[], sets:["kk-kan-1","kk-kan-2","kk-koto-1","kk-koto-2","kk-koji-1"]},
-  "n3-b":    {s:"国語", n:"複数の意見を読んで考えよう / 初恋 / 「ない」の違い", p:"p130〜144", d:["k-nai"], sets:[]},
+  "n3-a":    {s:"国語", n:"挨拶 / 故郷 / 慣用句・ことわざ・故事成語 / 漢字の造語力", p:"p100〜126", d:["k-jukugo","k-doon","k-dokun"], sets:["kk-kan-1","kk-kan-2","kk-koto-1","kk-koto-2","kk-koji-1"]},
+  "n3-b":    {s:"国語", n:"複数の意見を読んで考えよう / 初恋 / 「ない」の違い", p:"p130〜144", d:["k-nai","k-no"], sets:[]},
   "n3-c":    {s:"国語", n:"和歌の世界 / 古今和歌集 仮名序 / 君待つと / 夏草(おくのほそ道) / 古典名作選", p:"p146〜170", d:["k-makura","k-kana"], sets:[]},
   /* 数学(東京書籍) */
   "m1-eq":   {s:"数学", n:"3章 方程式", p:"p91〜116", d:["k-eq1","k-eq2","k-eq3","k-eq4"], sets:["sg-sample-1"]},
@@ -10397,10 +10726,10 @@ const KU = {
   "h3-post": {s:"社会", n:"歴史 日本の独立〜これからの日本と世界", p:"p264〜283", d:["k-ordP"], sets:["sk-reki-4"]},
   "c3-ken":  {s:"社会", n:"公民 現代社会・日本国憲法と人権・選挙と国会", p:"日文 p8〜101", d:["k-kenpo","k-jinken","k-kokkai"], sets:["sk-kom-1","sk-kom-2"]},
   /* 英語(三省堂 NEW CROWN) */
-  "e1-a":    {s:"英語", n:"Lesson 5〜6・Take Action!", p:"p67〜90", d:[], sets:["nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
-  "e1-b":    {s:"英語", n:"Take Action!(道案内)・Lesson 4〜6", p:"p53〜90", d:[], sets:["nc1-TA1","nc1-L4-1","nc1-L4-2","nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
-  "e2":      {s:"英語", n:"Lesson 4〜6・Take Action!", p:"p46〜81", d:[], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","nc2-L6-1","nc2-L6-2"]},
-  "e3":      {s:"英語", n:"Unit 3〜5・Let's Read 1 The Wizard of Oz", p:"p34〜75", d:[], sets:["nc3-U3-1","nc3-U3-2","nc3-LT1","nc3-LR1-1","nc3-LR1-2","nc3-U4-1","nc3-U4-2","nc3-U4-3","nc3-U5-1","nc3-U5-2"]}
+  "e1-a":    {s:"英語", n:"Lesson 5〜6・Take Action!", p:"p67〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
+  "e1-b":    {s:"英語", n:"Take Action!(道案内)・Lesson 4〜6", p:"p53〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-TA1","nc1-L4-1","nc1-L4-2","nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
+  "e2":      {s:"英語", n:"Lesson 4〜6・Take Action!", p:"p46〜81", d:["k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","nc2-L6-1","nc2-L6-2"]},
+  "e3":      {s:"英語", n:"Unit 3〜5・Let's Read 1 The Wizard of Oz", p:"p34〜75", d:["k-e3-pp","k-e3-part","k-e3-rel","k-e3-ind"], sets:["nc3-U3-1","nc3-U3-2","nc3-LT1","nc3-LR1-1","nc3-LR1-2","nc3-U4-1","nc3-U4-2","nc3-U4-3","nc3-U5-1","nc3-U5-2"]}
 };
 /* 学校ごとの期末範囲(2026年 2学期期末)。pg は生徒に見せる教科書ページ */
 const KIM = {
