@@ -11124,11 +11124,25 @@ function saveMathBest(){
 }
 
 /* ---------- 並び替え ---------- */
+let PROPER = null;
+function keepCap(t){
+  if(!/^[A-Z]/.test(t) || t==="I" || /^I'/.test(t)) return true;
+  if(!PROPER){ // 文の途中でも大文字で出てくる語は固有名詞とみなす
+    PROPER = new Set(["Ken","Aya","Tom","Mike","Yuki","Mt.","Tomioka","Cebu","Tokyo","Kyoto","Japan","English","Sunday","Sundays","Monday","Mr.","Ms.","Mrs."]);
+    const cap = new Set(), lowr = new Set();
+    for(const st of SETS) if(/^ord-/.test(st.id)) for(const w of st.words){ const ws = plainEx(w.en||"").split(/\s+/); ws.slice(1).forEach(x=>{ const c=x.replace(/[.,!?"]+$/,""); (/^[A-Z]/.test(c)?cap:lowr).add(c); }); }
+    cap.forEach(c=>{ if(!lowr.has(c[0].toLowerCase()+c.slice(1))) PROPER.add(c); });
+    if(typeof GP!=="undefined") GP.forEach(x=>/^[A-Z]/.test(x.e) && x.e.split(" ").forEach(y=>PROPER.add(y)));
+  }
+  return PROPER.has(t.replace(/[,]+$/,""));
+}
 const plainEx = t => String(t||"").replace(/\*\*/g,"");
 function makeOrderQuestion(w){
   const p = plainEx(w.en).trim();
   const m = /([.?!])$/.exec(p), end = m ? m[1] : "";
   const words = (end ? p.slice(0,-1) : p).split(/\s+/);
+  // 先頭の大文字がヒントにならないよう、固有名詞と I 以外は小文字にする(答えでは元の文を見せる)
+  if(words.length && !keepCap(words[0])) words[0] = words[0][0].toLowerCase() + words[0].slice(1);
   let tiles = words.map((t,i)=>({t, id:i}));
   if(w.extra) tiles.push({t:w.extra, id:words.length});
   for(let k=0;k<5;k++){ tiles = shuffle(tiles); if(tiles.some((x,i)=>x.t!==words[i])) break; }
