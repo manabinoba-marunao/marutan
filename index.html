@@ -10317,6 +10317,8 @@ const KD = [
   {s:"数学", id:"k-inv1", t:"反比例 y の値を求める", neg:true, f:()=>{ const K=pick([12,18,24,36,48,60,72])*pick([1,-1]); const ds=[1,2,3,4,6,12].filter(v=>K%v===0); const x1=pick(ds)*pick([1,-1]); let x2; do{ x2=pick(ds)*pick([1,-1]); }while(x2===x1); return [`y は x に反比例し、x＝${sg(x1)} のとき y＝${sg(K/x1)}。x＝${sg(x2)} のときの y は？`, K/x2, "まず x × y ＝ a を求める"]; }},
   {s:"数学", id:"k-quad", t:"座標と象限", ch:true, f:()=>{ const x=nz(-9,9), y=nz(-9,9); const a = x>0?(y>0?"第1象限":"第4象限"):(y>0?"第2象限":"第3象限"); return [`点 ${pt(x,y)} があるのは？`, a, "x が＋で y が＋なら第1象限、そこから反時計回り", ["第1象限","第2象限","第3象限","第4象限"]]; }},
   /* ===== 数学 中2 ===== */
+  {s:"数学", id:"k-ren1", t:"連立方程式を解く", neg:true, f:()=>{ let a,b,c,d; do{ a=nz(-5,5); b=nz(-5,5); c=nz(-5,5); d=nz(-5,5); }while(a*d-b*c===0); const x=nz(-6,6), y=nz(-6,6), askX=Math.random()<.5; return [`${poly([a,"x"],[b,"y"])} ＝ ${sg(a*x+b*y)}、${poly([c,"x"],[d,"y"])} ＝ ${sg(c*x+d*y)} のとき、${askX?"x":"y"} の値は？`, askX?x:y, "加減法か代入法で", null, `x＝${sg(x)}、y＝${sg(y)}`]; }},
+  {s:"数学", id:"k-ren2", t:"連立方程式の利用(代金・個数)", f:()=>{ const it=pick([["りんご","みかん"],["ノート","えんぴつ"],["大人","子ども"],["ケーキ","クッキー"]]); const p1=ri(8,30)*10, p2=ri(3,15)*10; if(p1===p2) return [`1個 ${p1}円の${it[0]}を3個買った。代金は何円？`, p1*3, ""]; const x=ri(2,9), y=ri(2,9), n=x+y, T=p1*x+p2*y, askA=Math.random()<.5; const u=it[0]==="大人"?"人":"個"; return [`${it[0]}(1${u} ${p1}円)と${it[1]}(1${u} ${p2}円)を合わせて${n}${u}買うと、代金は${T}円だった。${askA?it[0]:it[1]}は何${u}？`, askA?x:y, `${it[0]}を x${u}、${it[1]}を y${u} として 2つの式をつくる`, null, `x＋y＝${n}、${p1}x＋${p2}y＝${T} → x＝${x}、y＝${y}`]; }},
   {s:"数学", id:"k-lin1", t:"1次関数 y の値", neg:true, f:()=>{ const a=nz(-5,5), b=nz(-9,9), x=nz(-6,6); return [`y ＝ ${poly([a,"x"],[b,""])} で、x＝${sg(x)} のときの y は？`, a*x+b, ""]; }},
   {s:"数学", id:"k-lin2", t:"2点を通る直線の傾き", neg:true, f:()=>{ const a=nz(-4,4), b=nz(-6,6), x1=ri(-4,2), x2=x1+ri(1,4); return [`2点 ${pt(x1,a*x1+b)}、${pt(x2,a*x2+b)} を通る直線の傾きは？`, a, "傾き ＝ y の増加量 ÷ x の増加量"]; }},
   {s:"数学", id:"k-lin3", t:"2点を通る直線の切片", neg:true, f:()=>{ const a=nz(-4,4), b=nz(-6,6), x1=ri(-4,2), x2=x1+ri(1,4); return [`2点 ${pt(x1,a*x1+b)}、${pt(x2,a*x2+b)} を通る直線の切片は？`, b, "傾きを求めてから、1点を代入"]; }},
@@ -10695,12 +10697,14 @@ const KU = {
   "n2-a":    {s:"国語", n:"ヒューマノイド / 字のない葉書 / 敬語 / 同じ訓・同じ音をもつ漢字", p:"p92〜120", d:["k-dokun","k-doon","k-keigo"], sets:[]},
   "n2-b":    {s:"国語", n:"モアイは語る / 根拠の吟味 / 月夜の浜辺", p:"p122〜138", d:["k-katsu","k-katsukei","k-hinshi"], sets:[]},
   "n2-c":    {s:"国語", n:"平家物語 / 扇の的 / 仁和寺にある法師(徒然草) / 係り結び", p:"p140〜157", d:["k-kana","k-kakari"], sets:[]},
+  "n2-c2":   {s:"国語", n:"扇の的 ―「平家物語」から", p:"教科書の範囲", d:["k-kana"], sets:[]},
   "n3-a":    {s:"国語", n:"挨拶 / 故郷 / 慣用句・ことわざ・故事成語 / 漢字の造語力", p:"p100〜126", d:["k-jukugo","k-doon","k-dokun"], sets:["kk-kan-1","kk-kan-2","kk-koto-1","kk-koto-2","kk-koji-1"]},
   "n3-b":    {s:"国語", n:"複数の意見を読んで考えよう / 初恋 / 「ない」の違い", p:"p130〜144", d:["k-nai","k-no"], sets:[]},
   "n3-c":    {s:"国語", n:"和歌の世界 / 古今和歌集 仮名序 / 君待つと / 夏草(おくのほそ道) / 古典名作選", p:"p146〜170", d:["k-makura","k-kana"], sets:[]},
   /* 数学(東京書籍) */
   "m1-eq":   {s:"数学", n:"3章 方程式", p:"p91〜116", d:["k-eq1","k-eq2","k-eq3","k-eq4"], sets:["sg-sample-1"]},
   "m1-prop": {s:"数学", n:"4章 比例と反比例", p:"p117〜156", d:["k-prop1","k-propk","k-inv1","k-quad"], sets:["sg-sample-1"]},
+  "m2-ren":  {s:"数学", n:"2章 連立方程式の利用", p:"p49〜", d:["k-ren1","k-ren2"], sets:["sg-yogo-2"]},
   "m2-lin":  {s:"数学", n:"3章 1次関数", p:"p57〜94", d:["k-lin1","k-lin2","k-lin3","k-lin4","k-lin5"], sets:["sg-yogo-2"]},
   "m2-fig":  {s:"数学", n:"4章 平行と合同", p:"p95〜124", d:["k-ang1","k-ang2","k-ang3","k-ang4","k-cong"], sets:["sg-yogo-2"]},
   "m3-sq":   {s:"数学", n:"4章 関数 y＝ax²", p:"p93〜126", d:["k-sq1","k-sq2","k-sq3","k-sq4"], sets:["sg-yogo-3"]},
@@ -10711,6 +10715,7 @@ const KU = {
   "r1-light":{s:"理科", n:"光の世界(反射・屈折)", p:"p138〜147", d:["k-refl"], sets:["rk-bu-1"]},
   "r2-bio":  {s:"理科", n:"生物のからだのつくりとはたらき", p:"p86〜165", d:["k-transp","k-bio"], sets:["rk-se-2"]},
   "r2-wx":   {s:"理科", n:"気象の観測(圧力・湿度・露点)", p:"p166〜194", d:["k-pres","k-hum","k-dew"], sets:["rk-ch-2"]},
+  "r2-wx2":  {s:"理科", n:"単元3 天気とその変化", p:"p166〜187", d:["k-pres","k-hum","k-dew"], sets:["rk-ch-2"]},
   "r3-life": {s:"理科", n:"生命の連続性(細胞分裂・遺伝・進化)", p:"p72〜125", d:["k-gene"], sets:["rk-se-3"]},
   "r3-mot":  {s:"理科", n:"運動とエネルギー", p:"p126〜187", d:["k-speed","k-tape","k-fcomp","k-buoy","k-work"], sets:["rk-bu-3"]},
   "r3-sky":  {s:"理科", n:"地球の運動と天体の動き", p:"p188〜218", d:["k-sky"], sets:["rk-ch-3"]},
@@ -10723,12 +10728,15 @@ const KU = {
   "h1-med":  {s:"社会", n:"歴史 律令国家〜鎌倉・室町", p:"p38〜77", d:["k-ordB"], sets:["sk-reki-1"]},
   "s2-jp":   {s:"社会", n:"地理 九州地方・中国四国地方・近畿地方", p:"p170〜211", d:["k-uonj"], sets:["sk-chiri-2","geo-jm-6","geo-jm-5","geo-jm-4","geo-pf-3","geo-cp-3"]},
   "h2-mod":  {s:"社会", n:"歴史 江戸の改革・欧米諸国の「近代化」", p:"p136〜159", d:["k-ordM"], sets:["sk-reki-2","sk-reki-3"]},
+  "s2-jp2":  {s:"社会", n:"地理 九州地方〜中部地方", p:"p167〜231", d:["k-uonj"], sets:["sk-chiri-2","geo-jm-6","geo-jm-5","geo-jm-4","geo-jm-3","geo-pf-3","geo-pf-2","geo-cp-3","geo-cp-2"]},
+  "h2-mod2": {s:"社会", n:"歴史 社会の変化と幕府の対策", p:"p146〜160", d:["k-ordM"], sets:["sk-reki-2"]},
   "h3-post": {s:"社会", n:"歴史 日本の独立〜これからの日本と世界", p:"p264〜283", d:["k-ordP"], sets:["sk-reki-4"]},
   "c3-ken":  {s:"社会", n:"公民 現代社会・日本国憲法と人権・選挙と国会", p:"日文 p8〜101", d:["k-kenpo","k-jinken","k-kokkai"], sets:["sk-kom-1","sk-kom-2"]},
   /* 英語(三省堂 NEW CROWN) */
   "e1-a":    {s:"英語", n:"Lesson 5〜6・Take Action!", p:"p67〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
   "e1-b":    {s:"英語", n:"Take Action!(道案内)・Lesson 4〜6", p:"p53〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-TA1","nc1-L4-1","nc1-L4-2","nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
   "e2":      {s:"英語", n:"Lesson 4〜6・Take Action!", p:"p46〜81", d:["k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","nc2-L6-1","nc2-L6-2"]},
+  "e2-tn":   {s:"英語", n:"Lesson 4・Lesson 5", p:"p45〜67", d:["k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5"]},
   "e3":      {s:"英語", n:"Unit 3〜5・Let's Read 1 The Wizard of Oz", p:"p34〜75", d:["k-e3-pp","k-e3-part","k-e3-rel","k-e3-ind"], sets:["nc3-U3-1","nc3-U3-2","nc3-LT1","nc3-LR1-1","nc3-LR1-2","nc3-U4-1","nc3-U4-2","nc3-U4-3","nc3-U5-1","nc3-U5-2"]}
 };
 /* 学校ごとの期末範囲(2026年 2学期期末)。pg は生徒に見せる教科書ページ */
@@ -10740,7 +10748,9 @@ const KIM = {
              u:["n1-a","n1-b","n1-c","m1-eq","m1-prop","r1-mat","r1-sol","r1-light","s1-asia","s1-eu","s1-af","h1-anc","e1-b"], en:"中1 教科書"}
   },
   "中2": {
-    "富西・下仁田": {pg:{国語:"光村 p92〜157", 数学:"東書 p57〜124", 社会:"地理 p170〜211・歴史 p136〜159", 理科:"東書 p86〜194", 英語:"三省堂 p46〜81"},
+    "富西": {pg:{国語:"光村 ヒューマノイド〜扇の的・敬語・同じ訓/同じ音をもつ漢字", 数学:"東書 p49〜115・問題集 p44〜87", 社会:"地理 p167〜231・歴史 p146〜160", 理科:"東書 p86〜187", 英語:"三省堂 p45〜67(Lesson 4・5)"},
+             u:["n2-a","n2-b","n2-c2","m2-ren","m2-lin","m2-fig","r2-bio","r2-wx2","s2-jp2","h2-mod2","e2-tn"], en:"中2 教科書"},
+    "下仁田": {pg:{国語:"光村 p92〜157", 数学:"東書 p57〜124", 社会:"地理 p170〜211・歴史 p136〜159", 理科:"東書 p86〜194", 英語:"三省堂 p46〜81"},
              u:["n2-a","n2-b","n2-c","m2-lin","m2-fig","r2-bio","r2-wx","s2-jp","h2-mod","e2"], en:"中2 教科書"}
   },
   "中3": {
