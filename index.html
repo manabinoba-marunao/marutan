@@ -78,6 +78,7 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .ghead + .sets{margin-bottom:12px}
 .set{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
 .set.on{border-color:var(--accent);background:var(--accent-soft)}
+.kall{display:flex;gap:4px;flex-wrap:wrap;margin:-2px 0 6px}
 .set input{width:20px;height:20px;accent-color:var(--accent)}
 .set .t{font-weight:700;line-height:1.4}
 .set .m{font-size:12px;color:var(--muted)}
@@ -10960,17 +10961,18 @@ const MATH_BY = Object.fromEntries([...MATH_DRILLS, ...KD].map(d=>[d.id,d]));
 const KSUB = "期末対策";
 function kimUser(){ const u = user(); return u ? (u.kim ||= {}) : (ui.kimTmp ||= {}); }
 function kimSchool(){ const k = kimUser(); if(!k.g || !KIM[k.g]) return [null,null]; const ss = Object.keys(KIM[k.g]); return [k.g, ss.length===1 ? ss[0] : (ss.includes(k.sch) ? k.sch : null)]; }
-function drillBtn(d){ const b=mathBest(d.id), on=ui.mdrill===d.id; return `
-      <button class="set mset ${on?"on":""}" data-act="mdrill" data-v="${d.id}">
-        <span class="mradio" aria-hidden="true">${on?"●":"○"}</span>
+function kselSet(){ return ui.ksel ||= new Set(); }
+function drillBtn(d){ const b=mathBest(d.id), multi=!!d.kim, on=multi?kselSet().has(d.id):ui.mdrill===d.id; return `
+      <button class="set mset ${on?"on":""}" data-act="${multi?"kdrill":"mdrill"}" data-v="${d.id}">
+        <span class="mradio" aria-hidden="true">${multi?(on?"☑":"☐"):(on?"●":"○")}</span>
         <span><span class="t">${esc(d.t)}</span><span class="m">${d.ord?"並べかえる・毎回ちがう文":d.ch?"選んで答える":d.neg?"マイナスは − キー":d.dec?"小数で答える":""}</span></span>
         <span class="stat">${b?`1分ベスト<br><b>${b.t60||0}</b>問`:""}</span>
       </button>`; }
-function mathOpts(sel){ return `<div class="opts">
+function mathOpts(sel, act="mstart"){ return `<div class="opts">
       <div><p class="label">問題数</p><div class="seg">${[["n10","10問"],["n20","20問"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
       <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"],["t300","5分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
     </div>
-    <div class="startbar"><span class="sum">${sel?esc(sel.t):"問題を選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`; }
+    <div class="startbar"><span class="sum">${sel?esc(sel.t):"問題を選んでください"}</span><button class="primary" data-act="${act}" ${sel?"":"disabled"}>スタート</button></div>`; }
 function viewKimatsuHome(){
   const [g, sch] = kimSchool(), k = kimUser();
   let h = `<div><p class="label">学年</p><div class="filters">${Object.keys(KIM).map(x=>`<button class="chip big" aria-pressed="${g===x}" data-act="kgrade" data-v="${x}">${x}</button>`).join("")}</div></div>`;
@@ -10984,10 +10986,12 @@ function viewKimatsuHome(){
     const us = units.filter(([,u])=>u.s===s); if(!us.length) continue;
     h += `<div class="ksub"><h3>${esc(s)}</h3>${us.map(([id,u])=>{ const ds=u.d.map(x=>MATH_BY[x]).filter(Boolean); const hasSets=u.sets.some(x=>SETS.some(z=>z.id===x)); return `
       <div class="ghead"><span>${esc(u.n)} <small class="kp">${esc(u.p)}</small></span>${hasSets?`<span><button class="link" data-act="kset" data-u="${id}">${u.s==="社会"?"用語・地図":u.s==="英語"?"単語・並び替え":u.s==="国語"?"漢字・ことば":"用語"}テスト →</button></span>`:""}</div>
+      ${ds.length>1?`<div class="kall">${ds.some(d=>d.ord)?`<button class="link" data-act="kall" data-u="${id}" data-k="ord">並び替えを全部選ぶ</button>`:""}${ds.some(d=>!d.ord)?`<button class="link" data-act="kall" data-u="${id}" data-k="ch">${u.s==="英語"||u.s==="国語"?"4択":"問題"}を全部選ぶ</button>`:""}</div>`:""}
       ${ds.length?`<div class="sets">${ds.map(drillBtn).join("")}</div>`:""}`; }).join("")}</div>`;
   }
-  const sel = ui.mdrill && MATH_BY[ui.mdrill] && MATH_BY[ui.mdrill].kim ? MATH_BY[ui.mdrill] : null;
-  return h + mathOpts(sel);
+  const ks = [...kselSet()].map(x=>MATH_BY[x]).filter(Boolean);
+  const sel = ks.length===1 ? ks[0] : ks.length ? {t:`${ks.length}種類からランダムに出題`} : null;
+  return h + mathOpts(sel, ks.length?"kstart":"mstart");
 }
 
 function mathBest(id){ return user()?.math?.[id] || null; }
@@ -11008,6 +11012,17 @@ function viewMathHome(){
     <div class="startbar"><span class="sum">${sel?esc(sel.t):"ドリルを選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`;
 }
 function makeMathQ(d){ const [q,a,hint,ch,ex] = d.f(); return {math:true, d, q, a:String(a), hint, ch: ch ? shuf(ch) : null, ex, input:"", picked:null}; }
+function startKim(ids, limit=ui.mlimit){
+  const ds = ids.map(x=>MATH_BY[x]).filter(Boolean); if(!ds.length) return;
+  const timed = limit.startsWith("t"), n = timed ? 30 : +limit.slice(1);
+  const label = ds.length===1 ? ds[0].t : `期末 ${[...new Set(ds.map(d=>d.s))].join("・")} ${ds.every(d=>d.ord)?"並び替え":"問題"} ${ds.length}種類ミックス`;
+  if(ds.every(d=>d.ord)){ const ts = ds.map(d=>d.ord); startQuiz(Array.from({length:n},()=>genOrderWord(pick(ts))), label, limit); quiz.gen = ts; quiz.kids = ids; return; }
+  stopTimer(); sendState = ["",""];
+  const subj = ds[0].s;
+  quiz = {math:true, drill: ds.length===1 ? ds[0].id : null, drills: ds.map(d=>d.id), kids: ids, label, subj, qs:Array.from({length:n},()=>makeMathQ(pick(ds))), i:0, wrong:[], timed, startedAt:Date.now(), pool:[{subject:subj}]};
+  if(timed){ quiz.sec=+limit.slice(1); quiz.endAt=Date.now()+quiz.sec*1000; timerId=setInterval(tick,250); }
+  ui.view="quiz"; render();
+}
 function startMath(id, limit=ui.mlimit){
   stopTimer();
   const d = MATH_BY[id]; if(!d) return;
@@ -11099,6 +11114,7 @@ function mathJudge(q){
 function saveMathBest(){
   const u = user(); if(!u || !quiz?.math) return;
   const done = quiz.qs.filter(q=>q.picked!==null).length, ok = done - quiz.wrong.length;
+  if(!quiz.drill) return;
   const b = (u.math ||= {})[quiz.drill] ||= {};
   if(quiz.timed && quiz.sec===60) b.t60 = Math.max(b.t60||0, ok);
   if(quiz.timed && quiz.sec===180) b.t180 = Math.max(b.t180||0, ok);
@@ -12187,7 +12203,7 @@ function dmgFinish(){
 /* 魔法の色:教科で属性が変わる(英語=風 数学=雷 国語=水 理科=炎 社会=大地) */
 function spellColor(){
   if(!quiz) return "#b48cff";
-  if(quiz.math) return ({"理科":"#ff7a3d","社会":"#d2a26c"})[quiz.subj] || "#ffe14d";
+  if(quiz.math) return ({"理科":"#ff7a3d","社会":"#d2a26c","英語":"#7fe0c8","国語":"#5fb0ff"})[quiz.subj] || "#ffe14d";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "#b48cff";
   return ({"英語":"#7fe0c0","数学":"#ffe14d","国語":"#5ab8ff","理科":"#ff7a3d","社会":"#d2a26c"})[ss[0]] || "#b48cff";
@@ -12245,7 +12261,7 @@ async function flushDmg(){
 /* 魔法の名前:教科・形式で変わる */
 function spellName(){
   if(!quiz) return "マル単の魔法";
-  if(quiz.math) return ({"理科":"炎の魔法","社会":"大地の魔法","数学":"雷の魔法"})[quiz.subj] || "雷の魔法(計算)";
+  if(quiz.math) return ({"理科":"炎の魔法","社会":"大地の魔法","数学":"雷の魔法","英語":"風の魔法","国語":"水の魔法"})[quiz.subj] || "雷の魔法(計算)";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "マル単の魔法";
   return ({order:"つなぎの魔法", "英語":"風の魔法", "国語":"水の魔法", "数学":"雷の魔法", "理科":"炎の魔法", "社会":"大地の魔法"})[ss[0]] || "マル単の魔法";
@@ -12479,7 +12495,7 @@ function manaPanel(){
 /* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
 function spellElement(){
   if(!quiz) return "";
-  if(quiz.math) return ({"理科":"fire","社会":"earth"})[quiz.subj] || "thunder";
+  if(quiz.math) return ({"理科":"fire","社会":"earth","英語":"wind","国語":"water"})[quiz.subj] || "thunder";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "";
   return ({"英語":"wind","数学":"thunder","国語":"water","理科":"fire","社会":"earth"})[ss[0]] || "";
@@ -13001,8 +13017,8 @@ function judge(q, ok, k){
   setTimeout(()=>$("#nextBtn")?.focus({preventScroll:true}),0);
 }
 function next(){
-  if(quiz.math && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeMathQ(MATH_BY[quiz.drill])));
-  else if(quiz.gen && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeQuestion(genOrderWord(quiz.gen))));
+  if(quiz.math && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeMathQ(MATH_BY[quiz.drills?pick(quiz.drills):quiz.drill])));
+  else if(quiz.gen && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeQuestion(genOrderWord(Array.isArray(quiz.gen)?pick(quiz.gen):quiz.gen))));
   else if(quiz.timed && quiz.i+1>=quiz.qs.length){
     let more = shuffle(quiz.pool);
     if(more.length>1 && more[0].key===quiz.qs[quiz.i].w.key) more.push(more.shift());
@@ -13029,7 +13045,7 @@ function viewResult(){
     <div class="startbar">
       <span class="sum" style="margin-right:auto"><span id="sendMsg" class="send ${sendState[0]||""}">${esc(sendState[1]||"")}</span></span>
       <button data-act="home">セット選択にもどる</button>
-      ${quiz.math?`<button class="primary" data-act="mretry">もう一度チャレンジ</button>`:uniq.length?`<button class="primary" data-act="retry">まちがえた ${uniq.length} 語をもう一度</button>`:""}
+      ${quiz.kids?`<button class="primary" data-act="kretry">新しい問題でもう一度</button>${!quiz.math&&uniq.length?`<button data-act="retry">まちがえた ${uniq.length} 問をもう一度</button>`:""}`:quiz.math?`<button class="primary" data-act="mretry">もう一度チャレンジ</button>`:uniq.length?`<button class="primary" data-act="retry">まちがえた ${uniq.length} 語をもう一度</button>`:""}
     </div>
   </section>`;
 }
@@ -13257,6 +13273,15 @@ document.addEventListener("click", async e=>{
   else if(a==="mdrill"){ ui.mdrill=b.dataset.v; render(); }
   else if(a==="mlimit"){ ui.mlimit=b.dataset.v; render(); }
   else if(a==="mstart"){ startMath(ui.mdrill); }
+  else if(a==="kstart"){ startKim([...kselSet()]); }
+  else if(a==="kretry"){ startKim(quiz.kids, quiz.timed?"t"+quiz.sec:"n"+quiz.qs.length); }
+  else if(a==="kdrill"){ const S=kselSet(), id=b.dataset.v, d=MATH_BY[id];
+    if(S.has(id)) S.delete(id); else { for(const x of [...S]) if(!!MATH_BY[x]?.ord!==!!d.ord) S.delete(x); S.add(id); }
+    render(); }
+  else if(a==="kall"){ const S=kselSet(), U=KU[b.dataset.u], ord=b.dataset.k==="ord";
+    const ids=U.d.filter(x=>MATH_BY[x] && !!MATH_BY[x].ord===ord); const all=ids.every(x=>S.has(x));
+    for(const x of [...S]) if(!!MATH_BY[x]?.ord!==ord) S.delete(x);
+    ids.forEach(x=>all?S.delete(x):S.add(x)); render(); }
   else if(a==="mretry"){ startMath(quiz.drill, quiz.timed?"t"+quiz.sec:"n"+quiz.qs.length); }
   else if(a==="mkey"){ mathKey(b.dataset.k); }
   else if(a==="mchoice"){ mathChoice(+b.dataset.k); }
