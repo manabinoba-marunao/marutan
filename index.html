@@ -10968,7 +10968,7 @@ function drillBtn(d){ const b=mathBest(d.id), on=ui.mdrill===d.id; return `
       </button>`; }
 function mathOpts(sel){ return `<div class="opts">
       <div><p class="label">問題数</p><div class="seg">${[["n10","10問"],["n20","20問"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
-      <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
+      <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"],["t300","5分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
     </div>
     <div class="startbar"><span class="sum">${sel?esc(sel.t):"問題を選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`; }
 function viewKimatsuHome(){
@@ -11003,7 +11003,7 @@ function viewMathHome(){
       </button>`}).join("")}</div>`).join("")}</div>
     <div class="opts">
       <div><p class="label">問題数</p><div class="seg">${[["n10","10問"],["n20","20問"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
-      <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
+      <div><p class="label">時間チャレンジ</p><div class="seg">${[["t60","1分"],["t180","3分"],["t300","5分"]].map(([v,l])=>`<button aria-pressed="${ui.mlimit===v}" data-act="mlimit" data-v="${v}">${l}</button>`).join("")}</div></div>
     </div>
     <div class="startbar"><span class="sum">${sel?esc(sel.t):"ドリルを選んでください"}</span><button class="primary" data-act="mstart" ${sel?"":"disabled"}>スタート</button></div>`;
 }
@@ -11102,6 +11102,7 @@ function saveMathBest(){
   const b = (u.math ||= {})[quiz.drill] ||= {};
   if(quiz.timed && quiz.sec===60) b.t60 = Math.max(b.t60||0, ok);
   if(quiz.timed && quiz.sec===180) b.t180 = Math.max(b.t180||0, ok);
+  if(quiz.timed && quiz.sec===300) b.t300 = Math.max(b.t300||0, ok);
   b.total = (b.total||0) + ok;
   save();
 }
@@ -12133,7 +12134,7 @@ function viewMergeSheet(){
 function mergeUser(from){
   const a = mem.users[from], b = user(); if(!a || !b) return;
   for(const [k,r] of Object.entries(a.rec||{})){ const c=b.rec[k]; if(!c || (r.c+r.w)>(c.c+c.w)) b.rec[k]=r; }
-  if(a.math){ b.math ||= {}; for(const [k,v] of Object.entries(a.math)){ const c=(b.math[k] ||= {}); c.t60=Math.max(c.t60||0,v.t60||0); c.t180=Math.max(c.t180||0,v.t180||0); c.total=(c.total||0)+(v.total||0); } }
+  if(a.math){ b.math ||= {}; for(const [k,v] of Object.entries(a.math)){ const c=(b.math[k] ||= {}); c.t60=Math.max(c.t60||0,v.t60||0); c.t180=Math.max(c.t180||0,v.t180||0); c.t300=Math.max(c.t300||0,v.t300||0); c.total=(c.total||0)+(v.total||0); } }
   if(a.skin && !b.skin) b.skin = a.skin;
   a.mergedInto = ui.name; save();
 }
@@ -12396,7 +12397,7 @@ function mergeCloud(u, d){
     const r = {c:a[0], w:a[1], streak:a[2], due:!!a[3]}, c = u.rec[k];
     if(!c || (r.c+r.w) > ((c.c||0)+(c.w||0))){ u.rec[k] = r; changed = true; }
   }
-  if(d.math){ u.math ||= {}; for(const [k,v] of Object.entries(d.math)){ const c=(u.math[k] ||= {}); for(const f of ["t60","t180","total"]){ if((v[f]||0) > (c[f]||0)){ c[f]=v[f]; changed=true; } } } }
+  if(d.math){ u.math ||= {}; for(const [k,v] of Object.entries(d.math)){ const c=(u.math[k] ||= {}); for(const f of ["t60","t180","t300","total"]){ if((v[f]||0) > (c[f]||0)){ c[f]=v[f]; changed=true; } } } }
   if(d.skin && !u.skin){ u.skin = d.skin; changed = true; }
   if(Array.isArray(d.seen)){ const s = new Set(u.skinsSeen||[]); const n = s.size; d.seen.forEach(x=>s.add(x)); if(s.size!==n){ u.skinsSeen=[...s]; changed=true; } }
   if(d.kim && d.kim.g && !(u.kim && u.kim.g)){ u.kim = d.kim; changed = true; }
