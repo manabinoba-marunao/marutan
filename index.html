@@ -10668,21 +10668,211 @@ const J_NO = [
   ["花【の】咲くころ。","主語を示す(〜が)",["連体修飾語をつくる(〜の)","体言の代用(〜のもの・こと)","並立(〜の〜の)"],"「花が咲く」"],
   ["このかばんは兄【の】だ。","体言の代用(〜のもの・こと)",["主語を示す(〜が)","連体修飾語をつくる(〜の)","並立(〜の〜の)"],"「兄のもの」"]
 ];
+/* ---------- 期末:英文法の自動作文(並び替え・4択とも無限に出る) ----------
+   G_TOPICS[id]() は {en, ja, a, w} を返す。a = 4択で空所にする語(句)、w = まちがい選択肢 */
+const GP = [ // 主語
+  {e:"I",j:"私",p:1,o:"me"},{e:"you",j:"あなた",p:2,o:"you"},{e:"he",j:"彼",p:3,o:"him",pr:"he"},{e:"she",j:"彼女",p:3,o:"her",pr:"she"},
+  {e:"we",j:"私たち",p:9,o:"us"},{e:"they",j:"彼ら",p:9,o:"them"},{e:"Ken",j:"ケン",p:3,o:"Ken",pr:"he"},{e:"Aya",j:"アヤ",p:3,o:"Aya",pr:"she"},
+  {e:"my brother",j:"私の兄",p:3,o:"my brother",pr:"he"},{e:"my sister",j:"私の姉",p:3,o:"my sister",pr:"she"},{e:"Tom and Mike",j:"トムとマイク",p:9,o:"Tom and Mike",pr:"they"},
+  {e:"our teacher",j:"私たちの先生",p:3,o:"our teacher"},{e:"my friends",j:"私の友だち",p:9,o:"my friends",pr:"they"},{e:"Yuki",j:"ユキ",p:3,o:"Yuki",pr:"she"}
+];
+const G3 = GP.filter(s=>s.p===3), GNOT3 = GP.filter(s=>s.p!==3), GPR = GP.filter(s=>s.pr||s.p<3);
+const gcap = s => s[0].toUpperCase()+s.slice(1);
+const gbe = (s,past) => past ? (s.p===1||s.p===3?"was":"were") : (s.p===1?"am":s.p===3?"is":"are");
+const ghave = s => s.p===3?"has":"have";
+const gdo = s => s.p===3?"does":"do";
+const gpr = s => s.pr || (s.p===1?"I":"you");
+// 英語の動詞
+const EV = {play:["plays","playing","played","played"],study:["studies","studying","studied","studied"],read:["reads","reading","read","read"],
+  watch:["watches","watching","watched","watched"],clean:["cleans","cleaning","cleaned","cleaned"],make:["makes","making","made","made"],
+  write:["writes","writing","wrote","written"],listen:["listens","listening","listened","listened"],use:["uses","using","used","used"],
+  speak:["speaks","speaking","spoke","spoken"],wash:["washes","washing","washed","washed"],sing:["sings","singing","sang","sung"],
+  cook:["cooks","cooking","cooked","cooked"],practice:["practices","practicing","practiced","practiced"]};
+// 日本語の動詞:ます形の語幹 / て形 / 辞書形 / た形 / ない形の語幹
+const JV = {する:["し","して","する","した","し"],ひく:["ひき","ひいて","ひく","ひいた","ひか"],勉強する:["勉強し","勉強して","勉強する","勉強した","勉強し"],
+  読む:["読み","読んで","読む","読んだ","読ま"],見る:["見","見て","見る","見た","見"],そうじする:["そうじし","そうじして","そうじする","そうじした","そうじし"],
+  作る:["作り","作って","作る","作った","作ら"],書く:["書き","書いて","書く","書いた","書か"],聞く:["聞き","聞いて","聞く","聞いた","聞か"],
+  使う:["使い","使って","使う","使った","使わ"],話す:["話し","話して","話す","話した","話さ"],洗う:["洗い","洗って","洗う","洗った","洗わ"],
+  歌う:["歌い","歌って","歌う","歌った","歌わ"],練習する:["練習し","練習して","練習する","練習した","練習し"]};
+// 動詞句 [英語の動詞, 目的語, 日本語の目的語, 日本語の動詞, 種類] s=得意なこと t=やるべきこと c=続けていること
+const VP = [["play","soccer","サッカー","する","sc"],["play","tennis","テニス","する","sc"],["play","the piano","ピアノ","ひく","sc"],["play","the guitar","ギター","ひく","sc"],
+  ["study","English","英語","勉強する","tc"],["study","math","数学","勉強する","tc"],["read","books","本","読む",""],["read","the newspaper","新聞","読む",""],
+  ["watch","TV","テレビ","見る",""],["watch","movies","映画","見る",""],["clean","the room","部屋","そうじする","t"],["make","lunch","昼食","作る","t"],
+  ["make","cakes","ケーキ","作る","s"],["write","letters","手紙","書く","t"],["listen","to music","音楽","聞く",""],["use","the computer","コンピューター","使う",""],
+  ["speak","English","英語","話す","sc"],["wash","the dishes","皿","洗う","t"],["sing","songs","歌","歌う","s"],["cook","dinner","夕食","作る","st"],["practice","the piano","ピアノ","練習する","tc"],
+  ["practice","kendo","剣道","練習する","c"]].map(([v,o,oj,jv,f])=>{ const F=EV[v], J=JV[jv];
+    return {b:v+" "+o, s:F[0]+" "+o, ing:F[1]+" "+o, past:F[2]+" "+o, pp:F[3]+" "+o, vb:v, vs:F[0], vi:F[1], vp:F[2], vpp:F[3], obj:o, f,
+      m:oj+"を"+J[0], te:oj+"を"+J[1], d:oj+"を"+J[2], ta:oj+"を"+J[3], na:oj+"を"+J[4]}; });
+const vpf = f => VP.filter(v=>v.f.includes(f));
+const TNOW = [["every day","毎日"],["after school","放課後に"],["on Sundays","日曜日に"],["every morning","毎朝"],["after dinner","夕食後に"]];
+const TPAST = [["yesterday","昨日"],["last Sunday","この前の日曜日に"],["last night","昨夜"]];
+const TFUT = [["tomorrow","明日"],["next Sunday","次の日曜日に"],["this weekend","この週末に"]];
+const NUMS = [["two","2"],["three","3"],["four","4"],["five","5"],["six","6"],["ten","10"]];
+const gq = (en, ja, a, w) => ({en, ja, a, w});
+const others = (all, a) => all.filter(x=>x!==a);
+const G_TOPICS = {
+  // ===== 中1 =====
+  "g1-3sg": ()=>{ const s=pick(G3), v=pick(VP), t=pick(TNOW), k=ri(0,3);
+    if(k===0) return gq(`${gcap(s.e)} ${v.s} ${t[0]}.`, `${s.j}は${t[1]}${v.m}ます。`, v.vs, [v.vb, v.vi, v.vp]);
+    if(k===1) return gq(`${gcap(s.e)} doesn't ${v.b} ${t[0]}.`, `${s.j}は${t[1]}${v.m}ません。`, "doesn't", ["don't","isn't","didn't"]);
+    if(k===2) return gq(`Does ${s.e} ${v.b} ${t[0]}?`, `${s.j}は${t[1]}${v.m}ますか。`, "Does", ["Do","Is","Did"]);
+    const n=pick(GNOT3); return gq(`${gcap(n.e)} ${v.b} ${t[0]}.`, `${n.j}は${t[1]}${v.m}ます。`, v.vb, [v.vs, v.vi, "is"]); },
+  "g1-prog": ()=>{ const s=pick(GP), v=pick(VP), k=ri(0,3), be=gbe(s);
+    if(k===0) return gq(`${gcap(s.e)} ${be} ${v.ing} now.`, `${s.j}は今${v.te}います。`, v.vi, [v.vb, v.vs, v.vp]);
+    if(k===1) return gq(`${gcap(be)} ${s.e} ${v.ing} now?`, `${s.j}は今${v.te}いますか。`, gcap(be), others(["Am","Is","Are","Do","Does"],gcap(be)).slice(0,3));
+    if(k===2) return gq(`${gcap(s.e)} ${be} not ${v.ing} now.`, `${s.j}は今${v.te}いません。`, be, others(["am","is","are","do","does"],be).slice(0,3));
+    return gq(`What ${be} ${s.e} doing now?`, `${s.j}は今何をしていますか。`, be, others(["am","is","are","do","does"],be).slice(0,3)); },
+  "g1-can": ()=>{ const s=pick(GP), v=pick(vpf("s")), k=ri(0,2);
+    if(k===0) return gq(`${gcap(s.e)} can ${v.b} well.`, `${s.j}は上手に${v.d}ことができます。`, v.vb, [v.vs, v.vi, "to "+v.vb]);
+    if(k===1) return gq(`Can ${s.e} ${v.b}?`, `${s.j}は${v.d}ことができますか。`, "Can", ["Do","Is","Does"].filter(x=>x!==(s.p===3?"":"")));
+    return gq(`${gcap(s.e)} can't ${v.b}.`, `${s.j}は${v.d}ことができません。`, "can't", ["don't","doesn't","isn't"]); },
+  "g1-wh": ()=>{ const s=pick(GP.filter(x=>x.e!=="I")), v=pick(VP), W=pick([["When","いつ"],["Where","どこで"],["What time","何時に"],["Why","なぜ"]]), d=gdo(s);
+    return gq(`${W[0]} ${d} ${s.e} ${v.b}?`, `${s.j}は${W[1]}${v.d}のですか。`, W[0].split(" ")[0], others(["When","Where","What","Why","Who","How"],W[0].split(" ")[0]).slice(0,3)); },
+  // ===== 中2 =====
+  "g2-inf": ()=>{ const k=ri(0,3);
+    if(k===0){ const s=pick(GP), v=pick(VP), t=pick(TFUT); const third=s.p===3;
+      return gq(`${gcap(s.e)} ${third?"wants":"want"} to ${v.b} ${t[0]}.`, third?`${s.j}は${t[1]}${v.m}たがっています。`:`${s.j}は${t[1]}${v.m}たいと思っています。`, v.vb, [v.vs, v.vi, v.vp]); }
+    if(k===1){ const P=pick([["the library","図書館",["study English","study math","read books","read the newspaper"]],["the park","公園",["play soccer","play tennis"]],["the music room","音楽室",["play the piano","play the guitar","sing songs","practice the piano"]],["the kitchen","台所",["make lunch","make cakes","cook dinner","wash the dishes"]]]);
+      const pb=pick(P[2]), v=VP.find(x=>x.b===pb), s=pick(GP), t=pick(TPAST);
+      return gq(`${gcap(s.e)} went to ${P[0]} to ${v.b} ${t[0]}.`, `${s.j}は${t[1]}${v.d}ために${P[1]}へ行きました。`, "to", ["for","at","with"]); }
+    if(k===2){ const s=pick(GP), v=pick(VP);
+      return gq(`${gcap(s.e)} ${ghave(s)} no time to ${v.b} today.`, `${s.j}には今日${v.d}時間がありません。`, v.vb, [v.vi, v.vs, v.vp]); }
+    const s=pick(GP), F=pick([["to do","やるべき","homework","宿題",["doing","does","did"]],["to read","読むべき","books","本",["reading","reads","read to"]],["to eat","食べる","food","もの",["eating","eats","ate"]],["to drink","飲む","something","何か",[]]]);
+    if(F[2]==="something") return gq(`${gcap(s.e)} ${s.p===3?"wants":"want"} something to drink.`, s.p===3?`${s.j}は何か飲むものをほしがっています。`:`${s.j}は何か飲むものがほしいです。`, "to", ["for","of","drink"]);
+    return gq(`${gcap(s.e)} ${ghave(s)} a lot of ${F[2]} ${F[0]} today.`, `${s.j}には今日${F[1]}${F[3]}がたくさんあります。`, F[0].split(" ")[1], F[4]); },
+  "g2-ger": ()=>{ const k=ri(0,4), s=pick(GP);
+    if(k===0){ const v=pick(VP), t=pick(TPAST); return gq(`${gcap(s.e)} enjoyed ${v.ing} ${t[0]}.`, `${s.j}は${t[1]}${v.d}ことを楽しみました。`, v.vi, ["to "+v.vb, v.vb, v.vp]); }
+    if(k===1){ const v=pick(vpf("t")), t=pick(TPAST); return gq(`${gcap(s.e)} finished ${v.ing} ${t[0]}.`, `${s.j}は${t[1]}${v.d}のを終えました。`, v.vi, ["to "+v.vb, v.vb, v.vp]); }
+    if(k===2){ const v=pick(VP); return gq(`${gcap(s.e)} ${s.p===3?"likes":"like"} ${v.ing}.`, `${s.j}は${v.d}ことが好きです。`, v.vi, [v.vb, v.vs, v.vp]); }
+    if(k===3){ const v=pick(vpf("s")); return gq(`${gcap(s.e)} ${gbe(s)} good at ${v.ing}.`, `${s.j}は${v.d}のが得意です。`, v.vi, ["to "+v.vb, v.vb, v.vs]); }
+    const v=pick(VP); return gq(`${gcap(v.ing)} is fun.`, `${v.d}ことは楽しいです。`, gcap(v.vi), [gcap(v.vb), gcap(v.vs), gcap(v.vp)]); },
+  "g2-must": ()=>{ const k=ri(0,4), s=pick(GP), v=pick(vpf("t"));
+    if(k===0) return gq(`${gcap(s.e)} must ${v.b} today.`, `${s.j}は今日${v.na}なければなりません。`, v.vb, [v.vs, v.vi, "to "+v.vb]);
+    if(k===1) return gq(`${gcap(s.e)} ${ghave(s)} to ${v.b} today.`, `${s.j}は今日${v.na}なければなりません。`, ghave(s), [ghave(s)==="has"?"have":"has","must","is"]);
+    if(k===2) return gq(`${gcap(s.e)} ${s.p===3?"doesn't":"don't"} have to ${v.b} today.`, `${s.j}は今日${v.na}なくてもいいです。`, "have", ["must","has","had"]);
+    if(k===3){ const u=pick(VP); return gq(`You must not ${u.b} here.`, `ここで${u.te}はいけません。`, "not", ["don't","no","doesn't"]); }
+    return gq(`${gcap(s.e)} had to ${v.b} yesterday.`, `${s.j}は昨日${v.na}なければなりませんでした。`, "had", ["must","have","has"]); },
+  "g2-there": ()=>{ const T=pick([["cat","cats","ネコ","匹",1],["dog","dogs","イヌ","匹",1],["bird","birds","鳥","羽",1],["ball","balls","ボール","個",0],["book","books","本","冊",0],["pen","pens","ペン","本",0],["picture","pictures","絵","枚",0]]);
+    const L=pick([["under the table","テーブルの下に"],["on the desk","机の上に"],["near the door","ドアの近くに"],["in my room","私の部屋に"],["by the window","窓のそばに"]]);
+    const iru = T[4]?"い":"あり", k=ri(0,3), N=pick(NUMS), past=Math.random()<.4;
+    if(k===0) return gq(`There ${past?"was":"is"} a ${T[0]} ${L[0]}${past?" yesterday":""}.`, `${past?"昨日、":""}${L[1]}${T[2]}が1${T[3]}${iru}${past?"ました":"ます"}。`, past?"was":"is", past?["were","is","are"]:["are","was","be"]);
+    if(k===1) return gq(`There ${past?"were":"are"} ${N[0]} ${T[1]} ${L[0]}${past?" yesterday":""}.`, `${past?"昨日、":""}${L[1]}${T[2]}が${N[1]}${T[3]}${iru}${past?"ました":"ます"}。`, past?"were":"are", past?["was","are","is"]:["is","were","be"]);
+    if(k===2) return gq(`Are there any ${T[1]} ${L[0]}?`, `${L[1]}${T[2]}は${iru}ますか。`, "Are", ["Is","Do","Does"]);
+    return gq(`How many ${T[1]} are there ${L[0]}?`, `${L[1]}${T[2]}は何${T[3]}${iru}ますか。`, "many", ["much","long","old"]); },
+  "g2-comp": ()=>{ const P=["Ken","Aya","Tom","Mike","Yuki","my brother","my sister"], PJ={Ken:"ケン",Aya:"アヤ",Tom:"トム",Mike:"マイク",Yuki:"ユキ","my brother":"私の兄","my sister":"私の姉"};
+    const [A,B]=shuf(P), k=ri(0,5);
+    const AD=pick([["tall","taller","tallest","背が高い"],["old","older","oldest","年上"],["young","younger","youngest","年下"],["busy","busier","busiest","忙しい"],["strong","stronger","strongest","力が強い"]]);
+    const G=pick([["in our class","私たちのクラスで"],["in this team","このチームで"],["of the five","5人の中で"],["of all","みんなの中で"]]);
+    if(k===0) return gq(`${gcap(A)} is ${AD[1]} than ${B}.`, `${PJ[A]}は${PJ[B]}より${AD[3]}です。`, AD[1], [AD[0], AD[2], "more "+AD[0]]);
+    if(k===1) return gq(`${gcap(A)} is the ${AD[2]} ${G[0]}.`, `${PJ[A]}は${G[1]}いちばん${AD[3]}です。`, AD[2], [AD[0], AD[1], "most "+AD[0]]);
+    if(k===2) return gq(`${gcap(A)} is as ${AD[0]} as ${B}.`, `${PJ[A]}は${PJ[B]}と同じくらい${AD[3]}です。`, AD[0], [AD[1], AD[2], "more "+AD[0]]);
+    if(k===3){ const R=pick([["runs","fast","faster","fastest","速く走ります"],["swims","fast","faster","fastest","速く泳ぎます"],["gets up","early","earlier","earliest","早く起きます"]]);
+      return Math.random()<.5 ? gq(`${gcap(A)} ${R[0]} ${R[2]} than ${B}.`, `${PJ[A]}は${PJ[B]}より${R[4]}。`, R[2], [R[1], R[3], "more "+R[1]])
+        : gq(`${gcap(A)} ${R[0]} the ${R[3]} ${G[0]}.`, `${PJ[A]}は${G[1]}いちばん${R[4]}。`, R[3], [R[1], R[2], "most "+R[1]]); }
+    if(k===4){ const N=pick([["book","本","interesting","おもしろい"],["question","問題","difficult","難しい"],["picture","絵","beautiful","美しい"],["song","歌","popular","人気があります"],["rule","ルール","important","大切"]]);
+      const ja=N[3]==="人気があります"?"人気があります":N[3]+"です";
+      return Math.random()<.5 ? gq(`This ${N[0]} is more ${N[2]} than that one.`, `この${N[1]}はあの${N[1]}より${ja}。`, "more", ["most","much","very"])
+        : gq(`This ${N[0]} is the most ${N[2]} of the five.`, `この${N[1]}は5つの中でいちばん${ja}。`, "most", ["more","much","best"]); }
+    const C=pick([["summer","winter","夏","冬","seasons","季節"],["cats","dogs","ネコ","イヌ","animals","動物"],["math","English","数学","英語","subjects","教科"],["soccer","tennis","サッカー","テニス","sports","スポーツ"]]); const sw=Math.random()<.5;
+    const X=sw?C[0]:C[1], Y=sw?C[1]:C[0], XJ=sw?C[2]:C[3], YJ=sw?C[3]:C[2];
+    return Math.random()<.5 ? gq(`I like ${X} better than ${Y}.`, `私は${YJ}より${XJ}のほうが好きです。`, "better", ["best","more","good"])
+      : gq(`I like ${X} the best of all ${C[4]}.`, `私はすべての${C[5]}の中で${XJ}がいちばん好きです。`, "best", ["better","most","good"]); },
+  "g2-conj": ()=>{ const k=ri(0,3);
+    if(k===0){ const W=pick([["is sunny","晴れたら",["play soccer","play tennis"]],["rains","雨が降ったら",["read books","watch TV","watch movies","study math","clean the room"]]]);
+      const wb=pick(W[2]), s=pick(GP), v=VP.find(x=>x.b===wb), t=pick(TFUT);
+      return gq(`If it ${W[0]} ${t[0]}, ${s.e} will ${v.b}.`, `もし${t[1]}${W[1]}、${s.j}は${v.m}ます。`, W[0].split(" ")[0], W[0]==="rains"?["will rain","rained","rain"]:["will be","was","be"]); }
+    if(k===1){ const a=pick(GPR.filter(x=>x.p!==9)), b=pick(GP.filter(x=>x!==a)), v=pick(VP);
+      return gq(`When ${a.e} came home, ${b.e} ${gbe(b,true)} ${v.ing}.`, `${a.j}が家に帰ったとき、${b.j}は${v.te}いました。`, "When", ["If","Because","That"]); }
+    if(k===2){ const s=pick(GP.filter(x=>x.pr||x.p<3)), v=pick(VP), t=pick(TPAST);
+      return gq(`${gcap(s.e)} couldn't ${v.b} ${t[0]} because ${gpr(s)} ${gbe({p:gpr(s)==="I"?1:gpr(s)==="they"||gpr(s)==="you"?9:3},true)} sick.`, `${s.j}は病気だったので、${t[1]}${v.d}ことができませんでした。`, "because", ["if","when","that"]); }
+    const s=pick(GP.filter(x=>x.e!=="I")), v=pick(VP), t=pick(TNOW);
+    return gq(`I think that ${s.e} ${s.p===3?v.s:v.b} ${t[0]}.`, `私は${s.j}が${t[1]}${v.d}と思います。`, "that", ["if","because","when"]); },
+  // ===== 中3 =====
+  "g3-pp": ()=>{ const k=ri(0,6), s=pick(GP), h=ghave(s), N=pick(NUMS);
+    const EXP=[["visited Kyoto","京都を訪れた"],["climbed Mt. Fuji","富士山に登った"],["seen a panda","パンダを見た"],["eaten natto","納豆を食べた"],["made a cake","ケーキを作った"],["written a letter in English","英語で手紙を書いた"],["been to Cebu","セブに行った"],["ridden a horse","馬に乗った"],["swum in the sea","海で泳いだ"]];
+    if(k===0){ const v=pick(vpf("c")); return gq(`${gcap(s.e)} ${h} ${v.pp} for ${N[0]} years.`, `${s.j}は${N[1]}年間${v.te}います。`, h, [h==="has"?"have":"has","is","was"]); }
+    if(k===1){ const C=pick([["Tomioka","富岡"],["Cebu","セブ"],["Tokyo","東京"],["this town","この町"]]), Y=pick(["2015","2018","2020","2022"]);
+      return gq(`${gcap(s.e)} ${h} lived in ${C[0]} since ${Y}.`, `${s.j}は${Y}年から${C[1]}に住んでいます。`, "since", ["for","from","ago"]); }
+    if(k===2){ const v=pick(vpf("c")); return gq(`How long ${h} ${s.e} ${v.pp}?`, `${s.j}はどのくらいの間${v.te}いますか。`, "long", ["many","much","often"]); }
+    if(k===3){ const E=pick(EXP), K=pick([["once","1回"],["twice","2回"],["three times","3回"],["many times","何回も"]]);
+      return gq(`${gcap(s.e)} ${h} ${E[0]} ${K[0]}.`, `${s.j}は${K[1]}${E[1]}ことがあります。`, E[0].split(" ")[0], ["visited","climbed","seen","eaten","made","written","been","ridden","swum"].filter(x=>x!==E[0].split(" ")[0]).slice(0,0).concat(E[0].startsWith("been")?["gone","went","go"]:E[0].startsWith("seen")?["saw","see","seeing"]:E[0].startsWith("eaten")?["ate","eat","eating"]:E[0].startsWith("written")?["wrote","write","writing"]:E[0].startsWith("ridden")?["rode","ride","riding"]:E[0].startsWith("swum")?["swam","swim","swimming"]:E[0].startsWith("made")?["make","making","makes"]:[E[0].split(" ")[0].replace(/ed$/,""),E[0].split(" ")[0].replace(/ed$/,"ing"),E[0].split(" ")[0].replace(/ed$/,"s")])); }
+    if(k===4){ const E=pick(EXP); return Math.random()<.5 ? gq(`Have you ever ${E[0]}?`, `あなたは今までに${E[1]}ことがありますか。`, "ever", ["never","yet","already"])
+      : gq(`${gcap(s.e)} ${h} never ${E[0]}.`, `${s.j}は一度も${E[1]}ことがありません。`, "never", ["ever","yet","not"]); }
+    const v=pick(vpf("t"));
+    if(k===5) return Math.random()<.5 ? gq(`${gcap(s.e)} ${h} just ${v.pp}.`, `${s.j}はちょうど${v.ta}ところです。`, "just", ["yet","ever","since"])
+      : gq(`${gcap(s.e)} ${h} already ${v.pp}.`, `${s.j}はもう${v.te}しまいました。`, "already", ["yet","ever","since"]);
+    return Math.random()<.5 ? gq(`${gcap(h)} ${s.e} ${v.pp} yet?`, `${s.j}はもう${v.m}ましたか。`, "yet", ["already","just","ever"])
+      : gq(`${gcap(s.e)} ${h==="has"?"hasn't":"haven't"} ${v.pp} yet.`, `${s.j}はまだ${v.te}いません。`, "yet", ["already","just","ever"]); },
+  "g3-post": ()=>{ const k=ri(0,3);
+    const PP=[["boy","男の子",["Ken","ケン"],["my brother","私の弟"]],["girl","女の子",["Aya","アヤ"],["my sister","私の妹"]],["man","男の人",["my father","私の父"],["our teacher","私たちの先生"]],["woman","女の人",["my mother","私の母"],["our teacher","私たちの先生"]]];
+    const LOC=pick([["over there","あそこで"],["in the park","公園で"],["in the classroom","教室で"]]);
+    if(k===0){ const P=pick(PP), N=pick([P[2],P[3]]), v=pick(VP); return gq(`The ${P[0]} ${v.ing} ${LOC[0]} is ${N[0]}.`, `${LOC[1]}${v.te}いる${P[1]}は${N[1]}です。`, v.vi, [v.vpp===v.vp?v.vb:v.vpp, v.vs, "is "+v.vi].filter((x,i,a)=>a.indexOf(x)===i).concat([v.vb]).filter(x=>x!==v.vi).slice(0,3)); }
+    if(k===1){ const P=pick(PP), v=pick(VP); return gq(`Look at the ${P[0]} ${v.ing} ${LOC[0]}.`, `${LOC[1]}${v.te}いる${P[1]}を見て。`, v.vi, [v.vb, v.vs, v.vp]); }
+    const R=pick([["cake","ケーキ","made","作った",["make","making","makes"]],["picture","絵","painted","描いた",["paint","painting","paints"]],["letter","手紙","written","書いた",["wrote","writing","write"]],["book","本","written","書いた",["wrote","writing","write"]],["photo","写真","taken","撮った",["took","taking","take"]],["doll","人形","made","作った",["make","making","makes"]]]);
+    if(k===2){ const M=pick(GP.filter(x=>x.p===3)); return gq(`This is a ${R[0]} ${R[2]} by ${M.o}.`, `これは${M.j}が${R[3]}${R[1]}です。`, R[2], R[4]); }
+    const T=pick([["car","車"],["watch","時計"],["bike","自転車"],["camera","カメラ"]]), C=pick([["Japan","日本"],["Germany","ドイツ"],["Italy","イタリア"],["China","中国"]]);
+    return gq(`I have a ${T[0]} made in ${C[0]}.`, `私は${C[1]}で作られた${T[1]}を持っています。`, "made", ["making","make","makes"]); },
+  "g3-rel": ()=>{ const k=ri(0,4);
+    if(k===0){ const v=pick(VP), t=pick(TNOW); return gq(`I have a friend who ${v.s} ${t[0]}.`, `私には${t[1]}${v.d}友だちがいます。`, "who", ["which","whose","what"]); }
+    if(k===1){ const v=pick(vpf("s")); return gq(`I know a girl who can ${v.b} well.`, `私は上手に${v.d}ことができる女の子を知っています。`, "who", ["which","what","where"]); }
+    if(k===2){ const V=pick([["bus","バス"],["train","電車"]]), P=pick([["the station","駅"],["Tomioka","富岡"],["the airport","空港"],["the hospital","病院"]]);
+      return gq(`This is the ${V[0]} which goes to ${P[0]}.`, `これは${P[1]}へ行く${V[1]}です。`, "which", ["who","where","what"]); }
+    const R=pick([["cake","ケーキ","made","作った"],["picture","絵","painted","描いた"],["letter","手紙","wrote","書いた"],["book","本","wrote","書いた"],["photo","写真","took","撮った"],["bag","かばん","bought","買った"]]), M=pick(GP.filter(x=>x.p===3)), rel=pick(["that","which"]);
+    if(k===3) return gq(`This is the ${R[0]} ${rel} ${M.e} ${R[2]}.`, `これは${M.j}が${R[3]}${R[1]}です。`, rel, ["who","what","where"]);
+    const P=pick([["girl","女の子",["Aya","アヤ"]],["boy","男の子",["Ken","ケン"]],["man","男の人",["our new teacher","私たちの新しい先生"]]]), t=pick(TPAST);
+    return gq(`The ${P[0]} that I met ${t[0]} is ${P[2][0]}.`, `私が${t[1]}会った${P[1]}は${P[2][1]}です。`, "that", ["which","what","whose"]); },
+  "g3-ind": ()=>{ const k=ri(0,4);
+    const O=pick([["you","あなた"],["him","彼"],["her","彼女"],["Ken","ケン"],["them","彼ら"],["me","私"]]);
+    if(k===0||k===1){ const s=pick(G3), W=pick([["where",`${s.e} lives`,"どこに住んでいるか"],["what",`${s.e} likes`,"何が好きか"],["what time",`${s.e} got up`,"何時に起きたか"],["why",`${s.e} was late`,"なぜ遅れたか"],["how",`${s.e} came to school`,"どうやって学校に来たか"]]);
+      const w0=W[0].split(" ")[0], wrong=W[1].replace(s.e+" ","").split(" ")[0];
+      return k===0 ? gq(`Do you know ${W[0]} ${W[1]}?`, `あなたは${s.j}が${W[2]}知っていますか。`, w0, others(["where","what","why","how","when","who"],w0).slice(0,3))
+        : gq(`I don't know ${W[0]} ${W[1]}.`, `私は${s.j}が${W[2]}知りません。`, w0, others(["where","what","why","how","when","who"],w0).slice(0,3)); }
+    const v=pick(VP);
+    if(k===2) return gq(`I want ${O[0]==="me"?"you":O[0]} to ${v.b}.`, `私は${O[0]==="me"?"あなた":O[1]}に${v.te}ほしいです。`, "to", ["for","that","and"]);
+    if(k===3){ const s=pick(G3), vt=pick(vpf("t")); return gq(`${gcap(s.e)} told ${O[0]==="you"?"me":O[0]} to ${vt.b}.`, `${s.j}は${O[0]==="you"?"私":O[1]}に${vt.d}ように言いました。`, "told", ["said","spoke","talked"]); }
+    const A=pick([["important","大切"],["easy","簡単"],["difficult","難しい"],["fun","楽しい"],["interesting","おもしろい"]]), F=pick([["me","私"],["us","私たち"],["him","彼"],["her","彼女"],["them","彼ら"]]);
+    return gq(`It is ${A[0]} for ${F[0]} to ${v.b}.`, `${F[1]}にとって${v.d}ことは${A[1]}です。`, "for", ["to","of","with"]); }
+};
+const G_NAMES = {"g1-3sg":"3人称単数(does・〜s)","g1-prog":"現在進行形","g1-can":"can","g1-wh":"疑問詞","g2-inf":"不定詞","g2-ger":"動名詞","g2-must":"must・have to","g2-there":"There is / are","g2-comp":"比較","g2-conj":"接続詞","g3-pp":"現在完了","g3-post":"後置修飾(ing・過去分詞)","g3-rel":"関係代名詞","g3-ind":"間接疑問・want 人 to・It is 〜 for 人 to"};
+/* 4択:空所をつくる */
+const gBlank = (en, a) => en.replace(new RegExp(`(^|\\s)${a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}(?=[\\s.,?!]|$)`), "$1(　)");
+function genFill(id){ for(let i=0;i<20;i++){ const g=G_TOPICS[id](); const b=gBlank(g.en, g.a); const w=[...new Set(g.w)].filter(x=>x!==g.a).slice(0,3);
+    if(b!==g.en && w.length===3) return [`${b}　〔${g.ja}〕`, g.a, "", [g.a,...w], `正しい文:${g.en}`]; }
+  return ["", "", "", []]; }
+/* 並び替え:単語カードにする */
+function genOrderWord(id){ const g=G_TOPICS[id]();
+  const ex1 = g.w.filter(x=>!/\s/.test(x) && x!==g.a && !g.en.split(/\s+/).includes(x));
+  return {extra: ex1.length ? pick(ex1) : null, en:g.en, ja:g.ja, pos:"文", sid:"ord-gen-"+id, setTitle:"期末 文法:"+G_NAMES[id], subject:"英語", key:"gen:"+id, ex:"", alt:null, style:""}; }
 KD.push(
-  {s:"英語", id:"k-e1-3sg",  t:"文法 3人称単数(does・〜s)", ch:true, f:()=>bankQ(E1_3SG)},
-  {s:"英語", id:"k-e1-prog", t:"文法 現在進行形", ch:true, f:()=>bankQ(E1_PROG)},
-  {s:"英語", id:"k-e1-wh",   t:"文法 疑問詞", ch:true, f:()=>bankQ(E1_WH)},
+  {s:"英語", id:"k-o1-3sg", t:"並び替え "+G_NAMES["g1-3sg"], ord:"g1-3sg", f:()=>["","",""]},
+  {s:"英語", id:"k-o1-prog", t:"並び替え "+G_NAMES["g1-prog"], ord:"g1-prog", f:()=>["","",""]},
+  {s:"英語", id:"k-o1-can", t:"並び替え "+G_NAMES["g1-can"], ord:"g1-can", f:()=>["","",""]},
+  {s:"英語", id:"k-o1-wh", t:"並び替え "+G_NAMES["g1-wh"], ord:"g1-wh", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-inf", t:"並び替え "+G_NAMES["g2-inf"], ord:"g2-inf", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-ger", t:"並び替え "+G_NAMES["g2-ger"], ord:"g2-ger", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-must", t:"並び替え "+G_NAMES["g2-must"], ord:"g2-must", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-there", t:"並び替え "+G_NAMES["g2-there"], ord:"g2-there", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-comp", t:"並び替え "+G_NAMES["g2-comp"], ord:"g2-comp", f:()=>["","",""]},
+  {s:"英語", id:"k-o2-conj", t:"並び替え "+G_NAMES["g2-conj"], ord:"g2-conj", f:()=>["","",""]},
+  {s:"英語", id:"k-o3-pp", t:"並び替え "+G_NAMES["g3-pp"], ord:"g3-pp", f:()=>["","",""]},
+  {s:"英語", id:"k-o3-post", t:"並び替え "+G_NAMES["g3-post"], ord:"g3-post", f:()=>["","",""]},
+  {s:"英語", id:"k-o3-rel", t:"並び替え "+G_NAMES["g3-rel"], ord:"g3-rel", f:()=>["","",""]},
+  {s:"英語", id:"k-o3-ind", t:"並び替え "+G_NAMES["g3-ind"], ord:"g3-ind", f:()=>["","",""]},
+  {s:"英語", id:"k-e1-3sg",  t:"文法 3人称単数(does・〜s)", ch:true, f:()=>Math.random()<.3?bankQ(E1_3SG):genFill("g1-3sg")},
+  {s:"英語", id:"k-e1-prog", t:"文法 現在進行形", ch:true, f:()=>Math.random()<.3?bankQ(E1_PROG):genFill("g1-prog")},
+  {s:"英語", id:"k-e1-wh",   t:"文法 疑問詞", ch:true, f:()=>Math.random()<.3?bankQ(E1_WH):genFill("g1-wh")},
+  {s:"英語", id:"k-e1-can", t:"文法 can", ch:true, f:()=>genFill("g1-can")},
   {s:"英語", id:"k-e1-pron", t:"文法 代名詞(he・his・him…)", ch:true, f:()=>bankQ(E1_PRON)},
   {s:"英語", id:"k-e2-inf",  t:"文法 不定詞の3用法", ch:true, f:()=>bankQ(E2_INF,"この文の to 〜 の用法は？ ")},
-  {s:"英語", id:"k-e2-ger",  t:"文法 不定詞か動名詞か", ch:true, f:()=>bankQ(E2_GER)},
-  {s:"英語", id:"k-e2-must", t:"文法 must・have to・shall", ch:true, f:()=>bankQ(E2_MUST)},
-  {s:"英語", id:"k-e2-there",t:"文法 There is / was", ch:true, f:()=>bankQ(E2_THERE)},
-  {s:"英語", id:"k-e2-comp", t:"文法 比較", ch:true, f:()=>bankQ(E2_COMP)},
-  {s:"英語", id:"k-e2-conj", t:"文法 接続詞(when・if・because・that)", ch:true, f:()=>bankQ(E2_CONJ)},
-  {s:"英語", id:"k-e3-pp",   t:"文法 現在完了", ch:true, f:()=>bankQ(E3_PP)},
-  {s:"英語", id:"k-e3-part", t:"文法 後置修飾(ing・過去分詞)", ch:true, f:()=>bankQ(E3_PART)},
-  {s:"英語", id:"k-e3-rel",  t:"文法 関係代名詞", ch:true, f:()=>bankQ(E3_REL)},
-  {s:"英語", id:"k-e3-ind",  t:"文法 間接疑問・want 人 to など", ch:true, f:()=>bankQ(E3_IND)},
+  {s:"英語", id:"k-e2-ger",  t:"文法 不定詞か動名詞か", ch:true, f:()=>Math.random()<.3?bankQ(E2_GER):genFill("g2-ger")},
+  {s:"英語", id:"k-e2-must", t:"文法 must・have to・shall", ch:true, f:()=>Math.random()<.3?bankQ(E2_MUST):genFill("g2-must")},
+  {s:"英語", id:"k-e2-there",t:"文法 There is / was", ch:true, f:()=>Math.random()<.3?bankQ(E2_THERE):genFill("g2-there")},
+  {s:"英語", id:"k-e2-comp", t:"文法 比較", ch:true, f:()=>Math.random()<.3?bankQ(E2_COMP):genFill("g2-comp")},
+  {s:"英語", id:"k-e2-conj", t:"文法 接続詞(when・if・because・that)", ch:true, f:()=>Math.random()<.3?bankQ(E2_CONJ):genFill("g2-conj")},
+  {s:"英語", id:"k-e3-pp",   t:"文法 現在完了", ch:true, f:()=>Math.random()<.3?bankQ(E3_PP):genFill("g3-pp")},
+  {s:"英語", id:"k-e3-part", t:"文法 後置修飾(ing・過去分詞)", ch:true, f:()=>Math.random()<.3?bankQ(E3_PART):genFill("g3-post")},
+  {s:"英語", id:"k-e3-rel",  t:"文法 関係代名詞", ch:true, f:()=>Math.random()<.3?bankQ(E3_REL):genFill("g3-rel")},
+  {s:"英語", id:"k-e3-ind",  t:"文法 間接疑問・want 人 to など", ch:true, f:()=>Math.random()<.3?bankQ(E3_IND):genFill("g3-ind")},
   {s:"国語", id:"k-dokun",   t:"漢字 同じ訓をもつ漢字", ch:true, f:()=>bankQ(J_DOKUN,"〔 〕に合う漢字は？ ")},
   {s:"国語", id:"k-doon",    t:"漢字 同じ音をもつ漢字(同音異義語)", ch:true, f:()=>bankQ(J_DOON,"〔 〕に合う漢字は？ ")},
   {s:"国語", id:"k-katsu",   t:"文法 動詞の活用の種類", ch:true, f:()=>bankQ(J_KATSU,"動詞の活用の種類は？ ")},
@@ -10739,11 +10929,11 @@ const KU = {
   "h3-post": {s:"社会", n:"歴史 日本の独立〜これからの日本と世界", p:"p264〜283", d:["k-ordP"], sets:["sk-reki-4"]},
   "c3-ken":  {s:"社会", n:"公民 現代社会・日本国憲法と人権・選挙と国会", p:"日文 p8〜101", d:["k-kenpo","k-jinken","k-kokkai"], sets:["sk-kom-1","sk-kom-2"]},
   /* 英語(三省堂 NEW CROWN) */
-  "e1-a":    {s:"英語", n:"Lesson 5〜6・Take Action!", p:"p67〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3","ord-kim-e1"]},
-  "e1-b":    {s:"英語", n:"Take Action!(道案内)・Lesson 4〜6", p:"p53〜90", d:["k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-pron"], sets:["nc1-TA1","nc1-L4-1","nc1-L4-2","nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3","ord-kim-e1"]},
-  "e2":      {s:"英語", n:"Lesson 4〜6・Take Action!", p:"p46〜81", d:["k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","nc2-L6-1","nc2-L6-2","ord-kim-e2"]},
-  "e2-tn":   {s:"英語", n:"Lesson 4・Lesson 5", p:"p45〜67", d:["k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","ord-kim-e2"]},
-  "e3":      {s:"英語", n:"Unit 3〜5・Let's Read 1 The Wizard of Oz", p:"p34〜75", d:["k-e3-pp","k-e3-part","k-e3-rel","k-e3-ind"], sets:["nc3-U3-1","nc3-U3-2","nc3-LT1","nc3-LR1-1","nc3-LR1-2","nc3-U4-1","nc3-U4-2","nc3-U4-3","nc3-U5-1","nc3-U5-2","ord-kim-e3"]}
+  "e1-a":    {s:"英語", n:"Lesson 5〜6・Take Action!", p:"p67〜90", d:["k-o1-3sg","k-o1-prog","k-o1-can","k-o1-wh","k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-can","k-e1-pron"], sets:["nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
+  "e1-b":    {s:"英語", n:"Take Action!(道案内)・Lesson 4〜6", p:"p53〜90", d:["k-o1-3sg","k-o1-prog","k-o1-can","k-o1-wh","k-e1-3sg","k-e1-prog","k-e1-wh","k-e1-can","k-e1-pron"], sets:["nc1-TA1","nc1-L4-1","nc1-L4-2","nc1-L5-1","nc1-L5-2","nc1-TA2","nc1-L6-1","nc1-L6-2","nc1-TA3"]},
+  "e2":      {s:"英語", n:"Lesson 4〜6・Take Action!", p:"p46〜81", d:["k-o2-inf","k-o2-ger","k-o2-must","k-o2-there","k-o2-comp","k-o2-conj","k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5","nc2-L6-1","nc2-L6-2"]},
+  "e2-tn":   {s:"英語", n:"Lesson 4・Lesson 5", p:"p45〜67", d:["k-o2-inf","k-o2-ger","k-o2-must","k-o2-there","k-o2-comp","k-o2-conj","k-e2-inf","k-e2-ger","k-e2-must","k-e2-there","k-e2-comp","k-e2-conj"], sets:["nc2-L4-1","nc2-L4-2","nc2-TA4","nc2-L5-1","nc2-L5-2","nc2-TA5"]},
+  "e3":      {s:"英語", n:"Unit 3〜5・Let's Read 1 The Wizard of Oz", p:"p34〜75", d:["k-o3-pp","k-o3-post","k-o3-rel","k-o3-ind","k-e3-pp","k-e3-part","k-e3-rel","k-e3-ind"], sets:["nc3-U3-1","nc3-U3-2","nc3-LT1","nc3-LR1-1","nc3-LR1-2","nc3-U4-1","nc3-U4-2","nc3-U4-3","nc3-U5-1","nc3-U5-2"]}
 };
 /* 学校ごとの期末範囲(2026年 2学期期末)。pg は生徒に見せる教科書ページ */
 const KIM = {
@@ -10773,7 +10963,7 @@ function kimSchool(){ const k = kimUser(); if(!k.g || !KIM[k.g]) return [null,nu
 function drillBtn(d){ const b=mathBest(d.id), on=ui.mdrill===d.id; return `
       <button class="set mset ${on?"on":""}" data-act="mdrill" data-v="${d.id}">
         <span class="mradio" aria-hidden="true">${on?"●":"○"}</span>
-        <span><span class="t">${esc(d.t)}</span><span class="m">${d.ch?"選んで答える":d.neg?"マイナスは − キー":d.dec?"小数で答える":""}</span></span>
+        <span><span class="t">${esc(d.t)}</span><span class="m">${d.ord?"並べかえる・毎回ちがう文":d.ch?"選んで答える":d.neg?"マイナスは − キー":d.dec?"小数で答える":""}</span></span>
         <span class="stat">${b?`1分ベスト<br><b>${b.t60||0}</b>問`:""}</span>
       </button>`; }
 function mathOpts(sel){ return `<div class="opts">
@@ -10821,6 +11011,7 @@ function makeMathQ(d){ const [q,a,hint,ch,ex] = d.f(); return {math:true, d, q, 
 function startMath(id, limit=ui.mlimit){
   stopTimer();
   const d = MATH_BY[id]; if(!d) return;
+  if(d.ord){ const n = limit.startsWith("t") ? 30 : +limit.slice(1); startQuiz(Array.from({length:n},()=>genOrderWord(d.ord)), d.t, limit); quiz.gen = d.ord; return; }
   const timed = limit.startsWith("t"), n = timed ? 30 : +limit.slice(1);
   sendState = ["",""];
   quiz = {math:true, drill:id, label:d.t, subj:d.s||null, qs:Array.from({length:n},()=>makeMathQ(d)), i:0, wrong:[], timed, startedAt:Date.now(), pool:[{subject:d.s||"算数"}]};
@@ -10922,8 +11113,9 @@ function makeOrderQuestion(w){
   const m = /([.?!])$/.exec(p), end = m ? m[1] : "";
   const words = (end ? p.slice(0,-1) : p).split(/\s+/);
   let tiles = words.map((t,i)=>({t, id:i}));
+  if(w.extra) tiles.push({t:w.extra, id:words.length});
   for(let k=0;k<5;k++){ tiles = shuffle(tiles); if(tiles.some((x,i)=>x.t!==words[i])) break; }
-  return {w, order:true, words, end, tiles, placed:[], picked:null};
+  return {w, order:true, words, end, tiles, extra:!!w.extra, placed:[], picked:null};
 }
 function orderAnswerHtml(q){
   // 正解文。**で囲んだ語句は強調
@@ -10946,19 +11138,19 @@ function viewOrderQuiz(q, n){
   }
   const rest = q.tiles.filter(x=>!q.placed.includes(x.id));
   return header() + quizHead(n) + `<div class="card" style="gap:10px">
-      <span class="dir">日本文に合うように英語を並べかえよう</span>
+      <span class="dir">日本文に合うように英語を並べかえよう${q.extra?"(使わない語が1つまじっています)":""}</span>
       <span class="q long" style="text-align:center;font-weight:700">${esc(q.w.ja)}</span>
     </div>
     <div class="oline" aria-label="あなたの答え">${q.placed.length?q.placed.map((id,i)=>`<button class="tile on" data-act="ounpick" data-i="${i}">${esc(q.tiles.find(x=>x.id===id).t)}</button>`).join(""):`<span class="note">下の語をタップして並べよう</span>`}${q.end?`<span class="oend">${esc(q.end)}</span>`:""}</div>
     <div class="opool">${rest.map(x=>`<button class="tile" data-act="opick" data-id="${x.id}">${esc(x.t)}</button>`).join("")}</div>
     <div class="startbar">
       <button data-act="oclear" ${q.placed.length?"":"disabled"}>やり直す</button>
-      <button class="primary" data-act="ocheck" ${rest.length?"disabled":""}>答え合わせ</button>
+      <button class="primary" data-act="ocheck" ${q.placed.length<q.words.length?"disabled":""}>答え合わせ</button>
     </div>
     <p class="kbd">語をタップすると並べられます。並べた語をタップすると戻せます　<button class="link" data-act="quit">やめる</button></p>`;
 }
 function orderCheck(){
-  const q = quiz.qs[quiz.i]; if(!q.order || q.picked!==null || q.placed.length<q.tiles.length) return;
+  const q = quiz.qs[quiz.i]; if(!q.order || q.picked!==null || q.placed.length<q.words.length) return;
   const mine = q.placed.map(id=>q.tiles.find(x=>x.id===id).t);
   judge(q, mine.join(" ")===q.words.join(" "), 0);
 }
@@ -12809,6 +13001,7 @@ function judge(q, ok, k){
 }
 function next(){
   if(quiz.math && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeMathQ(MATH_BY[quiz.drill])));
+  else if(quiz.gen && quiz.timed && quiz.i+1>=quiz.qs.length) quiz.qs.push(...Array.from({length:20},()=>makeQuestion(genOrderWord(quiz.gen))));
   else if(quiz.timed && quiz.i+1>=quiz.qs.length){
     let more = shuffle(quiz.pool);
     if(more.length>1 && more[0].key===quiz.qs[quiz.i].w.key) more.push(more.shift());
