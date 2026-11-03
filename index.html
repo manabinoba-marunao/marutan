@@ -12214,7 +12214,7 @@ function dmgFinish(){
     mqMagicStrike(dmg, D.crit, M.lv);   // ボスの前に出て魔法を撃つ演出(ボスの情報を先に取ってから送信)
   }
 }
-/* 魔法の色:教科で属性が変わる(英語=風 数学=雷 国語=水 理科=炎 社会=大地) */
+/* マルナの色:教科で属性が変わる(陰陽五行:英語=木 数学=金(雷の演出) 国語=水 理科=火 社会=土) */
 function spellColor(){
   if(!quiz) return "#b48cff";
   if(quiz.math) return ({"理科":"#ff7a3d","社会":"#d2a26c","英語":"#7fe0c8","国語":"#5fb0ff"})[quiz.subj] || "#ffe14d";
@@ -12260,7 +12260,7 @@ async function flushDmg(){
           const r = await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid, source:"magic", subject:e.subject||""});
           // 期末の誘魔:この魔法で「誘いの盾」が割れたら知らせる
           if(r && r.ok && r.seal && e.subject){ const sl = (r.seal.seals||[]).find(x=>x.subject===e.subject);
-            if(sl && sl.broken && Number(sl.dmg) - Number(e.damage) < Number(sl.need)) setTimeout(()=>sealToast(`${sl.icon} ${sl.el}のマルナで、期末の誘魔の「${sl.word}」の盾を打ち破った！`), 2500); }
+            if(sl && sl.broken && Number(sl.dmg) - Number(e.damage) < Number(sl.need)) setTimeout(()=>sealToast(`${gogyoIc(sl.icon)} ${gogyo(sl.el)}のマルナで、期末の誘魔の「${sl.word}」の盾を打ち破った！`), 2500); }
           // 大魔王の結界が消えていたら(全員の力がそろったら)、この魔法でとどめ
           if(r && r.ok && !r.defeated && r.shield && Number(r.shield.missing)===0 && Number(r.currentHp)>0)
             await yapi("updateBossHp", {damage:Number(r.currentHp), heroName:e.nick, heroId:e.sid});
@@ -12275,15 +12275,18 @@ async function flushDmg(){
 /* 魔法の名前:教科・形式で変わる */
 function spellName(){
   if(!quiz) return "マル単のマルナ";
-  if(quiz.math) return ({"理科":"炎のマルナ","社会":"大地のマルナ","数学":"雷のマルナ","英語":"風のマルナ","国語":"水のマルナ"})[quiz.subj] || "雷のマルナ(計算)";
+  if(quiz.math) return ({"理科":"火のマルナ","社会":"土のマルナ","数学":"金のマルナ","英語":"木のマルナ","国語":"水のマルナ"})[quiz.subj] || "金のマルナ(計算)";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
   if(ss.length!==1) return "マル単のマルナ";
-  return ({order:"つなぎのマルナ", "英語":"風のマルナ", "国語":"水のマルナ", "数学":"雷のマルナ", "理科":"炎のマルナ", "社会":"大地のマルナ"})[ss[0]] || "マル単のマルナ";
+  return ({order:"つなぎのマルナ", "英語":"木のマルナ", "国語":"水のマルナ", "数学":"金のマルナ", "理科":"火のマルナ", "社会":"土のマルナ"})[ss[0]] || "マル単のマルナ";
 }
 /* ==== 魔力:覚えきったセット(マル)は魔法陣に刻まれる輪。教科ごとにマルが増えるほど魔力Lvが上がる ==== */
 const MANA_STEPS = [0,1,3,6,10,15,21,28,36,45];          // Lv1〜10に必要なマルの数
 const SUBJ_ELEM = {"英語":"wind","数学":"thunder","国語":"water","理科":"fire","社会":"earth"};
-const ELEM_INFO = {wind:["🌀","風"], thunder:["⚡","雷"], water:["💧","水"], fire:["🔥","炎"], earth:["🪨","大地"]};
+const ELEM_INFO = {wind:["🌿","木"], thunder:["⚡","金"], water:["💧","水"], fire:["🔥","火"], earth:["🪨","土"]};
+/* 陰陽五行:サーバーから来る古い属性名を五行に読みかえる */
+function gogyo(el){ return ({"風":"木","雷":"金","炎":"火","大地":"土"})[el] || el; }
+function gogyoIc(ic){ return ic==="🌀" ? "🌿" : ic; }
 function maruCount(subj){ return SETS.filter(s=>s.subject===subj && setDone(s)).length; }
 function manaLv(subj){
   const n = maruCount(subj); let lv = 1;
@@ -12506,7 +12509,7 @@ function manaPanel(){
       return `<div class="mana-c" title="${esc(k)}:マル${m.n}個${m.next==null?"(最大)":`・あと${m.next}個でLv${m.lv+1}`}"><div class="mana-ic">${ic}</div><div class="mana-lv">Lv${m.lv}</div><div class="mana-k">×${manaMult(m.lv)}</div><div class="mana-k">${esc(k)}・${nm}</div><div class="mana-bar"><i style="width:${pct}%"></i></div><div class="mana-nx">${m.next==null?"MAX":`あと${m.next}マル`}</div></div>`; }).join("")}</div>
   </div>`;
 }
-/* 魔法の属性:英語=風 数学(計算)=雷 国語=水 理科=炎 社会=大地 */
+/* マルナの属性(陰陽五行):英語=木 数学(計算)=金 国語=水 理科=火 社会=土 */
 function spellElement(){
   if(!quiz) return "";
   if(quiz.math) return ({"理科":"fire","社会":"earth","英語":"wind","国語":"water"})[quiz.subj] || "thunder";
@@ -13464,7 +13467,7 @@ const MQS_ELEMENTS = {
   fire:    { color:'#ff6a1a', light:'#ffd36b', icon:'🔥', word:'ゴォォッ!!', w1:'#ffd36b', w2:'#ff3d00' },
   thunder: { color:'#ffe14d', light:'#fffbe0', icon:'⚡', word:'バリバリッ!!', w1:'#fff6a0', w2:'#e0a800' },
   water:   { color:'#3fa2ff', light:'#d6f0ff', icon:'💧', word:'ザバァン!!', w1:'#bfe6ff', w2:'#1f6fd6' },
-  wind:    { color:'#5fe3b5', light:'#e6fff6', icon:'🌀', word:'ビュオォッ!!', w1:'#c8ffe9', w2:'#12996a' },
+  wind:    { color:'#5fe3b5', light:'#e6fff6', icon:'🌿', word:'ザザァッ!!', w1:'#c8ffe9', w2:'#12996a' },
   earth:   { color:'#c8894a', light:'#ffe2b8', icon:'🪨', word:'ドドドドッ!!', w1:'#ffd9a8', w2:'#7a4515' },
 };
 const MQS_TIERS = {
