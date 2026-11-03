@@ -12260,7 +12260,7 @@ async function flushDmg(){
           const r = await yapi("updateBossHp", {damage:e.damage, heroName:e.nick, heroId:e.sid, source:"magic", subject:e.subject||""});
           // 期末の誘魔:この魔法で「誘いの盾」が割れたら知らせる
           if(r && r.ok && r.seal && e.subject){ const sl = (r.seal.seals||[]).find(x=>x.subject===e.subject);
-            if(sl && sl.broken && Number(sl.dmg) - Number(e.damage) < Number(sl.need)) setTimeout(()=>sealToast(`${sl.icon} ${sl.el}の魔法で、期末の誘魔の「${sl.word}」の盾を打ち破った！`), 2500); }
+            if(sl && sl.broken && Number(sl.dmg) - Number(e.damage) < Number(sl.need)) setTimeout(()=>sealToast(`${sl.icon} ${sl.el}のマルナで、期末の誘魔の「${sl.word}」の盾を打ち破った！`), 2500); }
           // 大魔王の結界が消えていたら(全員の力がそろったら)、この魔法でとどめ
           if(r && r.ok && !r.defeated && r.shield && Number(r.shield.missing)===0 && Number(r.currentHp)>0)
             await yapi("updateBossHp", {damage:Number(r.currentHp), heroName:e.nick, heroId:e.sid});
@@ -12274,11 +12274,11 @@ async function flushDmg(){
 }
 /* 魔法の名前:教科・形式で変わる */
 function spellName(){
-  if(!quiz) return "マル単の魔法";
-  if(quiz.math) return ({"理科":"炎の魔法","社会":"大地の魔法","数学":"雷の魔法","英語":"風の魔法","国語":"水の魔法"})[quiz.subj] || "雷の魔法(計算)";
+  if(!quiz) return "マル単のマルナ";
+  if(quiz.math) return ({"理科":"炎のマルナ","社会":"大地のマルナ","数学":"雷のマルナ","英語":"風のマルナ","国語":"水のマルナ"})[quiz.subj] || "雷のマルナ(計算)";
   const ss = [...new Set(quiz.qs.map(q=>q.w && (isOrderSet(q.w.sid)?"order":q.w.subject)))];
-  if(ss.length!==1) return "マル単の魔法";
-  return ({order:"つなぎの魔法", "英語":"風の魔法", "国語":"水の魔法", "数学":"雷の魔法", "理科":"炎の魔法", "社会":"大地の魔法"})[ss[0]] || "マル単の魔法";
+  if(ss.length!==1) return "マル単のマルナ";
+  return ({order:"つなぎのマルナ", "英語":"風のマルナ", "国語":"水のマルナ", "数学":"雷のマルナ", "理科":"炎のマルナ", "社会":"大地のマルナ"})[ss[0]] || "マル単のマルナ";
 }
 /* ==== 魔力:覚えきったセット(マル)は魔法陣に刻まれる輪。教科ごとにマルが増えるほど魔力Lvが上がる ==== */
 const MANA_STEPS = [0,1,3,6,10,15,21,28,36,45];          // Lv1〜10に必要なマルの数
@@ -12500,8 +12500,8 @@ async function syncBadges(){
 }
 function manaPanel(){
   const subs = Object.keys(SUBJ_ELEM).filter(k=>SETS.some(s=>s.subject===k));
-  return `<div class="mana" aria-label="魔力">
-    <div class="mana-hd">魔力<span>マルの数で上がる</span></div>
+  return `<div class="mana" aria-label="マルナ">
+    <div class="mana-hd">マルナ<span>マルの数で上がる</span></div>
     <div class="mana-row">${subs.map(k=>{ const m=manaLv(k), [ic,nm]=ELEM_INFO[SUBJ_ELEM[k]]; const pct = m.next==null?100:Math.round((m.n-MANA_STEPS[m.lv-1])/(MANA_STEPS[m.lv]-MANA_STEPS[m.lv-1])*100);
       return `<div class="mana-c" title="${esc(k)}:マル${m.n}個${m.next==null?"(最大)":`・あと${m.next}個でLv${m.lv+1}`}"><div class="mana-ic">${ic}</div><div class="mana-lv">Lv${m.lv}</div><div class="mana-k">×${manaMult(m.lv)}</div><div class="mana-k">${esc(k)}・${nm}</div><div class="mana-bar"><i style="width:${pct}%"></i></div><div class="mana-nx">${m.next==null?"MAX":`あと${m.next}マル`}</div></div>`; }).join("")}</div>
   </div>`;
@@ -12522,9 +12522,9 @@ function dmgPanel(){
   return `<div class="dmgp magic ${R.crit?"crit":""}">
     <span class="mcircle" aria-hidden="true"></span>
     <div class="dmgn"><span class="spell">🔮 ${esc(spell)}！</span></div>
-    <div class="dmgn"><span>やりきリストのボスに</span><b>${R.dmg.toLocaleString()}</b><span>の魔法ダメージ！</span></div>
-    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で魔力2倍":"", R.mlv>1?`魔力Lv${R.mlv}(×${manaMult(R.mlv)})`:""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日の魔力はここまで)`:""}</div>
-    <div class="note">今日の魔力のこり ${Math.max(0,R.left)}　<span id="dmgSend">${R.dmg?(R.sentOk?"ボスに届きました！":"詠唱中…"):""}</span></div>
+    <div class="dmgn"><span>やりきリストのボスに</span><b>${R.dmg.toLocaleString()}</b><span>のマルナダメージ！</span></div>
+    <div class="note">${[R.items?`正解 ${R.items}問`:"", R.revive?`復活ボーナス ${R.revive}語`:"", R.maru?`マルボーナス ${R.maru}セット`:"", R.crit?"10問連続正解で大マルナ(2倍)":"", R.mlv>1?`マルナLv${R.mlv}(×${manaMult(R.mlv)})`:""].filter(Boolean).join("・")}${R.raw>R.dmg?`(今日のマルナはここまで)`:""}</div>
+    <div class="note">今日のマルナのこり ${Math.max(0,R.left)}　<span id="dmgSend">${R.dmg?(R.sentOk?"ボスに届きました！":"詠唱中…"):""}</span></div>
   </div>`;
 }
 
@@ -13856,8 +13856,8 @@ function mqStrike(o){
   const wpn = magic ? `<span class="mqs-wpn fist">${E ? E.icon : '🔮'}</span>`
     : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
   const digits = Array.from((Number(o.dmg)||0).toLocaleString()).map((c,i) => `<span style="animation-delay:${i*45}ms">${c}</span>`).join('');
-  const label = magic ? (E ? `${E.icon} MAGIC ATTACK${o.mlv ? ' ・ 魔力Lv' + o.mlv : ''}` : '🔮 MAGIC ATTACK') : punch ? '👊 PUNCH' : '⚔ ATTACK';
-  const msg = magic ? `${mqsEsc(o.spell || 'マル単の魔法')}！` : punch ? 'こぶしでパンチ！' : `${mqsEsc(o.weaponName || '')}で攻撃！`;
+  const label = magic ? (E ? `${E.icon} MARUNA ATTACK${o.mlv ? ' ・ マルナLv' + o.mlv : ''}` : '🔮 MARUNA ATTACK') : punch ? '👊 PUNCH' : '⚔ ATTACK';
+  const msg = magic ? `${mqsEsc(o.spell || 'マル単のマルナ')}！` : punch ? 'こぶしでパンチ！' : `${mqsEsc(o.weaponName || '')}で攻撃！`;
   st.innerHTML = `
     <div class="mqs-title">${label}</div>
     <div class="mqs-boss" id="mqs-boss"><div class="bart whole">${art}</div><div class="bart half a">${art}</div><div class="bart half b">${art}</div></div>
@@ -13865,7 +13865,7 @@ function mqStrike(o){
     <div class="mqs-hp" id="mqs-hp" style="${b.hp ? '' : 'visibility:hidden'}"><div class="mqs-hpbar"><div class="mqs-hpghost" id="mqs-ghost" style="width:${o._before}"></div><div class="mqs-hpfill" id="mqs-fill" style="width:${o._before}"></div><div class="mqs-hpcut" id="mqs-hpcut"></div></div>
       <div class="mqs-hpnum" id="mqs-hpnum">HP ${cur.toLocaleString()} / ${hp.toLocaleString()}</div></div>
     <div class="mqs-word" id="mqs-word"></div>
-    <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✦ 大魔法 ✦' : '✦ CRITICAL ✦') : ''}</div>
+    <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✦ 大マルナ ✦' : '✦ CRITICAL ✦') : ''}</div>
     <div class="mqs-dmg ${o.crit ? 'crit' : ''}" id="mqs-dmg">${digits}<i>ダメージ</i></div>
     <div class="mqs-hero" id="mqs-hero"><div class="mqs-face">${face}${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
     <div class="mqs-msg" id="mqs-msg"><b>${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>${msg}・タップでとじる</small></div>`;
