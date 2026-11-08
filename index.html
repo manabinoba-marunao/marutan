@@ -371,7 +371,7 @@ button,.set,.choice,.stat3,input[type=text],textarea{border-radius:var(--rs)}
 [data-skin="world"] body.quizzing .kbd{display:inline-block;background:rgba(255,253,246,.8);border-radius:8px;padding:2px 10px}
 /* 📷 写真を見る(タップで問題をかくす/もどす) */
 .peekbtn{display:none;position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:999px;padding:10px 14px;font-size:14px;font-weight:700;background:rgba(255,253,246,.92);border:1.5px solid var(--line);color:var(--ink);box-shadow:0 4px 12px rgba(30,42,68,.3)}
-[data-skin="world"] body.quizzing .peekbtn{display:block}
+[data-skin="world"] .peekbtn{display:block}
 body.peek #app{opacity:0;pointer-events:none}
 #app{transition:opacity .25s}
 
@@ -12064,7 +12064,7 @@ function peekBtn(){
     b.addEventListener("click", ()=>{ document.body.classList.toggle("peek"); peekBtn(); });
     document.body.appendChild(b);
   }
-  if(!document.body.classList.contains("quizzing")) document.body.classList.remove("peek");
+
   const on = document.body.classList.contains("peek");
   b.textContent = on ? "↩ 問題にもどる" : "📷 写真を見る";
   b.setAttribute("aria-pressed", on);
@@ -12764,6 +12764,8 @@ async function syncGifts(){
     if(!r || !r.ok) return;
     let obj = {}; try{ obj = r.data ? JSON.parse(r.data) : {}; }catch(e){ obj = {}; }
     const g = obj && obj.mq && Array.isArray(obj.mq.gifts) ? obj.mq.gifts : [];
+    const mq = (obj && obj.mq) || {};   // やりきリストで装備しているもの(攻撃の演出でキャラにつける)
+    u.mqWear = {hat:mq.hat, equip:mq.equip, badges:Array.isArray(mq.badges)?mq.badges:[], gdone:Array.isArray(mq.gdone)?mq.gdone:[], maru:Number(mq.maru)||0, gifts:g}; save();
     if(JSON.stringify(g) === JSON.stringify(u.gifts || [])) return;
     u.gifts = g; save(); applySkin(); render();
   }catch(e){}
@@ -13701,6 +13703,14 @@ else if(JUKU_CODE_PARAM && !ui.name && !JA.jukuName) jukuCheckCode(JUKU_CODE_PAR
 .mqs-hero{position:absolute;left:9%;bottom:17%;width:84px;text-align:center;opacity:0;animation:mqsHeroIn .45s .2s cubic-bezier(.2,1.3,.4,1) forwards}
 .mqs-hero.dash{animation:mqsHeroIn .45s .2s forwards,mqsDash .62s cubic-bezier(.6,0,.2,1) forwards}
 .mqs-face{position:relative;width:62px;height:62px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#45458a,#1a1a38);border:2px solid #ffd76a;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:700;box-shadow:0 0 18px rgba(255,215,106,.55)}
+.mqs-hat{position:absolute;left:-36px;top:-53px;width:135px;height:135px;z-index:2;pointer-events:none;line-height:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.mqs-hat svg{display:block;width:135px;height:135px;overflow:visible}
+.mqs-hat.r2{filter:drop-shadow(0 0 5px rgba(255,215,0,.8)) drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.mqs-hat.r3{filter:drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 2px #fff)}
+.mqs-face.has-hat .mqs-letter{transform:translateY(7px);font-size:21px}
+.mqs-medal{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:3;line-height:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+.mqs-medal svg{display:block}
+.mqs-wpn{z-index:4}
 .mqs-wpn{position:absolute;right:-20px;bottom:-8px;line-height:0;transform:rotate(35deg);transform-origin:50% 85%;filter:drop-shadow(0 2px 3px #000)}
 .mqs-wpn svg{height:66px;width:auto;display:block}
 .mqs-wpn.fist{font-size:30px;line-height:1;transform:none;right:-18px;bottom:0}
@@ -14139,6 +14149,238 @@ function mqStrikeClose(){
   cancelAnimationFrame(MQS.raf); MQS.raf = 0; MQS.fx = []; MQS.parts = []; MQS.shake = 0;
 }
 
+/* ==== かぶりもの(やりきリストと同じ絵。やりきリストの HATS / hatArt を変えたら、ここも同じにする) ==== */
+const HATS = [
+  { id:'globe',   name:'地球のかぶりもの',   cond:'社会「世界地図」をぜんぶマル',   rank:2, re:/^社会\/地図・地名\/世界地図$/ },
+  { id:'fuji',    name:'富士山ハット',       cond:'社会「日本地図」をぜんぶマル',   rank:2, re:/^社会\/地図・地名\/日本地図$/ },
+  { id:'crown',   name:'王冠',               cond:'社会「首都」をぜんぶマル',       rank:2, re:/^社会\/地図・地名\/首都$/ },
+  { id:'aviator', name:'パイロット帽',       cond:'社会「世界の国々」をぜんぶマル', rank:1, re:/^社会\/地図・地名\/世界の国々$/ },
+  { id:'hinomaru',name:'日の丸はちまき',     cond:'社会「都道府県」をぜんぶマル',   rank:1, re:/^社会\/地図・地名\/都道府県$/ },
+  { id:'ekicho',  name:'ポンポンのニット帽',     cond:'社会「県庁所在地」をぜんぶマル', rank:1, re:/^社会\/地図・地名\/県庁所在地$/ },
+  { id:'mage',    name:'ちょんまげ',         cond:'社会の歴史(日本史・世界史)の単元をぜんぶマル', rank:1, re:/^社会\/[^/]+\/(歴史|日本史|世界史)$/ },
+  { id:'dragon',  name:'龍の角',         cond:'漢検「1級」をぜんぶマル',        rank:3, re:/^国語\/漢検\/1級/ },
+  { id:'kitsune', name:'きつねのお面',       cond:'漢検「準1級」をぜんぶマル',      rank:2, re:/^国語\/漢検\/準1級/ },
+  { id:'kanji',   name:'「漢」のはちまき',   cond:'漢検の級を1つぜんぶマル(10級〜2級)', rank:1, re:/^国語\/漢検\/((10|[2-9])級|準2級)/ },
+  { id:'eboshi',  name:'烏帽子(えぼし)',     cond:'国語「古文単語」をぜんぶマル',   rank:1, re:/^国語\/[^/]+\/古文単語$/ },
+  { id:'wing',    name:'翼のかぶと',         cond:'英検「準1級」をぜんぶマル',      rank:3, re:/^英語\/英検\/英検準1級$/ },
+  { id:'grad',    name:'角帽',               cond:'英検「2級」をぜんぶマル',        rank:2, re:/^英語\/英検\/英検2級$/ },
+  { id:'tiara',   name:'星のティアラ',       cond:'英検「準2級プラス」をぜんぶマル', rank:2, re:/^英語\/英検\/英検準2級プラス$/ },
+  { id:'silk',    name:'シルクハット',       cond:'英検「準2級」をぜんぶマル',      rank:1, re:/^英語\/英検\/英検準2級$/ },
+  { id:'cap',     name:'キャップ',           cond:'英検「3級」をぜんぶマル',        rank:1, re:/^英語\/英検\/英検3級$/ },
+  { id:'usagi',   name:'うさみみ',           cond:'英検「4級」をぜんぶマル',        rank:1, re:/^英語\/英検\/英検4級$/ },
+  { id:'chick',   name:'ひよこ',         cond:'英検「5級」をぜんぶマル',        rank:1, re:/^英語\/英検\/英検5級$/ },
+  { id:'owl',     name:'フクロウくんのフード',   cond:'共通テストの年度を1つぜんぶマル', rank:2, re:/^英語\/共通テスト\// },
+  { id:'laurel',  name:'金の月桂冠',         cond:'まいにち英単語3000「中学編」をぜんぶマル', rank:3, re:/^英語\/[^/]+\/まいにち英単語3000 中学編$/ },
+  { id:'sprout',  name:'頭から若葉',         cond:'まいにち英単語3000「小学編」をぜんぶマル', rank:2, re:/^英語\/[^/]+\/まいにち英単語3000 小学編$/ },
+  { id:'gakubo',  name:'ベレー帽',             cond:'英語の教科書(中1・中2・中3)を1学年ぜんぶマル', rank:2, re:/^英語\/中学\/中[123] 教科書$/ },
+  { id:'neko',    name:'ねこみみ',           cond:'並び替えの級を1つぜんぶマル',    rank:1, re:/^英語\/並び替え\// },
+  { id:'phones',  name:'ヘッドホン',         cond:'「AIEクラスWORLD」をぜんぶマル', rank:1, re:/^英語\/AIE\// },
+  { id:'halo',    name:'∞の金の輪',        cond:'数学の単元を1つぜんぶマル',      rank:1, re:/^数学\// },
+  { id:'goggles', name:'実験ゴーグル',       cond:'理科の単元を1つぜんぶマル',      rank:1, re:/^理科\// },
+  { id:'wizard',  name:'魔法使いの帽子',     cond:'マル単でマルを50個あつめる',     rank:3, maru:50 },
+  { id:'traveler', name:'世界の旅人の帽子',   cond:'ガチャ大会の景品(当たった人だけ)', rank:3, gift:'traveler', title:'世界の旅人' },
+];
+let HAT_N = 0;
+/* 頭の上半分にぴったり沿う形(帽子の本体) */
+const HAT_DOME = (y1, dip) => `M27.4,${y1} A23,23 0 0 1 72.6,${y1} Q50,${y1 - dip} 27.4,${y1}Z`;
+function hatArt(id){
+  const u = 'h' + (++HAT_N);
+  const star = (cx, cy, r, f) => { let p = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; p += `${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)} `; } return `<polygon points="${p}" fill="${f}" stroke="#7a5a08" stroke-width=".6" stroke-linejoin="round"/>`; };
+  const A = {
+  globe: `<defs><radialGradient id="${u}o" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#7fd0ff"/><stop offset=".6" stop-color="#1f7fd6"/><stop offset="1" stop-color="#0b3f86"/></radialGradient>
+      <clipPath id="${u}c"><circle cx="50" cy="56" r="34"/></clipPath><mask id="${u}m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="64" r="19.5" fill="#000"/></mask></defs>
+    <g mask="url(#${u}m)"><circle cx="50" cy="56" r="34" fill="url(#${u}o)"/>
+      <g clip-path="url(#${u}c)" fill="#4cc56b" stroke="#2e8a46" stroke-width=".8">
+        <path d="M18,34 Q28,22 40,26 Q44,34 36,40 Q30,44 26,52 Q18,50 16,42Z"/><path d="M56,24 Q70,20 80,30 Q78,38 70,38 Q64,44 58,40 Q52,32 56,24Z"/>
+        <path d="M74,48 Q84,50 86,62 Q80,72 74,66 Q70,58 74,48Z"/><path d="M20,66 Q28,64 30,72 Q28,82 22,84 Q16,76 20,66Z"/><path d="M54,84 Q66,82 70,90 L52,92Z"/></g>
+      <ellipse cx="38" cy="34" rx="10" ry="5" fill="#fff" opacity=".35" transform="rotate(-25 38 34)"/></g>
+    <circle cx="50" cy="64" r="19.5" fill="none" stroke="#0b3f86" stroke-width="1.6"/><circle cx="50" cy="56" r="34" fill="none" stroke="#0b3f86" stroke-width="1.2"/>`,
+  fuji: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a8fd8"/><stop offset="1" stop-color="#2f4f9a"/></linearGradient></defs>
+    <path d="M24,50 L42,14 Q50,10 58,14 L76,50 Q50,42 24,50Z" fill="url(#${u})" stroke="#1d3270" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M37,24 L42,14 Q50,10 58,14 L63,24 L58,22 L55,27 L50,22 L45,28 L42,22Z" fill="#fff" stroke="#c9d6ef" stroke-width=".6"/>
+    <path d="M24,50 Q50,42 76,50 L76,46 Q50,38 24,46Z" fill="#e8463a"/>`,
+  crown: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".5" stop-color="#f2c12e"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs>
+    <path d="M30,46 L28,22 L39,33 L50,16 L61,33 L72,22 L70,46 Q50,41 30,46Z" fill="url(#${u})" stroke="#7a5a08" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M30,46 Q50,41 70,46 L70,41 Q50,36 30,41Z" fill="#c0283c" stroke="#7a5a08" stroke-width=".8"/>
+    <circle cx="28" cy="21" r="2.6" fill="#fff6c2" stroke="#7a5a08" stroke-width=".6"/><circle cx="50" cy="15" r="3" fill="#fff6c2" stroke="#7a5a08" stroke-width=".6"/><circle cx="72" cy="21" r="2.6" fill="#fff6c2" stroke="#7a5a08" stroke-width=".6"/>
+    <circle cx="50" cy="32" r="3.4" fill="#2a7de1" stroke="#fff" stroke-width=".8"/><circle cx="39" cy="38" r="2" fill="#2ea86b"/><circle cx="61" cy="38" r="2" fill="#2ea86b"/>`,
+  aviator: `<path d="${HAT_DOME(58, 10)}" fill="#8a5a2b" stroke="#4a2c10" stroke-width="1.2"/>
+    <path d="M27.6,56 Q24,66 30,74 L36,72 Q32,64 33,56Z M72.4,56 Q76,66 70,74 L64,72 Q68,64 67,56Z" fill="#8a5a2b" stroke="#4a2c10" stroke-width="1"/>
+    <path d="M50,39 L50,50" stroke="#4a2c10" stroke-width=".8"/>
+    <rect x="27" y="44" width="46" height="5" rx="2.5" fill="#3a2a1a"/>
+    <circle cx="40" cy="44" r="7" fill="#9fe3ff" stroke="#c9a227" stroke-width="2.2"/><circle cx="60" cy="44" r="7" fill="#9fe3ff" stroke="#c9a227" stroke-width="2.2"/>
+    <path d="M36,41 L39,39 M56,41 L59,39" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`,
+  hinomaru: `<defs><clipPath id="${u}"><circle cx="50" cy="62" r="24.5"/></clipPath></defs>
+    <rect x="20" y="44" width="60" height="9" fill="#fff" stroke="#bbb" stroke-width=".8" clip-path="url(#${u})"/>
+    <circle cx="50" cy="48.5" r="3.4" fill="#e60012"/>
+    <path d="M72,47 Q82,42 86,48 Q80,50 74,50Z M72,51 Q80,56 84,62 Q78,60 72,53Z" fill="#fff" stroke="#bbb" stroke-width=".8"/>`,
+  ekicho: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ee6d8"/><stop offset="1" stop-color="#3fb3a2"/></linearGradient></defs>
+    <path d="M27.4,50 A23,23 0 0 1 72.6,50 Z" fill="url(#${u})" stroke="#1d6e63" stroke-width="1.3"/>
+    <path d="M36,46 L37,33 M44,46 L44.4,30 M56,46 L55.6,30 M64,46 L63,33" stroke="#2a8f81" stroke-width=".9" fill="none" opacity=".7"/>
+    <path d="M26,53 Q50,45 74,53 L74,46 Q50,38 26,46Z" fill="#f4f1e8" stroke="#1d6e63" stroke-width="1.2"/>
+    ${[30,35,40,45,50,55,60,65,70].map(x => `<path d="M${x},${46 - Math.sin((x - 26) / 48 * Math.PI) * 4.6} L${x},${53 - Math.sin((x - 26) / 48 * Math.PI) * 4.6}" stroke="#d8d2c2" stroke-width="1"/>`).join('')}
+    <circle cx="50" cy="26" r="7.5" fill="#fff" stroke="#d8d2c2" stroke-width="1"/><circle cx="47.6" cy="23.6" r="2.4" fill="#fff" stroke="#ece6d6" stroke-width=".6"/><circle cx="53" cy="27" r="2" fill="#f4f1e8"/>`,
+  gakubo: `<defs><radialGradient id="${u}" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#ff6b78"/><stop offset="1" stop-color="#b01c32"/></radialGradient></defs>
+    <path d="M29,52 Q50,44 71,52 L71,47 Q50,39 29,47Z" fill="#8a1426" stroke="#4a0a14" stroke-width="1"/>
+    <ellipse cx="54" cy="38" rx="27" ry="11" fill="url(#${u})" stroke="#4a0a14" stroke-width="1.3" transform="rotate(-10 54 38)"/>
+    <path d="M36,36 Q46,29 62,29" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".45"/>
+    <path d="M57,28.6 Q58,24 61,23.4" fill="none" stroke="#4a0a14" stroke-width="2" stroke-linecap="round"/>`,
+  mage: `<path d="${HAT_DOME(48, 4)}" fill="#1a1a1a"/>
+    <path d="M36,44 Q50,40 64,44" fill="none" stroke="#444" stroke-width=".8"/>
+    <path d="M44,38 Q46,33 52,32 L66,29 Q69,29 68,32 L54,37 Q48,39 44,38Z" fill="#1a1a1a" stroke="#000" stroke-width=".6"/>
+    <path d="M49,33 L50.5,38" stroke="#fff" stroke-width="2"/>
+    <path d="M54,31.5 Q60,30.4 65,29.6" fill="none" stroke="#555" stroke-width=".7"/>`,
+  dragon: `<defs><linearGradient id="${u}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#127a6e"/><stop offset=".6" stop-color="#3fd1b8"/><stop offset="1" stop-color="#ffe680"/></linearGradient></defs>
+    <g stroke="#0a3d36" stroke-width="1.2" stroke-linejoin="round" fill="url(#${u})">
+      <path d="M41,42 Q37,30 30,22 Q26,17 26,8 Q32,14 34,19 Q40,27 45,40Z"/><path d="M33.6,25.6 Q27,25 21,20 Q27,21 31.6,21.6Z"/>
+      <path d="M59,42 Q63,30 70,22 Q74,17 74,8 Q68,14 66,19 Q60,27 55,40Z"/><path d="M66.4,25.6 Q73,25 79,20 Q73,21 68.4,21.6Z"/></g>
+    <path d="M30,19 Q28,14 28,11 M70,19 Q72,14 72,11" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".7" fill="none"/>
+    <path d="M28,50 Q22,46 20,38 Q25,42 30,43Z M72,50 Q78,46 80,38 Q75,42 70,43Z" fill="#3fd1b8" stroke="#0a3d36" stroke-width="1" stroke-linejoin="round"/>`,
+  kitsune: `<g transform="rotate(24 70 42)">
+    <path d="M58,30 L60,18 L66,26 L74,26 L80,18 L82,30 Q84,44 70,50 Q56,44 58,30Z" fill="#fff" stroke="#c03030" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M60.5,21 L63,27 L61,28Z M79.5,21 L77,27 L79,28Z" fill="#e8463a"/>
+    <path d="M62,33 Q65,31 67,34 M73,34 Q75,31 78,33" fill="none" stroke="#c03030" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M64,30 Q65,28 67,30 M73,30 Q75,28 76,30" fill="none" stroke="#e8463a" stroke-width="1"/>
+    <circle cx="70" cy="46" r="1.4" fill="#1a1a1a"/></g>
+    <path d="M30,52 Q50,44 66,44" fill="none" stroke="#c03030" stroke-width="1.2"/>`,
+  kanji: `<defs><clipPath id="${u}"><circle cx="50" cy="62" r="24.5"/></clipPath></defs>
+    <rect x="20" y="44" width="60" height="9" fill="#fff" stroke="#bbb" stroke-width=".8" clip-path="url(#${u})"/>
+    <text x="50" y="51.6" text-anchor="middle" font-size="8" font-weight="900" fill="#c0283c" font-family="'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif">漢</text>
+    <path d="M72,47 Q82,42 86,48 Q80,50 74,50Z M72,51 Q80,56 84,62 Q78,60 72,53Z" fill="#fff" stroke="#bbb" stroke-width=".8"/>`,
+  eboshi: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".45" stop-color="#111"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
+    <path d="M36,46 L38,14 Q44,6 54,8 Q62,10 58,18 L64,46 Q50,41 36,46Z" fill="url(#${u})" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+    <path d="M40,40 L42,18 M47,40 L48,14" stroke="#555" stroke-width=".6"/>
+    <path d="M36,46 Q50,41 64,46" fill="none" stroke="#666" stroke-width="1"/>`,
+  wing: `<defs><linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f8ff"/><stop offset=".5" stop-color="#b8c6dc"/><stop offset="1" stop-color="#6a7a94"/></linearGradient></defs>
+    <g fill="#fff" stroke="#8aa0c8" stroke-width=".9" stroke-linejoin="round">
+      <path d="M31,50 Q18,46 10,30 Q8,22 12,16 Q18,28 30,36Z"/><path d="M31,46 Q20,40 16,26 Q16,18 20,14 Q24,28 32,34Z"/><path d="M32,42 Q24,34 24,22 Q26,16 29,14 Q30,28 34,34Z"/>
+      <path d="M69,50 Q82,46 90,30 Q92,22 88,16 Q82,28 70,36Z"/><path d="M69,46 Q80,40 84,26 Q84,18 80,14 Q76,28 68,34Z"/><path d="M68,42 Q76,34 76,22 Q74,16 71,14 Q70,28 66,34Z"/></g>
+    <path d="${HAT_DOME(54, 6)}" fill="url(#${u}s)" stroke="#4a5a74" stroke-width="1.2"/>
+    <path d="M50,39 L50,52" stroke="#f2c12e" stroke-width="3"/><path d="M28,54 Q50,47 72,54" fill="none" stroke="#f2c12e" stroke-width="2"/>`,
+  grad: `<path d="${HAT_DOME(52, 6)}" fill="#1a1a2e" stroke="#000" stroke-width="1"/>
+    <polygon points="50,24 86,34 50,44 14,34" fill="#22223a" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>
+    <polygon points="50,25.5 82,34 50,42" fill="#2e2e4e"/>
+    <circle cx="50" cy="34" r="2" fill="#f2c12e"/><path d="M50,34 Q70,36 78,40 L78,52" fill="none" stroke="#f2c12e" stroke-width="1.6"/>
+    <path d="M75,52 L81,52 L80,60 L76,60Z" fill="#f2c12e"/>`,
+  tiara: `<path d="M30,48 Q50,36 70,48" fill="none" stroke="#e8c04a" stroke-width="2.6" stroke-linecap="round"/>
+    ${star(50, 32, 9, '#ffe14a')}${star(36, 39, 5.5, '#fff1a0')}${star(64, 39, 5.5, '#fff1a0')}
+    <circle cx="50" cy="32" r="1.6" fill="#fff"/>`,
+  silk: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".35" stop-color="#151515"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
+    <path d="M36,42 L37,10 Q50,6 63,10 L64,42Z" fill="url(#${u})" stroke="#000" stroke-width="1"/>
+    <ellipse cx="50" cy="10" rx="13" ry="3" fill="#2a2a2a" stroke="#000" stroke-width=".8"/>
+    <path d="M36.2,34 L63.8,34 L64,40 L36,40Z" fill="#c0283c"/>
+    <ellipse cx="50" cy="43" rx="25" ry="4.5" fill="#111" stroke="#000" stroke-width="1"/>`,
+  cap: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a6a"/><stop offset="1" stop-color="#d23a2c"/></linearGradient></defs>
+    <g transform="rotate(-10 50 50)">
+      <path d="M58,49 Q78,44 89,49 Q90,53 84,55 Q74,55 62,54Z" fill="#a8261c" stroke="#5e120c" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M26.6,52 Q26,36 38,31 Q50,26 62,31 Q74,36 73.4,52 Q50,47 26.6,52Z" fill="url(#${u})" stroke="#5e120c" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M50,28 Q49,40 50,49 M38,32 Q36,42 37,50.6 M62,32 Q64,42 63,50.6" fill="none" stroke="#a8261c" stroke-width=".9"/>
+      <path d="M31,40 Q34,33 42,30.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+      <circle cx="50" cy="28.4" r="2.2" fill="#fff" stroke="#5e120c" stroke-width=".8"/>
+      <path d="M26.6,52 Q50,47 73.4,52" fill="none" stroke="#5e120c" stroke-width="1.6"/></g>`,
+  usagi: `<defs><linearGradient id="${u}p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc9d6"/><stop offset="1" stop-color="#ff9ab4"/></linearGradient></defs>
+    <path d="M38,44 Q30,30 30,16 Q31,6 37,6 Q43,7 44,18 Q45,32 44,42Z" fill="#fff" stroke="#d9cfe0" stroke-width="1.2"/>
+    <path d="M37.5,40 Q33,28 33.5,17 Q34.5,10 37.5,10 Q40.5,11 41,19 Q41.5,30 41,39Z" fill="url(#${u}p)"/>
+    <path d="M57,42 Q58,30 62,22 Q64,16 70,14 Q76,13 77,18 Q76,24 70,26 Q64,30 62,44Z" fill="#fff" stroke="#d9cfe0" stroke-width="1.2"/>
+    <path d="M59.6,40 Q60.6,31 64,25 Q66,20 70,18 Q73.6,17.6 73.6,19.6 Q72.6,22.6 68.6,23.6 Q63.6,28 62.6,40Z" fill="url(#${u}p)"/>
+    <path d="M28.5,51 A22,22 0 0 1 71.5,51" fill="none" stroke="#ffb3c6" stroke-width="3.4" stroke-linecap="round"/>
+    <g transform="translate(64 44)"><path d="M0,0 Q-6,-6 -8,-1 Q-6,4 0,0 Q6,-6 8,-1 Q6,4 0,0Z" fill="#ff6f96" stroke="#d94a75" stroke-width=".7"/><circle r="1.8" fill="#ff8fae" stroke="#d94a75" stroke-width=".6"/></g>`,
+  chick: `<defs><radialGradient id="${u}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#ffcf2e"/></radialGradient></defs>
+    <ellipse cx="45" cy="40.6" rx="2.6" ry="1.4" fill="#ff9a2e"/><ellipse cx="55" cy="40.6" rx="2.6" ry="1.4" fill="#ff9a2e"/>
+    <circle cx="50" cy="29" r="12" fill="url(#${u})" stroke="#d9a400" stroke-width="1.2"/>
+    <path d="M48,17.6 Q47,13 50,12 Q49,15 51.6,17.4 Q53,14 55,15 Q52.6,16 52,18" fill="#ffe25a" stroke="#d9a400" stroke-width=".9" stroke-linejoin="round"/>
+    <path d="M38.6,31 Q35,30 35.6,35 Q38,35 40,33Z M61.4,31 Q65,30 64.4,35 Q62,35 60,33Z" fill="#ffd93b" stroke="#d9a400" stroke-width=".8"/>
+    <circle cx="45.4" cy="27.6" r="2" fill="#2a1a10"/><circle cx="54.6" cy="27.6" r="2" fill="#2a1a10"/><circle cx="46.1" cy="26.9" r=".75" fill="#fff"/><circle cx="55.3" cy="26.9" r=".75" fill="#fff"/>
+    <path d="M47.6,30.6 Q50,29.6 52.4,30.6 Q50,33.6 47.6,30.6Z" fill="#ff8a1f" stroke="#c25e00" stroke-width=".5"/>
+    <ellipse cx="42" cy="31.6" rx="2.4" ry="1.5" fill="#ff9aa8" opacity=".8"/><ellipse cx="58" cy="31.6" rx="2.4" ry="1.5" fill="#ff9aa8" opacity=".8"/>`,
+  owl: `<defs><mask id="${u}m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="65" r="19" fill="#000"/></mask></defs>
+    <g mask="url(#${u}m)">
+      <path d="M50,29 Q81,29 82,60 Q83,89 50,92 Q17,89 18,60 Q19,29 50,29Z" fill="#fff" stroke="#111" stroke-width="1.8"/>
+      <path d="M19,64 Q16,78 24,88 Q30,84 28,70Z M81,64 Q84,78 76,88 Q70,84 72,70Z" fill="#8a4a24" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M38,86 q3,3 6,0 M56,86 q3,3 6,0" fill="none" stroke="#111" stroke-width="1.3" stroke-linecap="round"/></g>
+    <path d="M30,38 Q22,36 16,30 Q22,30 22,27 Q27,30 28,26 Q31,31 35,30 Q36,35 30,38Z" fill="#ffd400" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M70,38 Q78,36 84,30 Q78,30 78,27 Q73,30 72,26 Q69,31 65,30 Q64,35 70,38Z" fill="#ffd400" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M33,33 Q50,25 67,33 L66,38 Q50,32 34,38Z" fill="#ffd400" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/>
+    <polygon points="50,9 82,20 50,30 18,20" fill="#111" stroke="#111" stroke-width="1" stroke-linejoin="round"/>
+    <path d="M36,24 Q50,29 64,24 L64,31 Q50,35 36,31Z" fill="#111"/>
+    <path d="M50,20 L74,24 L76,31" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="1.6 1.2"/>
+    <path d="M74,30 Q72,36 76,38 Q80,36 78,30Z" fill="#fff" stroke="#111" stroke-width="1"/>
+    <ellipse cx="40" cy="43" rx="8" ry="8.6" fill="#fff" stroke="#111" stroke-width="1.6"/><ellipse cx="60" cy="43" rx="8" ry="8.6" fill="#fff" stroke="#111" stroke-width="1.6"/>
+    <circle cx="43.6" cy="44" r="3.8" fill="#111"/><circle cx="63.6" cy="44" r="3.8" fill="#111"/><circle cx="44.8" cy="42.8" r="1.1" fill="#fff"/><circle cx="64.8" cy="42.8" r="1.1" fill="#fff"/>
+    <path d="M45,48.6 Q50,47 55,48.6 L50,55Z" fill="#ffd400" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/>
+    <circle cx="50" cy="65" r="19" fill="none" stroke="#111" stroke-width="1.6"/>`,
+  laurel: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".5" stop-color="#f2c12e"/><stop offset="1" stop-color="#a87508"/></linearGradient></defs>
+    ${[0,1,2,3,4,5].map(i => { const a = Math.PI * (1.02 + i * .085), x = 50 + Math.cos(a) * 24, y = 58 + Math.sin(a) * 24, r = a * 180 / Math.PI + 60; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="3.2" ry="7" fill="url(#${u})" stroke="#7a5a08" stroke-width=".6" transform="rotate(${r.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }).join('')}
+    ${[0,1,2,3,4,5].map(i => { const a = Math.PI * (1.98 - i * .085), x = 50 + Math.cos(a) * 24, y = 58 + Math.sin(a) * 24, r = a * 180 / Math.PI - 60; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="3.2" ry="7" fill="url(#${u})" stroke="#7a5a08" stroke-width=".6" transform="rotate(${r.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }).join('')}
+    <path d="M27,60 A23.5,23.5 0 0 1 73,60" fill="none" stroke="#a87508" stroke-width="1.4"/>`,
+  sprout: `<path d="M50,40 Q49,30 50,24" fill="none" stroke="#3a9a3a" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M50,26 Q38,14 30,22 Q38,32 50,26Z" fill="#6ad46a" stroke="#2e7a2e" stroke-width="1"/><path d="M50,26 Q62,12 72,20 Q62,32 50,26Z" fill="#7ee07e" stroke="#2e7a2e" stroke-width="1"/>
+    <path d="M50,26 Q40,20 33,22 M50,26 Q60,18 69,20" fill="none" stroke="#2e7a2e" stroke-width=".7"/>`,
+  neko: `<path d="M29,49 Q26,34 29,24 Q31,21 34,23 Q41,30 45,40Z" fill="#f4c08a" stroke="#a8682a" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M71,49 Q74,34 71,24 Q69,21 66,23 Q59,30 55,40Z" fill="#3a3a44" stroke="#15151c" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M31.5,44 Q30,34 31.5,28 Q37,32 40.5,39Z" fill="#ffb3c6"/><path d="M68.5,44 Q70,34 68.5,28 Q63,32 59.5,39Z" fill="#ffb3c6"/>
+    <path d="M32,30 l2,1.6 M33.6,27 l1.4,2" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".8"/>`,
+  phones: `<path d="M24,62 A26,26 0 0 1 76,62" fill="none" stroke="#e8463a" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M24,62 A26,26 0 0 1 76,62" fill="none" stroke="#ff8a7a" stroke-width="1.4" stroke-linecap="round" transform="translate(0 -1.2)"/>
+    <rect x="17" y="54" width="11" height="17" rx="5" fill="#2a2a3a" stroke="#000" stroke-width="1"/><rect x="72" y="54" width="11" height="17" rx="5" fill="#2a2a3a" stroke="#000" stroke-width="1"/>
+    <rect x="20" y="57" width="5" height="11" rx="2.5" fill="#e8463a"/><rect x="75" y="57" width="5" height="11" rx="2.5" fill="#e8463a"/>`,
+  halo: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".5" stop-color="#f2c12e"/><stop offset="1" stop-color="#a87508"/></linearGradient></defs>
+    <path d="M27.4,55 Q50,39 72.6,55" fill="none" stroke="#6a4a04" stroke-width="6.4" stroke-linecap="round"/>
+    <path d="M27.4,55 Q50,39 72.6,55" fill="none" stroke="url(#${u})" stroke-width="4.4" stroke-linecap="round"/>
+    <path d="M32,51 Q50,40.6 68,51" fill="none" stroke="#fffbe0" stroke-width="1" stroke-linecap="round" opacity=".8"/>
+    <circle cx="50" cy="46.6" r="5.4" fill="url(#${u})" stroke="#6a4a04" stroke-width="1.1"/>
+    <text x="50" y="49.4" text-anchor="middle" font-size="7.6" font-weight="900" fill="#7a3a00" font-family="system-ui,sans-serif">∞</text>`,
+  goggles: `<path d="M27,50 Q50,42 73,50" fill="none" stroke="#2a2a3a" stroke-width="4"/>
+    <circle cx="40" cy="45" r="8" fill="#7fe0d0" fill-opacity=".85" stroke="#f28c28" stroke-width="2.6"/><circle cx="60" cy="45" r="8" fill="#7fe0d0" fill-opacity=".85" stroke="#f28c28" stroke-width="2.6"/>
+    <rect x="47" y="43" width="6" height="3" rx="1.5" fill="#f28c28"/>
+    <path d="M35,42 L38,39 M55,42 L58,39" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`,
+  wizard: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9a6bff"/><stop offset="1" stop-color="#3a1a8a"/></linearGradient></defs>
+    <path d="M33,42 L48,8 Q56,2 64,10 Q58,8 56,14 L67,42Z" fill="url(#${u})" stroke="#1f0c52" stroke-width="1" stroke-linejoin="round"/>
+    ${star(52, 26, 4, '#ffe14a')}${star(60, 36, 2.6, '#fff1a0')}${star(45, 34, 2.2, '#fff1a0')}
+    <path d="M33.5,38 Q50,34 66.5,38 L67,42 Q50,38 33,42Z" fill="#ffd34a"/>
+    <ellipse cx="50" cy="43" rx="26" ry="5" fill="#4a2aa0" stroke="#1f0c52" stroke-width="1"/>`,
+  };
+  if (id === 'traveler') return `<g>
+    <ellipse cx="50" cy="45" rx="31" ry="6.5" fill="#b8955a" stroke="#5a4020" stroke-width="1"/>
+    <path d="M30,45 Q29,27 50,24 Q71,27 70,45 Q50,40 30,45Z" fill="#d6b77a" stroke="#5a4020" stroke-width="1" stroke-linejoin="round"/>
+    <path d="M44,25.5 Q50,30 56,25.5" fill="none" stroke="#a9874e" stroke-width="1.2"/>
+    <path d="M30.6,40 Q50,35 69.4,40 L70,45 Q50,40 30,45Z" fill="#7a3f1d" stroke="#3d1f0e" stroke-width=".7"/>
+    <circle cx="61" cy="39.5" r="4.6" fill="#2f86d6" stroke="#0b3f86" stroke-width=".8"/>
+    <path d="M58.4,38 Q60,36.4 61.6,37.6 Q62.4,39.6 60.6,40.4 Q59,40.8 58.4,38Z M62.6,41 Q63.8,40.6 63.6,42" fill="#5cc26b"/>
+    <path d="M56.4,39.5 L65.6,39.5 M61,34.9 Q63.6,39.5 61,44.1 M61,34.9 Q58.4,39.5 61,44.1" fill="none" stroke="#bfe3ff" stroke-width=".4"/>
+    <path d="M36,37 L40,31" stroke="#c8a2ff" stroke-width="1.6" stroke-linecap="round"/><path d="M38,37.5 L43,30" stroke="#ffd34a" stroke-width="1.4" stroke-linecap="round"/></g>`;
+  return A[id] || '';
+}
+/* つばのある帽子(駅長さん・学生帽) */
+function hatKepi(u, body, band, badge, plain){
+  return `<g transform="translate(0 -3)"><path d="M29,50 L31,33 Q50,28 69,33 L71,50 Q50,45 29,50Z" fill="${body}" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+    <ellipse cx="50" cy="33" rx="19" ry="3.2" fill="${body}" stroke="#000" stroke-width=".8"/>
+    <path d="M29.6,45 Q50,40 70.4,45 L71,50 Q50,45 29,50Z" fill="${band}" stroke="#000" stroke-width=".6"/>
+    ${plain ? `<path d="M29.6,45 Q50,40 70.4,45" fill="none" stroke="#444" stroke-width="1"/>` : ''}
+    <path d="M30,50 Q50,45 70,50 Q66,55.5 50,55.5 Q34,55.5 30,50Z" fill="#111" stroke="#000" stroke-width=".8"/>
+    <path d="M36,51.5 Q50,48.5 64,51.5" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
+    ${plain ? `<path d="M50,36 L53,39 L50,42 L47,39Z" fill="${badge}" stroke="#7a5a08" stroke-width=".5"/>`
+            : `<path d="M44,39 Q47,36 50,38 Q53,36 56,39 Q53,40 50,41 Q47,40 44,39Z" fill="${badge}"/><circle cx="50" cy="38.5" r="1.8" fill="${badge}" stroke="#7a5a08" stroke-width=".5"/>`}</g>`;
+}
+
+const HAT_IMG = {}, HAT_IMG_TRY = {};
+function hatSVG(h){
+  if(!HAT_IMG_TRY[h.id]){ HAT_IMG_TRY[h.id] = 1; const im = new Image(); im.onload = () => { HAT_IMG[h.id] = im.src; }; im.src = 'https://manabinoba-marunao.github.io/yariki-list/hats/' + h.id + '.png'; }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(h.name)}">${HAT_IMG[h.id] ? `<image href="${HAT_IMG[h.id]}" x="0" y="0" width="100" height="100"/>` : hatArt(h.id)}</svg>`;
+}
+/* いまやりきリストでかぶっているもの・首にかけているメダル */
+function myWornHat(){
+  const u = user(), w = (u && u.mqWear) || {};
+  const own = isTesterName(ui.name) ? HATS.slice() : HATS.filter(h => h.gift ? (w.gifts||[]).includes(h.gift) : h.maru ? (w.maru||0) >= h.maru : (w.gdone||[]).some(k => h.re.test(k)));
+  if(!own.length) return null;
+  if(typeof w.hat === "string") return w.hat === "" ? null : (own.find(h => h.id === w.hat) || null);
+  return own.slice().sort((a, b) => b.rank - a.rank)[0];
+}
+function myMedal(){
+  const u = user(), w = (u && u.mqWear) || {}, all = w.badges || [];
+  if(Array.isArray(w.equip)) return all.find(b => b.id === w.equip[0]) || null;
+  return all[0] || null;
+}
 function mqStrike(o){
   const root = document.getElementById('mq-strike'), st = document.getElementById('mqs-stage');
   if(!root || !st) return;
@@ -14151,6 +14393,8 @@ function mqStrike(o){
   const magic = o.kind === 'magic', punch = o.kind === 'punch';
   const E = magic ? MQS_ELEMENTS[o.element] : null;
   const face = mqsEsc(Array.from(o.hero || '？')[0] || '？');
+  const hat = myWornHat(), medal = myMedal();   // 装備したまま魔法を撃つ
+  const gear = (hat ? `<span class="mqs-hat r${hat.rank}">${hatSVG(hat)}</span>` : '') + (medal ? `<span class="mqs-medal">${medalSVG(medal, 27)}</span>` : '');
   const wpn = magic ? `<span class="mqs-wpn fist">${E ? E.icon : '🔮'}</span>`
     : (o.weaponHtml && o.weaponHtml.indexOf('<svg') === 0 ? `<span class="mqs-wpn">${o.weaponHtml}</span>` : `<span class="mqs-wpn fist">${o.weaponHtml || '👊'}</span>`);
   const digits = Array.from((Number(o.dmg)||0).toLocaleString()).map((c,i) => `<span style="animation-delay:${i*45}ms">${c}</span>`).join('');
@@ -14165,7 +14409,7 @@ function mqStrike(o){
     <div class="mqs-word" id="mqs-word"></div>
     <div class="mqs-crit" id="mqs-crit">${o.crit ? (magic ? '✦ 大マルナ ✦' : '✦ CRITICAL ✦') : ''}</div>
     <div class="mqs-dmg ${o.crit ? 'crit' : ''}" id="mqs-dmg">${digits}<i>ダメージ</i></div>
-    <div class="mqs-hero" id="mqs-hero"><div class="mqs-face">${face}${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
+    <div class="mqs-hero" id="mqs-hero"><div class="mqs-face ${hat ? 'has-hat' : ''}">${gear}<span class="mqs-letter">${face}</span>${wpn}</div><div class="mqs-hname">${mqsEsc(o.hero || '')}</div></div>
     <div class="mqs-msg" id="mqs-msg"><b>${(Number(o.dmg)||0).toLocaleString()}</b> ダメージ！<small>${msg}・タップでとじる</small></div>`;
   root.classList.add('on');
   // 割れた半分(聖剣用)
