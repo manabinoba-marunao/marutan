@@ -355,6 +355,25 @@ button,.set,.choice,.stat3,input[type=text],textarea{border-radius:var(--rs)}
 [data-skin="world"] .brand h1{font-weight:400;color:var(--accent)}
 [data-skin="world"] .brand h1::after{content:" ✈️";font-size:.7em}
 [data-skin="world"] h2{font-weight:400;letter-spacing:.04em}
+/* 問題中は写真が主役:上だけうすく白をかけ、問題はコンパクト&半透明に */
+[data-skin="world"] body.quizzing{background:linear-gradient(rgba(244,238,220,.85), rgba(244,238,220,0) 150px), url("gift/world_tall.jpg") center top/cover fixed, var(--bg)}
+@media (min-aspect-ratio: 1/1){ [data-skin="world"] body.quizzing{background:linear-gradient(rgba(244,238,220,.85), rgba(244,238,220,0) 150px), url("gift/world_wide.jpg") center/cover fixed, var(--bg)} }
+[data-skin="world"] body.quizzing .card{background:rgba(255,253,246,.86);padding:14px 16px;gap:2px;box-shadow:0 6px 16px rgba(30,42,68,.25)}
+[data-skin="world"] body.quizzing .card .q{font-size:clamp(24px,6.4vw,34px)}
+[data-skin="world"] body.quizzing .card.ans{padding:12px 14px;gap:5px}
+[data-skin="world"] body.quizzing .card.ans.ok{background:rgba(225,244,232,.9)}
+[data-skin="world"] body.quizzing .card.ans.ng{background:rgba(251,225,228,.9)}
+[data-skin="world"] body.quizzing .choices{grid-template-columns:1fr 1fr;gap:8px}
+[data-skin="world"] body.quizzing .choice{background:rgba(255,253,246,.84);padding:8px 10px;gap:8px;min-height:46px;font-size:15px;box-shadow:0 3px 10px rgba(30,42,68,.2)}
+[data-skin="world"] body.quizzing .choice .k{width:22px;height:22px;font-size:11px}
+[data-skin="world"] body.quizzing .choice.right{background:rgba(225,244,232,.95)}
+[data-skin="world"] body.quizzing .choice.wrong{background:rgba(251,225,228,.95)}
+[data-skin="world"] body.quizzing .kbd{display:inline-block;background:rgba(255,253,246,.8);border-radius:8px;padding:2px 10px}
+/* 📷 写真を見る(タップで問題をかくす/もどす) */
+.peekbtn{display:none;position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:999px;padding:10px 14px;font-size:14px;font-weight:700;background:rgba(255,253,246,.92);border:1.5px solid var(--line);color:var(--ink);box-shadow:0 4px 12px rgba(30,42,68,.3)}
+[data-skin="world"] body.quizzing .peekbtn{display:block}
+body.peek #app{opacity:0;pointer-events:none}
+#app{transition:opacity .25s}
 
 /* ===== ごほうびきせかえ(マル単のマルの数で解放) ===== */
 /* にゃんこ(動物) */
@@ -12036,11 +12055,25 @@ function viewWordSheet(id){
   </div></div>`;
 }
 
+/* 「塾長と世界旅行」のきせかえ:問題中に📷で写真だけを見られる */
+function peekBtn(){
+  let b = document.getElementById("peekBtn");
+  if(!b){
+    b = document.createElement("button"); b.id = "peekBtn"; b.className = "peekbtn"; b.type = "button";
+    b.addEventListener("click", ()=>{ document.body.classList.toggle("peek"); peekBtn(); });
+    document.body.appendChild(b);
+  }
+  if(!document.body.classList.contains("quizzing")) document.body.classList.remove("peek");
+  const on = document.body.classList.contains("peek");
+  b.textContent = on ? "↩ 問題にもどる" : "📷 写真を見る";
+  b.setAttribute("aria-pressed", on);
+}
 /* ---------- views ---------- */
 function render(){
   const app = $("#app");
   applySkin();
   document.body.classList.toggle("quizzing", !!ui.name && ui.view==="quiz");
+  peekBtn();
   const y = scrollY;
   if(!ui.name){ app.innerHTML = viewLogin() + (ui.modal?.type==="skin"?viewSkinSheet():""); return; }
   if(ui.view==="home" && ui.modal){
