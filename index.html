@@ -14225,11 +14225,17 @@ function hatArt(id){
     <ellipse cx="54" cy="38" rx="27" ry="11" fill="url(#${u})" stroke="#4a0a14" stroke-width="1.3" transform="rotate(-10 54 38)"/>
     <path d="M36,36 Q46,29 62,29" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".45"/>
     <path d="M57,28.6 Q58,24 61,23.4" fill="none" stroke="#4a0a14" stroke-width="2" stroke-linecap="round"/>`,
-  mage: `<path d="${HAT_DOME(48, 4)}" fill="#1a1a1a"/>
-    <path d="M36,44 Q50,40 64,44" fill="none" stroke="#444" stroke-width=".8"/>
-    <path d="M44,38 Q46,33 52,32 L66,29 Q69,29 68,32 L54,37 Q48,39 44,38Z" fill="#1a1a1a" stroke="#000" stroke-width=".6"/>
-    <path d="M49,33 L50.5,38" stroke="#fff" stroke-width="2"/>
-    <path d="M54,31.5 Q60,30.4 65,29.6" fill="none" stroke="#555" stroke-width=".7"/>`,
+  mage: `<defs><radialGradient id="${u}s" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#f8dcc2"/><stop offset=".5" stop-color="#dcc9c0"/><stop offset="1" stop-color="#8fb1c6"/></radialGradient>
+      <linearGradient id="${u}k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4a5a"/><stop offset=".45" stop-color="#151518"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
+    <path d="${HAT_DOME(51, 3)}" fill="url(#${u}s)" stroke="#f3e6d6" stroke-width=".9"/>
+    <path d="M44,41.5 Q47,40.5 50,41 M53,40.6 Q56,40.4 58,41.4" fill="none" stroke="#9fbccb" stroke-width=".7" stroke-linecap="round"/>
+    <path d="M34.6,46 A23,23 0 0 0 27.4,57 Q27.2,60 27.6,62.5 L32.5,62 Q31.8,54 36.5,47.6Z" fill="#141418" stroke="#7a7a92" stroke-width=".7"/>
+    <path d="M65.4,46 A23,23 0 0 1 72.6,57 Q72.8,60 72.4,62.5 L67.5,62 Q68.2,54 63.5,47.6Z" fill="#141418" stroke="#7a7a92" stroke-width=".7"/>
+    <path d="M30.5,53 Q31.5,50 33.5,48.5 M69.5,53 Q68.5,50 66.5,48.5" fill="none" stroke="#5a5a72" stroke-width=".8" stroke-linecap="round"/>
+    <path d="M44,41 Q44.5,33.5 51,32 L67,27.6 Q72.2,27 70.8,31.2 Q70,33 67.4,33.7 L54,38.6 Q47.6,41.8 44,41Z" fill="url(#${u}k)" stroke="#9a9ab8" stroke-width=".8" stroke-linejoin="round"/>
+    <path d="M52,34.6 Q59,32.4 66.2,30.6" fill="none" stroke="#8a8aa8" stroke-width=".9" stroke-linecap="round" opacity=".9"/>
+    <path d="M49.2,33.8 L51,39.6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M51.6,33.2 L53.2,38.8" stroke="#e8463a" stroke-width="1" stroke-linecap="round"/>`,
   dragon: `<defs><linearGradient id="${u}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#127a6e"/><stop offset=".6" stop-color="#3fd1b8"/><stop offset="1" stop-color="#ffe680"/></linearGradient></defs>
     <g stroke="#0a3d36" stroke-width="1.2" stroke-linejoin="round" fill="url(#${u})">
       <path d="M41,42 Q37,30 30,22 Q26,17 26,8 Q32,14 34,19 Q40,27 45,40Z"/><path d="M33.6,25.6 Q27,25 21,20 Q27,21 31.6,21.6Z"/>
@@ -14247,10 +14253,14 @@ function hatArt(id){
     <rect x="20" y="44" width="60" height="9" fill="#fff" stroke="#bbb" stroke-width=".8" clip-path="url(#${u})"/>
     <text x="50" y="51.6" text-anchor="middle" font-size="8" font-weight="900" fill="#c0283c" font-family="'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif">漢</text>
     <path d="M72,47 Q82,42 86,48 Q80,50 74,50Z M72,51 Q80,56 84,62 Q78,60 72,53Z" fill="#fff" stroke="#bbb" stroke-width=".8"/>`,
-  eboshi: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".45" stop-color="#111"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
-    <path d="M36,46 L38,14 Q44,6 54,8 Q62,10 58,18 L64,46 Q50,41 36,46Z" fill="url(#${u})" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
-    <path d="M40,40 L42,18 M47,40 L48,14" stroke="#555" stroke-width=".6"/>
-    <path d="M36,46 Q50,41 64,46" fill="none" stroke="#666" stroke-width="1"/>`,
+  eboshi: `<defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6a6a7c"/><stop offset=".3" stop-color="#2a2a33"/><stop offset=".7" stop-color="#121216"/><stop offset="1" stop-color="#3a3a48"/></linearGradient></defs>
+    <path d="M38.5,46 Q34,54 33,63 Q32.8,66 34.8,66.5 M61.5,46 Q66,54 67,63 Q67.2,66 65.2,66.5" fill="none" stroke="#f4f0ff" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M34.8,66.5 Q38,70 42,71 M65.2,66.5 Q62,70 58,71" fill="none" stroke="#b48cff" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M36,46 L38,14 Q44,6 54,8 Q62,10 58,18 L64,46 Q50,41 36,46Z" fill="url(#${u})" stroke="#a8a8c8" stroke-width="1" stroke-linejoin="round"/>
+    <path d="M40.5,40 Q41.5,30 42,18 M46,41 Q47,28 48.5,13 M52,40.5 Q52.5,30 55,16 M58,41 Q57,32 57.5,22" fill="none" stroke="#6e6e88" stroke-width=".7" stroke-linecap="round"/>
+    <path d="M39.6,36 Q44,34 49,35.5 M41,26 Q45,24.5 50,26 M43.5,16 Q48,14.5 53,16.5" fill="none" stroke="#55556a" stroke-width=".6"/>
+    <path d="M39.2,38 Q38.8,26 41.5,15.5" fill="none" stroke="#c8c8e0" stroke-width=".9" stroke-linecap="round" opacity=".7"/>
+    <path d="M36,46 Q50,41 64,46 L63.6,43.6 Q50,39 36.4,43.6Z" fill="#2a2a34" stroke="#a8a8c8" stroke-width=".8"/>`,
   wing: `<defs><linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f8ff"/><stop offset=".5" stop-color="#b8c6dc"/><stop offset="1" stop-color="#6a7a94"/></linearGradient></defs>
     <g fill="#fff" stroke="#8aa0c8" stroke-width=".9" stroke-linejoin="round">
       <path d="M31,50 Q18,46 10,30 Q8,22 12,16 Q18,28 30,36Z"/><path d="M31,46 Q20,40 16,26 Q16,18 20,14 Q24,28 32,34Z"/><path d="M32,42 Q24,34 24,22 Q26,16 29,14 Q30,28 34,34Z"/>
