@@ -138,12 +138,13 @@ async function load(){
 /* 表示するデータ。sessions/wrongs の各行に塾コードをつける(生徒は 塾:id で区別)
    sessions: [ts,id,name,label,mode,limit,answered,correct,rate,seconds,wrongText]
    wrongs:   [ts,id,name,en,ja,set] */
+const isTest = n => /^テスト/.test(String(n||""));   // テスト用アカウントは集計に入れない
 function rowsFor(tab){
   const codes = tab==="all" ? Object.keys(st.src) : [tab];
   const S = [], W = [];
   for(const c of codes){ const d = st.src[c]; if(!d) continue;
-    for(const s of d.sessions) S.push({c, sk:c+":"+(c==="marunao"?s[2]:s[1]), s});
-    for(const w of d.wrongs) W.push({c, sk:c+":"+(c==="marunao"?w[2]:w[1]), w}); }
+    for(const s of d.sessions) if(!isTest(s[2])) S.push({c, sk:c+":"+(c==="marunao"?s[2]:s[1]), s});
+    for(const w of d.wrongs) if(!isTest(w[2])) W.push({c, sk:c+":"+(c==="marunao"?w[2]:w[1]), w}); }
   return {S, W};
 }
 function students(S){

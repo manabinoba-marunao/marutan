@@ -11843,7 +11843,8 @@ const SKINS = [
 const THEME_COLOR = {owl:"#F5C518", world:"#1F5FA8", base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82", neko:"#F0803C", neon:"#0B0420", zoo:"#3E9B4F", gaming:"#07070C"};
 function skinMaru(){ return ui.name ? SETS.filter(setDone).length : 0; }
 function skinGifts(){ const u = ui.name && mem.users[ui.name]; return u && Array.isArray(u.gifts) ? u.gifts : []; }
-function skinOpen(s){ if(s.gift) return skinGifts().includes(s.gift); return !s.need || skinMaru() >= s.need; }
+function skinOpen(s){ if(isTesterName(ui.name)) return true;   // テスト用アカウントは、きせかえをぜんぶ試せる
+  if(s.gift) return skinGifts().includes(s.gift); return !s.need || skinMaru() >= s.need; }
 function newSkins(){ const u = ui.name && mem.users[ui.name]; if(!u) return []; const seen = u.skinsSeen || []; return SKINS.filter(s => (s.need || s.gift) && skinOpen(s) && !seen.includes(s.id)); }
 function markSkinsSeen(){ const u = ui.name && mem.users[ui.name]; if(!u) return; u.skinsSeen = SKINS.filter(s => (s.need || s.gift) && skinOpen(s)).map(s => s.id); save(); }
 const loadedFonts = new Set();
@@ -12468,12 +12469,12 @@ function dmgOnAnswer(ok, w, wasDue, nowDue){
   if(wasDue && !nowDue) D.revive++;
 }
 /* テスト用アカウント(名前が「テスト」で始まる)はボスを攻撃しない(やりきリストと同じ決まり) */
-const isTesterName = n => /^テスト/.test(String(n || ""));
+function isTesterName(n){ return /^テスト/.test(String(n || "")); }
 function dmgFinish(){
   const u = user(); if(!u || !quiz || quiz.dmgDone) return;
   quiz.dmgDone = true;
-  if(isTesterName(ui.name)){ quiz.dmgResult = {tester:true, linked:!!u.sid}; return; }
-  setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
+  const tester = isTesterName(ui.name);
+  if(!tester) setTimeout(syncBadges, 1500);   // マル・バッジをやりきリストへ
   setTimeout(syncGifts, 2200);
   setTimeout(()=>cloudSync(false), 2800);
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
@@ -12483,6 +12484,12 @@ function dmgFinish(){
   const qs = quizSubject(), M = qs ? manaLv(qs) : {lv:1};
   raw = Math.round(raw * manaMult(M.lv));
   const day = dmgDay(), cap = manaCap(M.lv);
+  if(tester){   // テスト用:攻撃の演出だけ見せる(ボスには送らない・HPは減らない)
+    const td = Math.max(0, Math.min(raw, cap));
+    quiz.dmgResult = {tester:true, linked:true, dmg:td, crit:D.crit, mlv:M.lv};
+    if(td>0) mqMagicStrike(td, D.crit, M.lv, true);
+    return;
+  }
   const dmg = Math.max(0, Math.min(raw, cap - day.sent));
   day.sent += dmg; save();
   quiz.dmgResult = {raw, dmg, crit:D.crit, revive:D.revive, maru, items:D.items, left:cap-day.sent, linked:!!u.sid, mlv:M.lv};
@@ -12500,14 +12507,14 @@ function spellColor(){
   if(ss.length!==1) return "#b48cff";
   return ({"英語":"#7fe0c0","数学":"#ffe14d","国語":"#5ab8ff","理科":"#ff7a3d","社会":"#d2a26c"})[ss[0]] || "#b48cff";
 }
-async function mqMagicStrike(dmg, crit, mlv){
+async function mqMagicStrike(dmg, crit, mlv, demo){
   const spell = (crit?"大":"") + spellName(), color = spellColor(), hero = ui.name;
   let boss = null;
   try{
     const b = await Promise.race([yapi("getBoss", {}), new Promise(r=>setTimeout(()=>r(null), 6000))]);
     if(b && b.ok && b.boss) boss = b.boss;
   }catch(e){}
-  flushDmg();
+  if(!demo) flushDmg();
   const B = boss ? {name:boss.name, hp:Number(boss.hp)||0, cur:Number(boss.currentHp ?? boss.hp), imgUrl:(boss.imageUrl||"").trim()} : {name:"やりきリストの大魔王"};
   mqStrike({kind:"magic", dmg, crit, hero, spell, color, element:spellElement(), mlv, boss:B});
 }
@@ -12764,7 +12771,14 @@ async function syncGifts(){
 async function syncBadges(){
   const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
   const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
-  const badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone();
+  let badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone();
+  if(isTesterName(ui.name)){   // テスト用:メダル・マル・単元をぜんぶ持っている扱い(見た目の確認用)
+    Object.keys(SUBJ_ELEM).forEach(k=>{ const n = SETS.filter(s=>s.subject===k).length; if(n) subj[k] = n; });
+    badges = badgeGroups().map(x=>({id:"g:"+x.k, name:x.name, icon:BADGE_TIER[3][0], tier:3, done:x.sets.length, total:x.sets.length}))
+      .concat(MARU_BADGES.map(([n,ic])=>({id:"m:"+n, name:"マル"+n, icon:ic, tier:4, done:SETS.length, total:n})));
+    maru = SETS.length;
+    const g = {}; SETS.forEach(st=>{ if(st.group) g[(st.subject||"")+"/"+(st.course||"")+"/"+st.group] = 1; }); gdone = Object.keys(g).sort();
+  }
   const key = maru + "|" + badges.map(b=>b.id+":"+b.tier).join(",") + "|" + gdone.join(",");
   if(u.mqKey === key) return;
   badgeSyncing = true;
@@ -12798,7 +12812,10 @@ function spellElement(){
 function dmgPanel(){
   const R = quiz && quiz.dmgResult; if(!R) return "";
   if(!R.linked) return "";
-  if(R.tester) return `<div class="dmgp"><div class="note">テスト用のアカウントなので、ボスへの攻撃はしません。</div></div>`;
+  if(R.tester) return `<div class="dmgp magic ${R.crit?"crit":""}"><span class="mcircle" aria-hidden="true"></span>
+    <div class="dmgn"><span class="spell">🔮 ${esc((R.crit?"大":"") + spellName())}！</span></div>
+    <div class="dmgn"><span>演出では</span><b>${(R.dmg||0).toLocaleString()}</b><span>ダメージ</span></div>
+    <div class="note">🧪 テスト用アカウント:演出だけです。ボスのHPは減りません(実際の攻撃は0)。${R.mlv>1?`マルナLv${R.mlv}`:""}</div></div>`;
   const spell = (R.crit?"大":"") + spellName();
   return `<div class="dmgp magic ${R.crit?"crit":""}">
     <span class="mcircle" aria-hidden="true"></span>
@@ -13453,7 +13470,7 @@ function viewJukuRank(){
   const u = user(), me = u && u.jk ? u.jk.sid : "";
   const D = JR.data;
   const P = [["week","今週の正解数"],["month","今月の正解数"],["maru","マルの数"]];
-  const list = D ? (D[JR.period]||[]) : [];
+  const list = D ? (D[JR.period]||[]).filter(x=>x.sid===me || !isTesterName(x.name)) : [];
   const medal = i => ["🥇","🥈","🥉"][i] || `${i+1}位`;
   const val = x => JR.period==="maru" ? `<b>${x.maru}</b> マル` : `<b>${x.correct.toLocaleString()}</b> 問 <span class="note">/ ${x.answered.toLocaleString()}問中</span>`;
   const rows = list.map((x,i)=>`<li class="${x.sid===me?"me":""}"><span class="rk">${medal(i)}</span><span class="nm">${esc(x.name)}${x.sid===me?"(あなた)":""}</span><span class="vl">${val(x)}</span></li>`).join("");
