@@ -9249,6 +9249,29 @@ const SETS = [
     "genetic|形|遺伝の・遺伝子の|Eye color is **genetic**.",
     "lesson|名|授業・教訓・(教科書の)課|I learned a **lesson** from my mistake."
   ]},
+  {id:"aie-w-1109", course:"AIE", group:"AIEクラスWORLD", title:"WORLD 11/9 の単語", source:"AIEクラスWORLD(板書より)", words:[
+    "If you were 〜|熟|もし(今)あなたが〜だったら(現実とはちがう想像。be動詞は were、後ろは would)|**If you were** a farmer, what vegetable **would** you like to grow?",
+    "farmer|名|農家・農業をする人|My grandfather is a **farmer**.",
+    "vegetable|名|野菜|What **vegetable** do you like?",
+    "grow|動|〜を育てる・成長する|I want to **grow** tomatoes.",
+    "term-end test|名|期末テスト(term-end exam とも言う)|We have a **term-end test** next week.",
+    "final exam|名|期末試験・最終試験|I studied hard for the **final exam**.",
+    "mid-term|形|中間の(mid = middle 真ん中)|The **mid-term** test is in October.",
+    "semester|名|学期(2学期制の学期)|The second **semester** starts in October.",
+    "include|動|〜を含む|The price **includes** tax.",
+    "absorb|動|〜を吸収する|A sponge **absorbs** water.",
+    "at heart|熟|心の底では・本当は|He is a kind boy **at heart**.",
+    "possibility|名|可能性|There is a **possibility** of rain tomorrow.",
+    "evaluation|名|評価|The teacher's **evaluation** was very good.",
+    "evaluate|動|〜を評価する|Teachers **evaluate** students' work.",
+    "juicy|形|果汁の多い・みずみずしい|This peach is very **juicy**.",
+    "rough|形|(表面が)ざらざらした・荒い|The wall is **rough**.",
+    "unsmooth|形|なめらかでない(ふつうは not smooth や rough を使う)|The road was **unsmooth** and bumpy.",
+    "earn|動|(お金を)かせぐ・(評価を)得る|She **earns** money by working at a cafe.",
+    "get rich quick|熟|すぐに金持ちになる・一攫千金|There is no way to **get rich quick**.",
+    "taste|名・動|味・〜の味がする|This soup **tastes** good.",
+    "calligraphy|名|書道・美しい文字を書く技術|We have a **calligraphy** class today."
+  ]},
   {id:"aie-b-1103", course:"AIE", group:"AIEクラスBRIDGE", title:"BRIDGE 11/3 の単語", source:"AIEクラスBRIDGE(板書より)", words:[
     "holiday|名|休日・休暇|What did you do on the **holiday**?",
     "LEGO|名|レゴ(おもちゃのブロック。商品名なので大文字で書く)|I like playing with **LEGO**.",
@@ -11928,6 +11951,15 @@ Object.assign(ETYM, {
   "eliminate":"e(外へ)+limin(しきい)→しきいの外へ出す→取り除く",
   "invalid":"in(反対)+valid(有効な)→無効な",
   "insufficient":"in(反対)+sufficient(十分な)→不十分な"
+});
+/* 板書(11/9 AIEクラスWORLD)の語源 */
+Object.assign(ETYM, {
+  "evaluation":"e(外へ)+valu(価値)+ation(名詞にする)→価値を引き出すこと→評価",
+  "possibility":"possible(可能な)+ity(名詞にする)→可能性",
+  "mid-term":"mid(真ん中= middle)+term(期間・学期)→学期の真ん中→中間の",
+  "semester":"se(6)+mester(月)→6か月→(半年の)学期",
+  "unsmooth":"un(〜でない)+smooth(なめらかな)→なめらかでない",
+  "juicy":"juice(果汁)+y(〜の多い)→果汁の多い"
 });
 function noteHtml(en){ const t = noteText(en); return t ? `<div class="etym note2"><span class="lb">説明</span><span>${esc(t)}</span></div>` : ""; }
 function etymText(en){ return ETYM[String(en||"").trim().toLowerCase()] || ""; }
