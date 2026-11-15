@@ -12766,6 +12766,10 @@ function groupsDone(){
   SETS.forEach(st=>{ if(!st.group) return; (g[(st.subject||"")+"/"+(st.course||"")+"/"+st.group] ||= []).push(st); });
   return Object.keys(g).filter(k=>g[k].every(setDone)).sort();
 }
+/* セット1つでもらえるかぶりもの(栗など)用:マルになったそのセットを「set/セットID」として送る */
+function hatSetsDone(all){
+  return HATS.filter(h=>h.set).map(h=>SETS.find(st=>st.id===h.set)).filter(st=>st && (all || setDone(st))).map(st=>"set/"+st.id);
+}
 /* やりきリストへ:マルの数とバッジを送る(学習データのセルに mq として保存。装備はやりきリスト側で決める) */
 let badgeSyncing = false;
 /* ===== 端末をかえても記録を引きつぐ(クラウド保存) =====
@@ -12853,13 +12857,13 @@ async function syncGifts(){
 async function syncBadges(){
   const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
   const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
-  let badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone();
+  let badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone().concat(hatSetsDone());
   if(isTesterName(ui.name)){   // テスト用:メダル・マル・単元をぜんぶ持っている扱い(見た目の確認用)
     Object.keys(SUBJ_ELEM).forEach(k=>{ const n = SETS.filter(s=>s.subject===k).length; if(n) subj[k] = n; });
     badges = badgeGroups().map(x=>({id:"g:"+x.k, name:x.name, icon:BADGE_TIER[3][0], tier:3, done:x.sets.length, total:x.sets.length}))
       .concat(MARU_BADGES.map(([n,ic])=>({id:"m:"+n, name:"マル"+n, icon:ic, tier:4, done:SETS.length, total:n})));
     maru = SETS.length;
-    const g = {}; SETS.forEach(st=>{ if(st.group) g[(st.subject||"")+"/"+(st.course||"")+"/"+st.group] = 1; }); gdone = Object.keys(g).sort();
+    const g = {}; SETS.forEach(st=>{ if(st.group) g[(st.subject||"")+"/"+(st.course||"")+"/"+st.group] = 1; }); gdone = Object.keys(g).sort().concat(hatSetsDone(true));
   }
   const key = maru + "|" + badges.map(b=>b.id+":"+b.tier).join(",") + "|" + gdone.join(",");
   if(u.mqKey === key) return;
@@ -14255,6 +14259,7 @@ const HATS = [
   { id:'sprout',  name:'頭から若葉',         cond:'まいにち英単語3000「小学編」をぜんぶマル', rank:2, re:/^英語\/[^/]+\/まいにち英単語3000 小学編$/ },
   { id:'gakubo',  name:'ベレー帽',             cond:'英語の教科書(中1・中2・中3)を1学年ぜんぶマル', rank:2, re:/^英語\/中学\/中[123] 教科書$/ },
   { id:'neko',    name:'ねこみみ',           cond:'並び替えの級を1つぜんぶマル',    rank:1, re:/^英語\/並び替え\// },
+  { id:'kuri',    name:'栗のかぶりもの',     cond:'AIEクラスBRIDGE「秋の収穫・季節の単語」をマル', rank:1, set:'aie-b-autumn', re:/^set\/aie-b-autumn$/ },
   { id:'phones',  name:'ヘッドホン',         cond:'「AIEクラスWORLD」をぜんぶマル', rank:1, re:/^英語\/AIE\// },
   { id:'halo',    name:'∞の金の輪',        cond:'数学の単元を1つぜんぶマル',      rank:1, re:/^数学\// },
   { id:'goggles', name:'実験ゴーグル',       cond:'理科の単元を1つぜんぶマル',      rank:1, re:/^理科\// },
@@ -14413,6 +14418,13 @@ function hatArt(id){
     ${[0,1,2,3,4,5].map(i => { const a = Math.PI * (1.02 + i * .085), x = 50 + Math.cos(a) * 24, y = 58 + Math.sin(a) * 24, r = a * 180 / Math.PI + 60; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="3.2" ry="7" fill="url(#${u})" stroke="#7a5a08" stroke-width=".6" transform="rotate(${r.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }).join('')}
     ${[0,1,2,3,4,5].map(i => { const a = Math.PI * (1.98 - i * .085), x = 50 + Math.cos(a) * 24, y = 58 + Math.sin(a) * 24, r = a * 180 / Math.PI - 60; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="3.2" ry="7" fill="url(#${u})" stroke="#7a5a08" stroke-width=".6" transform="rotate(${r.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }).join('')}
     <path d="M27,60 A23.5,23.5 0 0 1 73,60" fill="none" stroke="#a87508" stroke-width="1.4"/>`,
+  kuri: `<defs><radialGradient id="${u}" cx="38%" cy="30%" r="78%"><stop offset="0" stop-color="#c47a3e"/><stop offset=".55" stop-color="#8a4a22"/><stop offset="1" stop-color="#5a2c10"/></radialGradient></defs>
+    <path d="M26,54 Q24,36 38,24 Q45,18 50,11 Q55,18 62,24 Q76,36 74,54 Q50,47 26,54Z" fill="url(#${u})" stroke="#3d1c08" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M26,54 Q50,47 74,54 L73.2,46 Q50,39 26.8,46Z" fill="#ecd1a0" stroke="#8a5a2b" stroke-width=".8"/>
+    <g fill="#b98a55"><circle cx="34" cy="49" r=".9"/><circle cx="42" cy="46.5" r=".9"/><circle cx="50" cy="46" r=".9"/><circle cx="58" cy="46.5" r=".9"/><circle cx="66" cy="49" r=".9"/><circle cx="38" cy="51" r=".8"/><circle cx="46" cy="49.5" r=".8"/><circle cx="54" cy="49.5" r=".8"/><circle cx="62" cy="51" r=".8"/></g>
+    <path d="M47.6,15.5 L50,8.5 L52.4,15.5Z" fill="#ecd1a0" stroke="#8a5a2b" stroke-width=".7" stroke-linejoin="round"/>
+    <path d="M36,40 Q37,30 45,22" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse cx="41" cy="28" rx="5" ry="2.4" fill="#fff" opacity=".3" transform="rotate(-40 41 28)"/>`,
   sprout: `<path d="M50,40 Q49,30 50,24" fill="none" stroke="#3a9a3a" stroke-width="2.2" stroke-linecap="round"/>
     <path d="M50,26 Q38,14 30,22 Q38,32 50,26Z" fill="#6ad46a" stroke="#2e7a2e" stroke-width="1"/><path d="M50,26 Q62,12 72,20 Q62,32 50,26Z" fill="#7ee07e" stroke="#2e7a2e" stroke-width="1"/>
     <path d="M50,26 Q40,20 33,22 M50,26 Q60,18 69,20" fill="none" stroke="#2e7a2e" stroke-width=".7"/>`,
