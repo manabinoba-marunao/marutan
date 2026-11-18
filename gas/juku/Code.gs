@@ -74,6 +74,7 @@ function route(p){
       case "gpStart":   return gpStart(p);
       case "gpEnd":     return gpEnd(p);
       case "gpScore":   return gpScore(p);
+      case "gpHistory": return gpHistory(p);
       // ---- 塾長・管理者 ----
       case "auth":      return authInfo(p);
       case "students":  return listStudents(p);
@@ -367,7 +368,7 @@ function gpCreate(p){
   return gpLock_(() => {
     let code = "";
     for(let i = 0; i < 40; i++){ code = String(1000 + Math.floor(Math.random() * 9000)); if(!gpGet_(code)) break; }
-    const r = {code, host: randStr(16), title: String(p.title || "").slice(0, 80), mode: p.mode === "free" ? "free" : "same",
+    const r = {code, host: randStr(16), org: String(p.org || "").slice(0, 40), title: String(p.title || "").slice(0, 80), mode: p.mode === "free" ? "free" : "same",
       sets: (Array.isArray(p.sets) ? p.sets : []).slice(0, 300).map(String),
       dir: ["en2ja", "ja2en", "mix"].indexOf(p.dir) >= 0 ? p.dir : "en2ja",
       sec: Math.max(30, Math.min(1200, Number(p.sec) || 300)),
@@ -399,10 +400,14 @@ function gpScores_(r){
 function gpState(p){
   let r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
   if(r.status === "run" && Date.now() > r.endAt + 5000) r.status = "done";
-  // 終わったら1回だけ、トップ3のボーナス(やりきリストのボスへのダメージ)を決めて記録する(1人1日2回まで)
-  if(r.status === "done" && !r.awards && Date.now() > r.endAt + 5000) r = gpAward_(r.code) || r;
+  // 終わったら1回だけ、結果を記録して、トップ3のボーナス(やりきリストのボスへのダメージ)を決める
+  //  全員の最後の点数が届くまで待つ(先生が途中で終了したときも、生徒の画面が止まって点数を送るまで少しかかる)
+  let ps = gpScores_(r);
+  if(r.status === "done" && !r.awards && (ps.every(x => x.done || x.n === 0) && Date.now() > r.endAt + 3000 || Date.now() > r.endAt + 15000)){
+    try{ r = gpAward_(r.code) || r; ps = gpScores_(r); }catch(err){ console.error(err); }
+  }
   const room = gpPub_(r);
-  room.players = gpScores_(r);
+  room.players = ps;
   return {ok: true, now: Date.now(), room};
 }
 /* ---- トップ3のボーナス:やりきリストのボスへのダメージ(マルナ)。1日の上限600とは別枠。
@@ -418,18 +423,27 @@ function gpAward_(code){
   return gpLock_(() => {
     const r = gpGet_(code); if(!r) return null;
     if(r.awards) return r;
-    const ranked = gpScores_(r).filter(x => x.score > 0).sort((a, b) => b.score - a.score || b.ok - a.ok || a.n - b.n).slice(0, 3);
+    const all = gpScores_(r).sort((a, b) => b.score - a.score || b.ok - a.ok || a.n - b.n);
+    const yidOf = pid => (r.players.find(y => y.pid === pid) || {}).yid || "";
+    // ボーナスは塾生(やりきリストの名簿の人)の中での1〜3位に
+    const ranked = all.filter(x => x.score > 0 && yidOf(x.pid)).slice(0, 3);
     const day = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd");
     const sh = gpBonusSheet_(); const n = sh.getLastRow();
     const given = n > 1 ? sh.getRange(2, 1, n - 1, 2).getValues().filter(v => String(v[0]) === day).map(v => String(v[1])) : [];
     r.awards = ranked.map((x, i) => {
-      const yid = (r.players.find(y => y.pid === x.pid) || {}).yid || "";
+      const yid = yidOf(x.pid);
       const a = {pid: x.pid, rank: i + 1, dmg: GP_BONUS_DMG[i], status: "ok"};
-      if(!yid) a.status = "nolink";
-      else if(given.filter(g => g === yid).length >= GP_BONUS_PER_DAY) a.status = "today";
+      if(given.filter(g => g === yid).length >= GP_BONUS_PER_DAY) a.status = "today";
       else { sh.appendRow([day, yid, x.name, i + 1, GP_BONUS_DMG[i], r.code, new Date()]); given.push(yid); }
       return a;
     });
+    // あとで見返せるように、結果をシート「GP結果」に残す
+    try{
+      const hs = gpHistSheet_(), at = new Date(), aw = {}; r.awards.forEach(a => aw[a.pid] = a);
+      const rowsOut = all.map((x, i) => [at, r.code, r.org || "", r.title, r.sec, r.mode === "same" ? "みんな同じ" : "それぞれ別",
+        i + 1, x.name, x.score, x.ok, x.n, aw[x.pid] && aw[x.pid].status === "ok" ? aw[x.pid].dmg : ""]);
+      if(rowsOut.length) hs.getRange(hs.getLastRow() + 1, 1, rowsOut.length, rowsOut[0].length).setValues(rowsOut);
+    }catch(err){ console.error(err); }
     gpPut_(r);
     return r;
   });
@@ -460,4 +474,26 @@ function gpScore(p){
   const o = {score: Math.max(0, Math.round(Number(p.score) || 0)), ok: Math.max(0, Number(p.ok) || 0), n: Math.max(0, Number(p.n) || 0), done: !!p.done};
   gpC_().put("gp:" + code + ":s:" + pid, JSON.stringify(o), GP_TTL);
   return {ok: true, now: Date.now()};
+}
+/* ---- 結果の記録と見返し ---- */
+const GP_HIST_SH = "GP結果";
+const GP_HIST_HEAD = ["日時", "部屋", "塾", "タイトル", "秒", "問題", "順位", "名前", "点数", "正解", "解いた", "ボーナス"];
+function gpHistSheet_(){
+  const ss = ss_(); let sh = ss.getSheetByName(GP_HIST_SH);
+  if(!sh){ sh = ss.insertSheet(GP_HIST_SH); sh.appendRow(GP_HIST_HEAD); sh.setFrozenRows(1); sh.getRange("B:C").setNumberFormat("@"); }
+  return sh;
+}
+/* 自分の塾の回だけ、新しい順に(最大30回分) */
+function gpHistory(p){
+  const org = String(p.org || ""), sh = ss_().getSheetByName(GP_HIST_SH);
+  if(!sh || sh.getLastRow() < 2) return {ok: true, games: []};
+  const n = sh.getLastRow() - 1, from = Math.max(2, sh.getLastRow() - 3000 + 1);
+  const vals = sh.getRange(from, 1, sh.getLastRow() - from + 1, GP_HIST_HEAD.length).getValues();
+  const games = {}, order = [];
+  vals.forEach(v => { if(String(v[2]) !== org) return;
+    const at = v[0] instanceof Date ? v[0].getTime() : new Date(v[0]).getTime(), key = String(v[1]) + "@" + Math.floor(at / 60000);
+    if(!games[key]){ games[key] = {at, code: String(v[1]), title: String(v[3]), sec: Number(v[4]) || 0, mode: String(v[5]), players: []}; order.push(key); }
+    games[key].players.push({rank: Number(v[6]), name: String(v[7]), score: Number(v[8]) || 0, ok: Number(v[9]) || 0, n: Number(v[10]) || 0, bonus: Number(v[11]) || 0});
+  });
+  return {ok: true, games: order.reverse().slice(0, 30).map(k => games[k])};
 }

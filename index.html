@@ -701,6 +701,9 @@ header.top.slim .who{font-size:12px;gap:6px;white-space:nowrap;overflow:hidden}
 .gp-rank.big li{padding:14px 18px}.gp-rank.big li .nm{font-size:20px}.gp-rank.big li .sc b{font-size:32px}
 .gp-bonus{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:#EDE4FF;color:#4B2A9E;vertical-align:middle}
 .gp-bonus.off{background:var(--line);color:var(--muted)}
+.gp-hist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.gp-hrow{width:100%;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;text-align:left;padding:10px 12px;border-radius:10px}
+.gp-hrow .hd{font-weight:800;font-variant-numeric:tabular-nums}.gp-hrow .ht{font-size:13px;color:var(--muted)}.gp-hrow .hw{grid-column:1/3;font-size:14px}
 .gp-podium{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:14px 0 4px}
 .gp-podium .pd{display:flex;flex-direction:column;align-items:center;gap:2px;width:min(30%,170px);animation:gp-rise .7s cubic-bezier(.2,1.3,.4,1) both}
 .gp-podium .pn{font-weight:900;font-size:16px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -13645,6 +13648,8 @@ async function gpApi(action, body={}){
   }catch(e){ return {ok:false, error:"net"}; }
 }
 const gpNow = () => Date.now() + GPX.off;
+/* どの塾の回か(結果の見返しで、自分の塾の回だけを出すため) */
+function gpOrg(){ const u = user(); return JUKU ? ((u && u.jk && u.jk.code) || (typeof JA!=="undefined" && JA && JA.code) || "JUKU") : "MARUNAO"; }
 function gpRng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function gpWithSeed(seed, fn){ const orig = Math.random; Math.random = gpRng(seed); try{ return fn(); } finally { Math.random = orig; } }
 /* ---- 音:ホイッスル(ピッピー)とカウントダウン ---- */
@@ -13671,7 +13676,7 @@ async function gpCreate(){
   const titles = SETS.filter(s=>ui.selected.has(s.id)).map(s=>s.title);
   const title = GPX.form.mode==="same" ? (titles.length>1 ? `${titles[0]} ほか${titles.length-1}セット` : titles[0]) : "それぞれ選んだセット";
   GPX.busy = true; GPX.err = ""; render();
-  const j = await gpApi("gpCreate", {mode:GPX.form.mode, sets, dir:ui.mode||"en2ja", sec:GPX.form.sec, title});
+  const j = await gpApi("gpCreate", {mode:GPX.form.mode, sets, dir:ui.mode||"en2ja", sec:GPX.form.sec, title, org:gpOrg()});
   GPX.busy = false;
   if(!j.ok){ GPX.err = "部屋を作れませんでした。通信を確かめて、もう一度ためしてね"; return render(); }
   GPX.code = j.code; GPX.host = j.host; GPX.room = j.room; GPX.phase = "host"; ui.view = "gp"; render(); gpPoll(2500);
@@ -13691,18 +13696,23 @@ async function gpRefresh(){
   if(!GPX.code) return;
   const j = await gpApi("gpState", {code:GPX.code});
   if(!j.ok){ if(j.error==="noroom"){ GPX.err = "部屋がなくなりました"; clearInterval(GPX.timer); render(); } return; }
-  const sig = JSON.stringify(j.room.players) + j.room.status;
+  const sig = JSON.stringify(j.room.players) + j.room.status + JSON.stringify(j.room.awards||null);
   const same = sig === GPX.sig; GPX.sig = sig;
   GPX.room = j.room;
   const R = GPX.room;
+  if(GPX.phase==="play"){
+    if(quiz && quiz.gp && ui.view==="quiz" && (R.status==="done" || gpNow() > R.endAt)){ quiz.endAt = Math.min(quiz.endAt, R.endAt - GPX.off); finish(); }
+    return;
+  }
   if(GPX.phase==="lobby" && R.status==="run"){ gpBegin(); return; }
   if(GPX.phase==="wait" && (R.status==="done" || gpNow() > R.endAt + 6000)){ GPX.phase = "ranking"; }
-  if(GPX.phase==="ranking"){ if(R.awards || gpNow() > R.endAt + 30000){ clearInterval(GPX.timer); GPX.timer = null; } gpPayBonus(); }
+  if(GPX.phase==="ranking"){ if(R.awards || gpNow() > R.endAt + 45000){ clearInterval(GPX.timer); GPX.timer = null; } gpPayBonus(); }
   if(GPX.phase==="host" && (R.status==="done" || (R.status==="run" && gpNow() > R.endAt))){
     if(!GPX.whistled && R.status==="run"){ GPX.whistled = true; gpWhistle(); }
-    if(gpNow() > R.endAt + 6000 || R.status==="done"){ GPX.phase = "hostRank"; gpPoll(5000); }
+    if(gpNow() > R.endAt + 6000 || R.status==="done"){ GPX.phase = "hostRank"; gpPoll(3000); }
   }
-  if(GPX.phase==="hostRank" && gpNow() > R.endAt + 30000){ clearInterval(GPX.timer); GPX.timer = null; }
+  // 先生の結果発表は、全員の最後の点数がそろって記録されるまで読み直す
+  if(GPX.phase==="hostRank" && (R.awards || gpNow() > R.endAt + 60000)){ clearInterval(GPX.timer); GPX.timer = null; }
   // 結果発表の画面は、点数が変わったときだけ書きかえる(順位のアニメーションが何度も出ないように)
   if((GPX.phase==="hostRank" || GPX.phase==="ranking") && same && document.querySelector(".gp-rank")) return;
   if(ui.view==="gp") render();
@@ -13755,6 +13765,7 @@ function gpGo(words){
     gp:{score:0, streak:0, ok:0, n:0}};
   timerId = setInterval(tick, 250);
   GPX.phase = "play"; ui.view = "quiz"; render();
+  gpPoll(4000);   // 先生が途中で「終了」したら、生徒の画面も止める
 }
 function gpOnAnswer(ok){
   const G = quiz.gp; G.n++;
@@ -13798,6 +13809,28 @@ function gpHud(){
 }
 
 /* ---- 画面 ---- */
+/* ---- これまでの結果(自分の塾の回) ---- */
+GPX.hist = {open:false, loading:false, games:null, err:"", sel:-1};
+async function gpLoadHist(){
+  const H = GPX.hist; H.loading = true; H.err = ""; render();
+  const j = await gpApi("gpHistory", {org:gpOrg()});
+  H.loading = false;
+  if(j.ok) H.games = j.games || []; else H.err = "読み込めませんでした";
+  render();
+}
+function viewGPHist(){
+  const H = GPX.hist;
+  if(!H.open) return `<button data-act="gphist">📜 これまでの結果を見る</button>`;
+  const d = t => { const x = new Date(t); return `${x.getMonth()+1}/${x.getDate()} ${x.getHours()}:${String(x.getMinutes()).padStart(2,"0")}`; };
+  const medal = i => ["🥇","🥈","🥉"][i] || `${i+1}位`;
+  const body = H.loading ? `<p class="note">読み込み中…</p>` : H.err ? `<p class="gp-err">${esc(H.err)}</p>` : !(H.games||[]).length ? `<p class="note">まだ記録がありません</p>` :
+    `<ul class="gp-hist">${H.games.map((g,gi)=>{ const ps = g.players.slice().sort((a,b)=>a.rank-b.rank), open = H.sel===gi;
+      return `<li><button class="gp-hrow" data-act="gphsel" data-i="${gi}" aria-expanded="${open}">
+        <span class="hd">${d(g.at)}</span><span class="ht">${esc(g.title)}・${g.sec<60?g.sec+"秒":Math.round(g.sec/60)+"分"}・${ps.length}人</span>
+        <span class="hw">🥇 ${esc((ps[0]||{}).name||"")}${ps[0]?` ${ps[0].score}点`:""}</span></button>
+        ${open?`<ol class="gp-rank">${ps.map((p,i)=>`<li><span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.bonus?`<span class="gp-bonus">ボーナス ${p.bonus}</span>`:""}</span><span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${p.n?Math.round(p.ok/p.n*100):0}%</span></li>`).join("")}</ol>`:""}</li>`; }).join("")}</ul>`;
+  return `<div class="gp-box"><div style="display:flex;justify-content:space-between;align-items:center"><b>📜 これまでの結果</b><span><button class="link" data-act="gphist">更新</button>　<button class="link" data-act="gphclose">とじる</button></span></div>${body}</div>`;
+}
 function viewGPHome(){
   const F = GPX.form, nSel = ui.selected.size;
   const mins = [[60,"1分"],[180,"3分"],[300,"5分"],[600,"10分"]];
@@ -13816,14 +13849,15 @@ function viewGPHome(){
     <details class="gp-box" ${GPX.form.open?"open":""}>
       <summary data-act="gpopen"><b>先生用:部屋を作る</b></summary>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <div><p class="label">問題</p><div class="filters">
+        <div><p class="label">問題</p><div class="seg">
           <button aria-pressed="${F.mode==="same"}" data-act="gpmode" data-v="same">みんな同じ問題</button>
           <button aria-pressed="${F.mode==="free"}" data-act="gpmode" data-v="free">それぞれ別の問題</button></div>
           <p class="note" style="margin:6px 0 0">${F.mode==="same" ? `「セットを選ぶ」タブで選んだセットから、全員に同じ問題が同じ順番で出ます(いま <b>${nSel}</b> セット選択中)。出題の向きも、いまの設定(${({en2ja:"英→日",ja2en:"日→英",mix:"まぜる"})[ui.mode]||"英→日"})になります。` : "生徒が自分で選んだセットから出ます(学年がちがう合同授業向け)。参加する前に、各自でセットを選んでおいてね。"}</p></div>
-        <div><p class="label">時間</p><div class="filters">${mins.map(([v,l])=>`<button aria-pressed="${F.sec===v}" data-act="gpsec" data-v="${v}">${l}</button>`).join("")}</div></div>
+        <div><p class="label">時間</p><div class="seg">${mins.map(([v,l])=>`<button aria-pressed="${F.sec===v}" data-act="gpsec" data-v="${v}">${l}</button>`).join("")}</div></div>
         <button class="primary" data-act="gpcreate" ${GPX.busy?"disabled":""}>部屋を作る</button>
       </div>
     </details>
+    ${viewGPHist()}
   </section>`;
 }
 function gpRankList(list, opts={}){
@@ -13831,7 +13865,7 @@ function gpRankList(list, opts={}){
   return `<ol class="gp-rank ${opts.big?"big":""}">${list.map((p,i)=>{
     const rate = p.n ? Math.round(p.ok/p.n*100) : 0;
     return `<li class="${p.pid===me?"me":""} ${i<3?"top"+(i+1):""}" style="animation-delay:${opts.reveal ? (list.length-1-i)*0.35 : 0}s">
-      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}${i<3?gpAwardTag(p.pid):""}</span>
+      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}${gpAwardTag(p.pid)}</span>
       <span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${rate}%</span></li>`; }).join("")}</ol>`;
 }
 function viewGP(){
@@ -13902,7 +13936,10 @@ document.addEventListener("click", e=>{
   else if(a==="gpsec"){ GPX.form.sec = +b.dataset.v; render(); }
   else if(a==="gpstart") gpStart();
   else if(a==="gpend") gpEnd();
-  else if(a==="gpagain"){ const keep = {mode:GPX.room.mode, sec:GPX.room.sec, sets:GPX.room.sets, dir:GPX.room.dir, title:GPX.room.title}; gpReset(); gpApi("gpCreate", keep).then(j=>{ if(j.ok){ GPX.code=j.code; GPX.host=j.host; GPX.room=j.room; GPX.phase="host"; ui.view="gp"; render(); gpPoll(2500); } }); }
+  else if(a==="gpagain"){ const keep = {mode:GPX.room.mode, sec:GPX.room.sec, sets:GPX.room.sets, dir:GPX.room.dir, title:GPX.room.title, org:gpOrg()}; gpReset(); gpApi("gpCreate", keep).then(j=>{ if(j.ok){ GPX.code=j.code; GPX.host=j.host; GPX.room=j.room; GPX.phase="host"; ui.view="gp"; render(); gpPoll(2500); } }); }
+  else if(a==="gphist"){ GPX.hist.open = true; GPX.hist.sel = -1; gpLoadHist(); }
+  else if(a==="gphclose"){ GPX.hist.open = false; render(); }
+  else if(a==="gphsel"){ const i = +b.dataset.i; GPX.hist.sel = GPX.hist.sel===i ? -1 : i; render(); }
   else if(a==="gpleave"){ gpReset(); ui.view="home"; ui.tab="gp"; render(); }
 });
 document.addEventListener("input", e=>{ if(e.target && e.target.id==="gpCode") GPX.form.code = e.target.value.replace(/\D/g,"").slice(0,4); });
