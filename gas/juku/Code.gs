@@ -67,6 +67,13 @@ function route(p){
       case "login":     return studentLogin(p);
       case "log":       return saveLog(p);
       case "ranking":   return ranking(p);
+      // ---- マル単GP ----
+      case "gpCreate":  return gpCreate(p);
+      case "gpJoin":    return gpJoin(p);
+      case "gpState":   return gpState(p);
+      case "gpStart":   return gpStart(p);
+      case "gpEnd":     return gpEnd(p);
+      case "gpScore":   return gpScore(p);
       // ---- 塾長・管理者 ----
       case "auth":      return authInfo(p);
       case "students":  return listStudents(p);
@@ -345,4 +352,77 @@ function updateJuku(p){
   let pass = j.pass;
   if(p.resetPass){ pass = randStr(8); sh.getRange(j.row, 3).setValue(pass); }
   return {ok:true, pass};
+}
+
+/* ========== マル単GP(みんなで同時に競う部屋)==========
+   部屋と点数はキャッシュに置く(6時間で自動で消える)。シートは使わない。
+   マル直の生徒も他塾の生徒も、この塾ネットのGASで部屋を共有する。 */
+const GP_TTL = 21600;
+function gpC_(){ return CacheService.getScriptCache(); }
+function gpGet_(code){ const s = gpC_().get("gp:" + code); return s ? JSON.parse(s) : null; }
+function gpPut_(r){ gpC_().put("gp:" + r.code, JSON.stringify(r), GP_TTL); }
+function gpPub_(r){ const o = JSON.parse(JSON.stringify(r)); delete o.host; return o; }
+function gpLock_(fn){ const lock = LockService.getScriptLock(); lock.waitLock(15000); try{ return fn(); } finally { lock.releaseLock(); } }
+function gpCreate(p){
+  return gpLock_(() => {
+    let code = "";
+    for(let i = 0; i < 40; i++){ code = String(1000 + Math.floor(Math.random() * 9000)); if(!gpGet_(code)) break; }
+    const r = {code, host: randStr(16), title: String(p.title || "").slice(0, 80), mode: p.mode === "free" ? "free" : "same",
+      sets: (Array.isArray(p.sets) ? p.sets : []).slice(0, 300).map(String),
+      dir: ["en2ja", "ja2en", "mix"].indexOf(p.dir) >= 0 ? p.dir : "en2ja",
+      sec: Math.max(30, Math.min(1200, Number(p.sec) || 300)),
+      seed: Math.floor(Math.random() * 2147483647), status: "lobby", players: [], created: Date.now(), startAt: 0, endAt: 0};
+    gpPut_(r);
+    return {ok: true, code, host: r.host, now: Date.now(), room: gpPub_(r)};
+  });
+}
+function gpJoin(p){
+  const code = String(p.code || "").trim(), name = String(p.name || "").trim().slice(0, 20);
+  if(!name) return {ok: false, error: "name"};
+  return gpLock_(() => {
+    const r = gpGet_(code); if(!r) return {ok: false, error: "noroom"};
+    let pid = String(p.pid || "");
+    if(!r.players.some(x => x.pid === pid)){
+      if(r.status !== "lobby") return {ok: false, error: "started"};
+      if(r.players.length >= 80) return {ok: false, error: "full"};
+      pid = randStr(10); r.players.push({pid, name}); gpPut_(r);
+    }
+    return {ok: true, pid, now: Date.now(), room: gpPub_(r)};
+  });
+}
+function gpState(p){
+  const r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
+  if(r.status === "run" && Date.now() > r.endAt + 5000) r.status = "done";
+  const keys = r.players.map(x => "gp:" + r.code + ":s:" + x.pid);
+  const sc = keys.length ? gpC_().getAll(keys) : {};
+  const room = gpPub_(r);
+  room.players = r.players.map(x => { const s = sc["gp:" + r.code + ":s:" + x.pid]; const o = s ? JSON.parse(s) : {};
+    return {pid: x.pid, name: x.name, score: o.score || 0, ok: o.ok || 0, n: o.n || 0, done: !!o.done}; });
+  return {ok: true, now: Date.now(), room};
+}
+function gpStart(p){
+  return gpLock_(() => {
+    const r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
+    if(r.host !== String(p.host || "")) return {ok: false, error: "auth"};
+    if(r.status === "lobby"){ r.status = "run"; r.startAt = Date.now() + 6000; r.endAt = r.startAt + r.sec * 1000; gpPut_(r); }
+    return {ok: true, now: Date.now(), room: gpPub_(r)};
+  });
+}
+function gpEnd(p){
+  return gpLock_(() => {
+    const r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
+    if(r.host !== String(p.host || "")) return {ok: false, error: "auth"};
+    if(r.status === "run") r.endAt = Math.min(r.endAt, Date.now());
+    r.status = "done"; gpPut_(r);
+    return {ok: true, now: Date.now(), room: gpPub_(r)};
+  });
+}
+function gpScore(p){
+  const code = String(p.code || ""), pid = String(p.pid || "");
+  const r = gpGet_(code); if(!r) return {ok: false, error: "noroom"};
+  if(!r.players.some(x => x.pid === pid)) return {ok: false, error: "player"};
+  if(r.status === "lobby" || Date.now() > r.endAt + 20000) return {ok: false, error: "closed"};
+  const o = {score: Math.max(0, Math.round(Number(p.score) || 0)), ok: Math.max(0, Number(p.ok) || 0), n: Math.max(0, Number(p.n) || 0), done: !!p.done};
+  gpC_().put("gp:" + code + ":s:" + pid, JSON.stringify(o), GP_TTL);
+  return {ok: true, now: Date.now()};
 }
