@@ -704,6 +704,15 @@ header.top.slim .who{font-size:12px;gap:6px;white-space:nowrap;overflow:hidden}
 .gp-hist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .gp-hrow{width:100%;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;text-align:left;padding:10px 12px;border-radius:10px}
 .gp-hrow .hd{font-weight:800;font-variant-numeric:tabular-nums}.gp-hrow .ht{font-size:13px;color:var(--muted)}.gp-hrow .hw{grid-column:1/3;font-size:14px}
+.gp-org{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--ink);vertical-align:middle}
+.gp-names small{font-weight:500;font-size:11px;opacity:.8}
+.gp-teams{margin:8px auto 4px;max-width:520px;width:100%;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,#FFF6DA,#EAF4F2);border:1.5px solid #E6CFB4;text-align:left}
+.gp-tt{margin:0 0 6px;font-weight:900;font-size:16px;text-align:center}
+.gp-teams ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.gp-teams li{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--surface);animation:gp-in .5s cubic-bezier(.2,1.4,.4,1) both}
+.gp-teams li.me{box-shadow:0 0 0 2px var(--accent)}
+.gp-teams .rk{font-size:20px;text-align:center;font-weight:900}.gp-teams .nm{font-weight:800}.gp-teams .nm small{margin-left:6px;font-weight:500;color:var(--muted)}
+.gp-teams .sc b{font-size:22px;font-variant-numeric:tabular-nums}
 .gp-podium{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:14px 0 4px}
 .gp-podium .pd{display:flex;flex-direction:column;align-items:center;gap:2px;width:min(30%,170px);animation:gp-rise .7s cubic-bezier(.2,1.3,.4,1) both}
 .gp-podium .pn{font-weight:900;font-size:16px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -13649,6 +13658,7 @@ async function gpApi(action, body={}){
 }
 const gpNow = () => Date.now() + GPX.off;
 /* どの塾の回か(結果の見返しで、自分の塾の回だけを出すため) */
+function gpOrgName(){ return JUKU ? (JA.jukuName || "") : "学びの場マル直"; }
 function gpOrg(){ const u = user(); return JUKU ? ((u && u.jk && u.jk.code) || (typeof JA!=="undefined" && JA && JA.code) || "JUKU") : "MARUNAO"; }
 function gpRng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function gpWithSeed(seed, fn){ const orig = Math.random; Math.random = gpRng(seed); try{ return fn(); } finally { Math.random = orig; } }
@@ -13687,7 +13697,7 @@ async function gpJoin(){
   if(code.length!==4){ GPX.err = "部屋番号(4けた)を入れてね"; return render(); }
   GPX.busy = true; GPX.err = ""; render();
   const u = user(), yid = (!JUKU && u && u.sid && !isTesterName(ui.name)) ? String(u.sid) : "";
-  const j = await gpApi("gpJoin", {code, name:ui.name, pid:GPX.code===code ? GPX.pid : "", yid});
+  const j = await gpApi("gpJoin", {code, name:ui.name, pid:GPX.code===code ? GPX.pid : "", yid, org:gpOrg(), orgName:gpOrgName()});
   GPX.busy = false;
   if(!j.ok){ GPX.err = ({noroom:"その部屋は見つかりません。番号を確かめてね", started:"もう始まっています。次の回に参加してね", full:"満員です", net:"通信できませんでした。もう一度ためしてね"})[j.error] || "参加できませんでした"; return render(); }
   GPX.code = code; GPX.pid = j.pid; GPX.room = j.room; GPX.phase = "lobby"; ui.view = "gp"; render(); gpPoll(2000);
@@ -13798,6 +13808,21 @@ function gpAwardTag(pid){
   const R = GPX.room, a = R && Array.isArray(R.awards) ? R.awards.find(x=>x.pid===pid) : null; if(!a) return "";
   return a.status==="ok" ? `<span class="gp-bonus">ボーナス ${a.dmg}ダメージ</span>` : a.status==="today" ? `<span class="gp-bonus off">今日のボーナスは2回まで</span>` : "";
 }
+/* 塾対抗:2つ以上の塾の生徒がいる回は、塾ごとの平均点でも順位をつける */
+function gpTeams(players){
+  const m = {};
+  (players||[]).forEach(p=>{ const k = p.org || ""; if(!k) return; (m[k] ||= {org:k, name:p.orgName||k, n:0, sum:0, best:0}); m[k].n++; m[k].sum += p.score; m[k].best = Math.max(m[k].best, p.score); });
+  const t = Object.values(m); if(t.length < 2) return null;
+  t.forEach(x=>x.avg = Math.round(x.sum / x.n * 10) / 10);
+  return t.sort((a,b)=> b.avg-a.avg || b.best-a.best);
+}
+function gpTeamBox(players){
+  const t = gpTeams(players); if(!t) return "";
+  const medal = i => ["🥇","🥈","🥉"][i] || `${i+1}位`, mine = gpOrg();
+  return `<div class="gp-teams"><p class="gp-tt">🏫 塾対抗(平均点)</p><ol>${t.map((x,i)=>`<li class="${x.org===mine?"me":""}" style="animation-delay:${(t.length-1-i)*0.4+0.6}s">
+    <span class="rk">${medal(i)}</span><span class="nm">${esc(x.name)}<small>${x.n}人</small></span><span class="sc"><b>${x.avg}</b>点</span></li>`).join("")}</ol></div>`;
+}
+function gpOrgTag(p, players){ return gpTeams(players) && p.orgName ? `<span class="gp-org">${esc(p.orgName)}</span>` : ""; }
 function gpRanked(){
   const ps = (GPX.room && GPX.room.players) || [];
   return ps.slice().sort((a,b)=> b.score-a.score || b.ok-a.ok || a.n-b.n);
@@ -13826,9 +13851,9 @@ function viewGPHist(){
   const body = H.loading ? `<p class="note">読み込み中…</p>` : H.err ? `<p class="gp-err">${esc(H.err)}</p>` : !(H.games||[]).length ? `<p class="note">まだ記録がありません</p>` :
     `<ul class="gp-hist">${H.games.map((g,gi)=>{ const ps = g.players.slice().sort((a,b)=>a.rank-b.rank), open = H.sel===gi;
       return `<li><button class="gp-hrow" data-act="gphsel" data-i="${gi}" aria-expanded="${open}">
-        <span class="hd">${d(g.at)}</span><span class="ht">${esc(g.title)}・${g.sec<60?g.sec+"秒":Math.round(g.sec/60)+"分"}・${ps.length}人</span>
+        <span class="hd">${d(g.at)}</span><span class="ht">${gpTeams(ps)?"🏫 塾対抗・":""}${esc(g.title)}・${g.sec<60?g.sec+"秒":Math.round(g.sec/60)+"分"}・${ps.length}人</span>
         <span class="hw">🥇 ${esc((ps[0]||{}).name||"")}${ps[0]?` ${ps[0].score}点`:""}</span></button>
-        ${open?`<ol class="gp-rank">${ps.map((p,i)=>`<li><span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.bonus?`<span class="gp-bonus">ボーナス ${p.bonus}</span>`:""}</span><span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${p.n?Math.round(p.ok/p.n*100):0}%</span></li>`).join("")}</ol>`:""}</li>`; }).join("")}</ul>`;
+        ${open?`${gpTeamBox(ps)}<ol class="gp-rank">${ps.map((p,i)=>`<li><span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${gpOrgTag(p, ps)}${p.bonus?`<span class="gp-bonus">ボーナス ${p.bonus}</span>`:""}</span><span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${p.n?Math.round(p.ok/p.n*100):0}%</span></li>`).join("")}</ol>`:""}</li>`; }).join("")}</ul>`;
   return `<div class="gp-box"><div style="display:flex;justify-content:space-between;align-items:center"><b>📜 これまでの結果</b><span><button class="link" data-act="gphist">更新</button>　<button class="link" data-act="gphclose">とじる</button></span></div>${body}</div>`;
 }
 function viewGPHome(){
@@ -13861,17 +13886,19 @@ function viewGPHome(){
   </section>`;
 }
 function gpRankList(list, opts={}){
+  const all = opts.all || list;
   const me = GPX.pid, medal = i => ["🥇","🥈","🥉"][i] || `${i+1}位`;
   return `<ol class="gp-rank ${opts.big?"big":""}">${list.map((p,i)=>{
     const rate = p.n ? Math.round(p.ok/p.n*100) : 0;
     return `<li class="${p.pid===me?"me":""} ${i<3?"top"+(i+1):""}" style="animation-delay:${opts.reveal ? (list.length-1-i)*0.35 : 0}s">
-      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}${gpAwardTag(p.pid)}</span>
+      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}${gpOrgTag(p, all)}${gpAwardTag(p.pid)}</span>
       <span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${rate}%</span></li>`; }).join("")}</ol>`;
 }
 function viewGP(){
   const R = GPX.room || {players:[]}, ps = R.players || [];
   const top = `<header class="top slim"><span class="brand">🏁 マル単GP</span><button class="link" data-act="gpleave">${GPX.phase==="host"||GPX.phase==="hostRank"?"閉じる":"ぬける"}</button></header>`;
-  const names = `<div class="gp-names">${ps.map(p=>`<span class="${p.pid===GPX.pid?"me":""}">${esc(p.name)}</span>`).join("") || `<span class="note">まだだれもいません</span>`}</div>`;
+  const mixed = !!gpTeams(ps);
+  const names = `<div class="gp-names">${ps.map(p=>`<span class="${p.pid===GPX.pid?"me":""}">${esc(p.name)}${mixed&&p.orgName?`<small> ${esc(p.orgName)}</small>`:""}</span>`).join("") || `<span class="note">まだだれもいません</span>`}</div>`;
   const info = `<p class="note" style="margin:0">${esc(R.title||"")}・${(R.sec||0)<60?(R.sec||0)+"秒":Math.round((R.sec||0)/60)+"分"}・${R.mode==="same"?"みんな同じ問題":"それぞれ別の問題"}</p>`;
   let body = "";
   if(GPX.phase==="host"){
@@ -13892,7 +13919,7 @@ function viewGP(){
   } else if(GPX.phase==="hostRank"){
     const list = gpRanked();
     body = `<div class="gp-stage"><div class="gp-title">🏆 結果発表 🏆</div>${info}
-      ${gpPodium(list)}${gpRankList(list, {big:true, reveal:true})}
+      ${gpTeamBox(list)}${gpPodium(list)}${gpRankList(list, {big:true, reveal:true})}
       <div style="display:flex;gap:8px;justify-content:center;margin-top:14px"><button class="primary" data-act="gpagain">同じ設定でもう1回</button><button data-act="gpleave">閉じる</button></div></div>`;
   } else if(GPX.phase==="lobby"){
     const need = R.mode==="free" && !ui.selected.size;
@@ -13914,7 +13941,7 @@ function viewGP(){
     body = `<div class="gp-stage"><div class="gp-title">🏆 結果発表 🏆</div>
       ${mi>=0?`<p class="gp-lead">あなたは <b class="gp-myrank">${mi+1}位</b>(${list.length}人中)</p>`:""}
       ${(()=>{ const a = gpMyAward(); return a && a.status==="ok" && !JUKU ? `<p class="gp-lead">🔮 トップ3ボーナス!やりきリストのボスに <b>${a.dmg}</b> のマルナダメージ!</p>` : a && a.status==="today" ? `<p class="note">トップ3ボーナスは1日2回までです(今日はもうもらったよ)</p>` : ""; })()}
-      ${gpPodium(list)}${gpRankList(list, {reveal:true})}
+      ${gpTeamBox(list)}${gpPodium(list)}${gpRankList(list, {reveal:true})}
       <div style="display:flex;justify-content:center;margin-top:14px"><button class="primary" data-act="gpleave">もどる</button></div></div>`;
   }
   return top + `<main class="gp-main">${body}</main>`;

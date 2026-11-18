@@ -386,7 +386,7 @@ function gpJoin(p){
     if(!r.players.some(x => x.pid === pid)){
       if(r.status !== "lobby") return {ok: false, error: "started"};
       if(r.players.length >= 80) return {ok: false, error: "full"};
-      pid = randStr(10); r.players.push({pid, name, yid: String(p.yid || "").slice(0, 40)}); gpPut_(r);
+      pid = randStr(10); r.players.push({pid, name, yid: String(p.yid || "").slice(0, 40), org: String(p.org || "").slice(0, 40), orgName: String(p.orgName || "").slice(0, 40)}); gpPut_(r);
     }
     return {ok: true, pid, now: Date.now(), room: gpPub_(r)};
   });
@@ -395,7 +395,7 @@ function gpScores_(r){
   const keys = r.players.map(x => "gp:" + r.code + ":s:" + x.pid);
   const sc = keys.length ? gpC_().getAll(keys) : {};
   return r.players.map(x => { const s = sc["gp:" + r.code + ":s:" + x.pid]; const o = s ? JSON.parse(s) : {};
-    return {pid: x.pid, name: x.name, score: o.score || 0, ok: o.ok || 0, n: o.n || 0, done: !!o.done}; });
+    return {pid: x.pid, name: x.name, org: x.org || "", orgName: x.orgName || "", score: o.score || 0, ok: o.ok || 0, n: o.n || 0, done: !!o.done}; });
 }
 function gpState(p){
   let r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
@@ -441,7 +441,7 @@ function gpAward_(code){
     try{
       const hs = gpHistSheet_(), at = new Date(), aw = {}; r.awards.forEach(a => aw[a.pid] = a);
       const rowsOut = all.map((x, i) => [at, r.code, r.org || "", r.title, r.sec, r.mode === "same" ? "みんな同じ" : "それぞれ別",
-        i + 1, x.name, x.score, x.ok, x.n, aw[x.pid] && aw[x.pid].status === "ok" ? aw[x.pid].dmg : ""]);
+        i + 1, x.name, x.score, x.ok, x.n, aw[x.pid] && aw[x.pid].status === "ok" ? aw[x.pid].dmg : "", x.org || "", x.orgName || ""]);
       if(rowsOut.length) hs.getRange(hs.getLastRow() + 1, 1, rowsOut.length, rowsOut[0].length).setValues(rowsOut);
     }catch(err){ console.error(err); }
     gpPut_(r);
@@ -477,23 +477,26 @@ function gpScore(p){
 }
 /* ---- 結果の記録と見返し ---- */
 const GP_HIST_SH = "GP結果";
-const GP_HIST_HEAD = ["日時", "部屋", "塾", "タイトル", "秒", "問題", "順位", "名前", "点数", "正解", "解いた", "ボーナス"];
+const GP_HIST_HEAD = ["日時", "部屋", "塾", "タイトル", "秒", "問題", "順位", "名前", "点数", "正解", "解いた", "ボーナス", "参加者の塾", "塾名"];
 function gpHistSheet_(){
   const ss = ss_(); let sh = ss.getSheetByName(GP_HIST_SH);
-  if(!sh){ sh = ss.insertSheet(GP_HIST_SH); sh.appendRow(GP_HIST_HEAD); sh.setFrozenRows(1); sh.getRange("B:C").setNumberFormat("@"); }
+  if(!sh){ sh = ss.insertSheet(GP_HIST_SH); sh.appendRow(GP_HIST_HEAD); sh.setFrozenRows(1); sh.getRange("B:C").setNumberFormat("@"); sh.getRange("M:M").setNumberFormat("@"); }
+  else if(sh.getLastColumn() < GP_HIST_HEAD.length) sh.getRange(1, 1, 1, GP_HIST_HEAD.length).setValues([GP_HIST_HEAD]);
   return sh;
 }
-/* 自分の塾の回だけ、新しい順に(最大30回分) */
+/* 自分の塾の回(自分の塾が作った回と、自分の塾の生徒が出た塾対抗の回)だけ、新しい順に(最大30回分) */
 function gpHistory(p){
   const org = String(p.org || ""), sh = ss_().getSheetByName(GP_HIST_SH);
   if(!sh || sh.getLastRow() < 2) return {ok: true, games: []};
   const n = sh.getLastRow() - 1, from = Math.max(2, sh.getLastRow() - 3000 + 1);
   const vals = sh.getRange(from, 1, sh.getLastRow() - from + 1, GP_HIST_HEAD.length).getValues();
   const games = {}, order = [];
-  vals.forEach(v => { if(String(v[2]) !== org) return;
+  vals.forEach(v => {
     const at = v[0] instanceof Date ? v[0].getTime() : new Date(v[0]).getTime(), key = String(v[1]) + "@" + Math.floor(at / 60000);
-    if(!games[key]){ games[key] = {at, code: String(v[1]), title: String(v[3]), sec: Number(v[4]) || 0, mode: String(v[5]), players: []}; order.push(key); }
-    games[key].players.push({rank: Number(v[6]), name: String(v[7]), score: Number(v[8]) || 0, ok: Number(v[9]) || 0, n: Number(v[10]) || 0, bonus: Number(v[11]) || 0});
+    if(!games[key]){ games[key] = {at, code: String(v[1]), title: String(v[3]), sec: Number(v[4]) || 0, mode: String(v[5]), mine: false, players: []}; order.push(key); }
+    const g = games[key];
+    if(String(v[2]) === org || String(v[12]) === org) g.mine = true;
+    g.players.push({rank: Number(v[6]), name: String(v[7]), score: Number(v[8]) || 0, ok: Number(v[9]) || 0, n: Number(v[10]) || 0, bonus: Number(v[11]) || 0, org: String(v[12] || ""), orgName: String(v[13] || "")});
   });
-  return {ok: true, games: order.reverse().slice(0, 30).map(k => games[k])};
+  return {ok: true, games: order.reverse().filter(k => games[k].mine).slice(0, 30).map(k => games[k])};
 }
