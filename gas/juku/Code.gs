@@ -385,21 +385,56 @@ function gpJoin(p){
     if(!r.players.some(x => x.pid === pid)){
       if(r.status !== "lobby") return {ok: false, error: "started"};
       if(r.players.length >= 80) return {ok: false, error: "full"};
-      pid = randStr(10); r.players.push({pid, name}); gpPut_(r);
+      pid = randStr(10); r.players.push({pid, name, yid: String(p.yid || "").slice(0, 40)}); gpPut_(r);
     }
     return {ok: true, pid, now: Date.now(), room: gpPub_(r)};
   });
 }
-function gpState(p){
-  const r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
-  if(r.status === "run" && Date.now() > r.endAt + 5000) r.status = "done";
+function gpScores_(r){
   const keys = r.players.map(x => "gp:" + r.code + ":s:" + x.pid);
   const sc = keys.length ? gpC_().getAll(keys) : {};
-  const room = gpPub_(r);
-  room.players = r.players.map(x => { const s = sc["gp:" + r.code + ":s:" + x.pid]; const o = s ? JSON.parse(s) : {};
+  return r.players.map(x => { const s = sc["gp:" + r.code + ":s:" + x.pid]; const o = s ? JSON.parse(s) : {};
     return {pid: x.pid, name: x.name, score: o.score || 0, ok: o.ok || 0, n: o.n || 0, done: !!o.done}; });
+}
+function gpState(p){
+  let r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
+  if(r.status === "run" && Date.now() > r.endAt + 5000) r.status = "done";
+  // 終わったら1回だけ、トップ3のボーナス(やりきリストのボスへのダメージ)を決めて記録する(1人1日2回まで)
+  if(r.status === "done" && !r.awards && Date.now() > r.endAt + 5000) r = gpAward_(r.code) || r;
+  const room = gpPub_(r);
+  room.players = gpScores_(r);
   return {ok: true, now: Date.now(), room};
 }
+/* ---- トップ3のボーナス:やりきリストのボスへのダメージ(マルナ)。1日の上限600とは別枠。
+   送るのは生徒の端末(マル単)。ここでは「だれに・いくつ」を決めて、1人1日2回までに数える ---- */
+const GP_BONUS_DMG = [300, 200, 100], GP_BONUS_PER_DAY = 2;
+const GP_BONUS_SH = "GPボーナス";
+function gpBonusSheet_(){
+  const ss = ss_(); let sh = ss.getSheetByName(GP_BONUS_SH);
+  if(!sh){ sh = ss.insertSheet(GP_BONUS_SH); sh.appendRow(["日付", "やりきリストID", "名前", "順位", "ダメージ", "部屋", "日時"]); sh.setFrozenRows(1); sh.getRange("A:B").setNumberFormat("@"); }
+  return sh;
+}
+function gpAward_(code){
+  return gpLock_(() => {
+    const r = gpGet_(code); if(!r) return null;
+    if(r.awards) return r;
+    const ranked = gpScores_(r).filter(x => x.score > 0).sort((a, b) => b.score - a.score || b.ok - a.ok || a.n - b.n).slice(0, 3);
+    const day = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd");
+    const sh = gpBonusSheet_(); const n = sh.getLastRow();
+    const given = n > 1 ? sh.getRange(2, 1, n - 1, 2).getValues().filter(v => String(v[0]) === day).map(v => String(v[1])) : [];
+    r.awards = ranked.map((x, i) => {
+      const yid = (r.players.find(y => y.pid === x.pid) || {}).yid || "";
+      const a = {pid: x.pid, rank: i + 1, dmg: GP_BONUS_DMG[i], status: "ok"};
+      if(!yid) a.status = "nolink";
+      else if(given.filter(g => g === yid).length >= GP_BONUS_PER_DAY) a.status = "today";
+      else { sh.appendRow([day, yid, x.name, i + 1, GP_BONUS_DMG[i], r.code, new Date()]); given.push(yid); }
+      return a;
+    });
+    gpPut_(r);
+    return r;
+  });
+}
+
 function gpStart(p){
   return gpLock_(() => {
     const r = gpGet_(String(p.code || "")); if(!r) return {ok: false, error: "noroom"};
@@ -414,7 +449,7 @@ function gpEnd(p){
     if(r.host !== String(p.host || "")) return {ok: false, error: "auth"};
     if(r.status === "run") r.endAt = Math.min(r.endAt, Date.now());
     r.status = "done"; gpPut_(r);
-    return {ok: true, now: Date.now(), room: gpPub_(r)};
+    return {ok: true, now: Date.now(), room: gpPub_(r)};   // ボーナスは、遅れて届く点数を待ってから gpState で記録する
   });
 }
 function gpScore(p){

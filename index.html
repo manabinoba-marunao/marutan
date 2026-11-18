@@ -699,6 +699,8 @@ header.top.slim .who{font-size:12px;gap:6px;white-space:nowrap;overflow:hidden}
 .gp-rank li.me{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
 .gp-rank li.top1{background:linear-gradient(90deg,#FFF4C2,var(--surface))}
 .gp-rank.big li{padding:14px 18px}.gp-rank.big li .nm{font-size:20px}.gp-rank.big li .sc b{font-size:32px}
+.gp-bonus{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:#EDE4FF;color:#4B2A9E;vertical-align:middle}
+.gp-bonus.off{background:var(--line);color:var(--muted)}
 .gp-podium{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:14px 0 4px}
 .gp-podium .pd{display:flex;flex-direction:column;align-items:center;gap:2px;width:min(30%,170px);animation:gp-rise .7s cubic-bezier(.2,1.3,.4,1) both}
 .gp-podium .pn{font-weight:900;font-size:16px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -13679,7 +13681,8 @@ async function gpJoin(){
   const code = String(GPX.form.code||"").replace(/\D/g,"");
   if(code.length!==4){ GPX.err = "部屋番号(4けた)を入れてね"; return render(); }
   GPX.busy = true; GPX.err = ""; render();
-  const j = await gpApi("gpJoin", {code, name:ui.name, pid:GPX.code===code ? GPX.pid : ""});
+  const u = user(), yid = (!JUKU && u && u.sid && !isTesterName(ui.name)) ? String(u.sid) : "";
+  const j = await gpApi("gpJoin", {code, name:ui.name, pid:GPX.code===code ? GPX.pid : "", yid});
   GPX.busy = false;
   if(!j.ok){ GPX.err = ({noroom:"その部屋は見つかりません。番号を確かめてね", started:"もう始まっています。次の回に参加してね", full:"満員です", net:"通信できませんでした。もう一度ためしてね"})[j.error] || "参加できませんでした"; return render(); }
   GPX.code = code; GPX.pid = j.pid; GPX.room = j.room; GPX.phase = "lobby"; ui.view = "gp"; render(); gpPoll(2000);
@@ -13693,7 +13696,8 @@ async function gpRefresh(){
   GPX.room = j.room;
   const R = GPX.room;
   if(GPX.phase==="lobby" && R.status==="run"){ gpBegin(); return; }
-  if(GPX.phase==="wait" && (R.status==="done" || gpNow() > R.endAt + 6000)){ GPX.phase = "ranking"; clearInterval(GPX.timer); GPX.timer = null; }
+  if(GPX.phase==="wait" && (R.status==="done" || gpNow() > R.endAt + 6000)){ GPX.phase = "ranking"; }
+  if(GPX.phase==="ranking"){ if(R.awards || gpNow() > R.endAt + 30000){ clearInterval(GPX.timer); GPX.timer = null; } gpPayBonus(); }
   if(GPX.phase==="host" && (R.status==="done" || (R.status==="run" && gpNow() > R.endAt))){
     if(!GPX.whistled && R.status==="run"){ GPX.whistled = true; gpWhistle(); }
     if(gpNow() > R.endAt + 6000 || R.status==="done"){ GPX.phase = "hostRank"; gpPoll(5000); }
@@ -13769,6 +13773,20 @@ function gpFinish(){
   setTimeout(()=>gpSend(true), 1500);
   gpPoll(2000);
 }
+/* トップ3のボーナス:やりきリストのボスへのマルナダメージ(1日の上限とは別枠・1日2回まで。数えるのはGAS) */
+function gpMyAward(){ const R = GPX.room; return R && Array.isArray(R.awards) ? R.awards.find(a=>a.pid===GPX.pid) : null; }
+function gpPayBonus(){
+  const a = gpMyAward(), u = user(); if(!a || a.status!=="ok" || !u || !u.sid) return;
+  const k = "gpPaid_" + GPX.code + "_" + GPX.pid;
+  try{ if(localStorage.getItem(k)) return; localStorage.setItem(k, "1"); }catch(e){ return; }
+  const q = dmgOutbox(); q.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), sid:u.sid, nick:ui.name, damage:a.dmg, isCrit:false, date:yDay(), subject:""});
+  setDmgOutbox(q); flushDmg();
+  setTimeout(()=>mqMagicStrike(a.dmg, a.rank===1, 1), 2500);
+}
+function gpAwardTag(pid){
+  const R = GPX.room, a = R && Array.isArray(R.awards) ? R.awards.find(x=>x.pid===pid) : null; if(!a) return "";
+  return a.status==="ok" ? `<span class="gp-bonus">ボーナス ${a.dmg}ダメージ</span>` : a.status==="today" ? `<span class="gp-bonus off">今日のボーナスは2回まで</span>` : "";
+}
 function gpRanked(){
   const ps = (GPX.room && GPX.room.players) || [];
   return ps.slice().sort((a,b)=> b.score-a.score || b.ok-a.ok || a.n-b.n);
@@ -13785,7 +13803,7 @@ function viewGPHome(){
   const mins = [[60,"1分"],[180,"3分"],[300,"5分"],[600,"10分"]];
   return `<section class="panel gp-home" style="display:flex;flex-direction:column;gap:14px">
     <h2 style="margin:0">🏁 マル単GP</h2>
-    <p class="note" style="margin:0">みんなで同時にスタートして、時間内の点数で競うよ。正解 <b>+${GP_PT.ok}</b>/まちがい <b>${GP_PT.ng}</b>/${GP_PT.combo}問連続正解ごとに <b>+${GP_PT.comboBonus}</b> ボーナス</p>
+    <p class="note" style="margin:0">みんなで同時にスタートして、時間内の点数で競うよ。正解 <b>+${GP_PT.ok}</b>/まちがい <b>${GP_PT.ng}</b>/${GP_PT.combo}問連続正解ごとに <b>+${GP_PT.comboBonus}</b> ボーナス${JUKU?"":"<br>🏆 トップ3には、やりきリストのボスへのボーナスダメージ(1位300・2位200・3位100、1日2回まで)"}</p>
     ${GPX.err?`<p class="gp-err" role="alert">${esc(GPX.err)}</p>`:""}
     <div class="gp-box">
       <p class="label">参加する(生徒)</p>
@@ -13813,7 +13831,7 @@ function gpRankList(list, opts={}){
   return `<ol class="gp-rank ${opts.big?"big":""}">${list.map((p,i)=>{
     const rate = p.n ? Math.round(p.ok/p.n*100) : 0;
     return `<li class="${p.pid===me?"me":""} ${i<3?"top"+(i+1):""}" style="animation-delay:${opts.reveal ? (list.length-1-i)*0.35 : 0}s">
-      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}</span>
+      <span class="rk">${medal(i)}</span><span class="nm">${esc(p.name)}${p.pid===me?"(あなた)":""}${i<3?gpAwardTag(p.pid):""}</span>
       <span class="sc"><b>${p.score}</b>点</span><span class="sub">${p.ok}/${p.n}問 ${rate}%</span></li>`; }).join("")}</ol>`;
 }
 function viewGP(){
@@ -13861,6 +13879,7 @@ function viewGP(){
     const list = gpRanked(), mi = list.findIndex(p=>p.pid===GPX.pid);
     body = `<div class="gp-stage"><div class="gp-title">🏆 結果発表 🏆</div>
       ${mi>=0?`<p class="gp-lead">あなたは <b class="gp-myrank">${mi+1}位</b>(${list.length}人中)</p>`:""}
+      ${(()=>{ const a = gpMyAward(); return a && a.status==="ok" && !JUKU ? `<p class="gp-lead">🔮 トップ3ボーナス!やりきリストのボスに <b>${a.dmg}</b> のマルナダメージ!</p>` : a && a.status==="today" ? `<p class="note">トップ3ボーナスは1日2回までです(今日はもうもらったよ)</p>` : ""; })()}
       ${gpPodium(list)}${gpRankList(list, {reveal:true})}
       <div style="display:flex;justify-content:center;margin-top:14px"><button class="primary" data-act="gpleave">もどる</button></div></div>`;
   }
