@@ -13065,7 +13065,9 @@ function dmgOnAnswer(ok, w, wasDue, nowDue){
   if(!ok){ D.streak = 0; return; }
   D.streak++; if(D.streak>=DMG.critStreak) D.crit = true;
   const day = dmgDay(); if(!day) return;
-  if(w.key && !String(w.key).startsWith("math::")){
+  // 自動でつくる問題(算数・期末の計算/4択=math::、文法の並び替え=gen:)は毎回ちがう問題なので、正解するたびにマルナが入る
+  // (マルにはならない。同じ語は1日1回だけ数えるのは、セットの単語だけ)
+  if(w.key && !/^(math::|gen:)/.test(String(w.key))){
     if(day.keys[w.key]) return;
     day.keys[w.key] = 1;
   }
