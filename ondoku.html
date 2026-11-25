@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="theme-color" content="#0F5257">
+<title>マル単 音読チャレンジ(試作)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --accent-soft:#DCEBEA;
+  --ok:#2C7A4B; --ok-soft:#DDF0E3; --ng:#B63E32; --skip:#B7791F; --skip-soft:#FFF0D6;
+  --en:"Literata", Georgia, serif; --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{--bg:#0F1719;--surface:#172225;--ink:#E6EEEC;--muted:#9AABAF;--line:#2B3B3E;--accent:#5FB3AE;--accent-ink:#0B1517;--accent-soft:#1F3A3C;--ok:#6CC990;--ok-soft:#1C3A28;--ng:#EE8A7E;--skip:#F0B860;--skip-soft:#3A2E17}}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ja);line-height:1.6}
+main{max-width:760px;margin:0 auto;padding:16px 16px 120px;display:flex;flex-direction:column;gap:14px}
+h1{margin:0;font-size:22px}
+.note{color:var(--muted);font-size:13px;margin:0}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.label{margin:0;font-size:12px;font-weight:700;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.5;cursor:default}
+textarea{width:100%;min-height:110px;font:inherit;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.text{font-size:clamp(20px,5.2vw,28px);line-height:1.9;padding:16px;border-radius:14px;background:var(--surface);border:1.5px solid var(--line);word-break:normal}
+.text.en{font-family:var(--en)}
+.text.ja{letter-spacing:.04em;line-break:strict}
+.u{border-radius:4px;transition:background .2s,color .2s}
+.u.cur{box-shadow:0 3px 0 var(--accent)}
+.u.ok{color:var(--ok);background:var(--ok-soft)}
+.u.skip{color:var(--skip);background:var(--skip-soft)}
+.hud{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.hud b{font-size:24px;font-variant-numeric:tabular-nums}
+.mic{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:20px;padding:14px 34px;border-radius:999px;box-shadow:0 6px 20px #0003}
+.mic.on{background:var(--ng);border-color:var(--ng);color:#fff;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px #B63E3233}}
+.heard{min-height:1.6em;font-size:14px;color:var(--muted)}
+.result{text-align:center}
+.result .big{font-size:56px;font-weight:900;color:var(--accent);line-height:1.1}
+.result .big small{font-size:.35em}
+.warn{padding:10px 12px;border-radius:10px;background:#FDECEC;color:#9B1C1C;font-size:14px;margin:0}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+/* ============================================================
+   マル単 音読チャレンジ(試作)
+   ・ブラウザの音声認識(Web Speech API)で、読んだ声を文字にして、本文と照らし合わせる
+   ・英語は「単語」、日本語は「文字」の単位で、読めたところを緑にしていく
+   ・とばしたところはオレンジ。どこまで正確に読み進められたかを数える
+   ※声はブラウザの音声認識サービス(Google・Apple)に送られて文字になる
+   ============================================================ */
+const STORIES = [
+  {id:"en1", lang:"en", title:"Kai and the Kite(やさしい)", text:"Kai had a red kite. One windy day, he ran to the park with his little sister. The kite went up, up, up into the blue sky. Suddenly, the string broke! The kite flew over the river and into a tall tree. Kai looked sad. His sister smiled and said, \"Let's make a new one together.\" That night, they made a bigger kite. It was green and yellow, and it was the best kite in town."},
+  {id:"en2", lang:"en", title:"A Letter from Cebu(ふつう)", text:"Dear Haruto, thank you for your letter. It is very hot in Cebu now, so we go swimming almost every day. Last weekend, my family visited a small island. The water was so clear that we could see many colorful fish. My grandmother cooked fresh fish for dinner, and everyone laughed and sang songs until late at night. When you come to the Philippines next summer, I want to show you my favorite beach. I am also studying Japanese. Can you teach me some useful words? Your friend, Maria."},
+  {id:"en3", lang:"en", title:"Why We Sleep(むずかしめ)", text:"Many students believe that staying up late to study is a good way to get better grades. However, scientists say that sleep plays an important role in learning. While we are sleeping, our brains organize the information we took in during the day and store it as long-term memory. In one experiment, students who slept well after studying remembered more words than students who did not. In other words, sleep is not wasted time. It is part of the learning process itself."},
+  {id:"ja1", lang:"ja", title:"朝の公園(やさしい)", text:"朝早く、ぼくは犬のポチと公園へ行きました。空はまだ少し暗く、鳥の声だけが聞こえます。ポチはしっぽをふりながら、草のにおいをかいでいます。ベンチにすわると、東の空がだんだん赤くなってきました。「きれいだね。」とぼくが言うと、ポチもワンとほえました。"},
+  {id:"ja2", lang:"ja", title:"ことばの力(ふつう)", text:"私たちは毎日、たくさんのことばを使って生活しています。うれしいときには笑顔とともに「ありがとう」と言い、困っている人には「だいじょうぶ？」と声をかけます。ことばは、気持ちを相手に届けるための大切な道具です。しかし、同じことばでも、言い方や場面によって相手の受け取り方は大きく変わります。だからこそ、ことばを選ぶときには、相手の立場になって考えることが大切なのです。"}
+];
+const TIMES = [[0,"さいごまで"],[60,"1分"],[180,"3分"]];
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st = {view:"home", sid:"en1", sec:0, custom:"", customLang:"en", name:(localStorage.getItem("ondoku-name")||"")};
+let R = null;   // 読んでいる回
+
+/* ---- 本文を「照らし合わせる単位」に分ける ---- */
+const normEn = w => w.toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9']/g,"");
+const NUMW = {"0":"zero","1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","7":"seven","8":"eight","9":"nine","10":"ten"};
+function unitsOf(text, lang){
+  if(lang==="en"){
+    // 表示用のかたまり(単語+うしろの記号)と、照らし合わせ用のことば
+    return (text.match(/\S+/g)||[]).map(t => ({show:t, key:normEn(t)})).map(u => u.key ? u : {...u, key:"", punct:true});
+  }
+  return [...text].map(c => ({show:c, key:/[\p{L}\p{N}]/u.test(c) ? kana(c) : "", punct:!/[\p{L}\p{N}]/u.test(c)}));
+}
+const kana = s => s.normalize("NFKC").replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0)-0x60));
+function heardUnits(text, lang){
+  if(lang==="en") return (text.match(/\S+/g)||[]).flatMap(w => { const k = normEn(w); return NUMW[k] ? [NUMW[k]] : k ? [k] : []; });
+  return [...text.normalize("NFKC")].filter(c => /[\p{L}\p{N}]/u.test(c)).map(kana);
+}
+/* 聞き取ったことばを、本文の「いまの位置」から先に照らし合わせる。
+   すぐ先(英語3語・日本語8文字まで)で見つかれば、その間は「とばし」にして進む */
+function align(units, from, heard, lang){
+  const look = lang==="en" ? 3 : 8, marks = {};
+  let p = from;
+  const nextReal = i => { while(i < units.length && units[i].punct) i++; return i; };
+  for(const h of heard){
+    p = nextReal(p); if(p >= units.length) break;
+    let j = p, seen = 0, hit = -1;
+    while(j < units.length && seen <= look){
+      if(!units[j].punct){ if(units[j].key===h || (lang==="en" && fuzzy(units[j].key, h))){ hit = j; break; } seen++; }
+      j++;
+    }
+    if(hit < 0) continue;
+    for(let k = p; k < hit; k++) if(!units[k].punct) marks[k] = (lang==="ja" && hit-p<=3) ? "ok" : "skip";
+    marks[hit] = "ok"; p = hit + 1;
+  }
+  return {marks, p};
+}
+/* 英語は、聞き取りのゆれ(複数形・過去形・つづりの小さなちがい)を少しだけゆるす */
+function fuzzy(a, b){
+  if(a.length < 4 || b.length < 4) return false;
+  if(a.replace(/(es|s|ed|d)$/,"")===b.replace(/(es|s|ed|d)$/,"")) return true;
+  if(Math.abs(a.length-b.length) > 1) return false;
+  let i = 0, j = 0, d = 0;
+  while(i < a.length && j < b.length){ if(a[i]===b[j]){ i++; j++; continue; } if(++d > 1) return false; if(a.length>b.length) i++; else if(b.length>a.length) j++; else { i++; j++; } }
+  return d + (a.length-i) + (b.length-j) <= 1;
+}
+
+/* ---- 読む ---- */
+function story(){ return st.sid==="custom" ? {id:"custom", lang:st.customLang, title:"自分で入れた文", text:st.custom} : STORIES.find(s=>s.id===st.sid); }
+function start(){
+  const s = story(); if(!s || !s.text.trim()) return;
+  R = {s, units:unitsOf(s.text, s.lang), base:0, marks:{}, p:0, on:false, startedAt:0, endAt:0, heard:"", err:"", done:false};
+  st.view = "read"; render();
+}
+function micToggle(){ if(!R) return; R.on ? stop(false) : listen(); }
+function listen(){
+  if(!SR){ R.err = "nosupport"; return render(); }
+  const rec = new SR();
+  rec.lang = R.s.lang==="en" ? "en-US" : "ja-JP";
+  rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+  R.rec = rec; R.on = true; R.err = "";
+  if(!R.startedAt){ R.startedAt = Date.now(); if(st.sec) R.endAt = R.startedAt + st.sec*1000; R.timer = setInterval(tick, 250); }
+  rec.onresult = e => {
+    // この回(録音の1区切り)で聞き取った全部を、区切りの最初の位置から照らし合わせ直す
+    let all = "";
+    for(let i = 0; i < e.results.length; i++) all += e.results[i][0].transcript + " ";
+    R.heard = all.trim().slice(-80);
+    const a = align(R.units, R.base, heardUnits(all, R.s.lang), R.s.lang);
+    R.cur = a.marks; R.p = a.p;
+    paint();
+    if(nextOpen(R.p) >= R.units.length) stop(true);
+  };
+  rec.onerror = e => {
+    if(e.error==="no-speech" || e.error==="aborted") return;
+    R.err = e.error==="not-allowed" || e.error==="service-not-allowed" ? "mic" : e.error; stop(false);
+  };
+  // 無音がつづくと認識が止まるので、読んでいるあいだは自動でつなぎなおす
+  rec.onend = () => { commit(); if(R && R.on && !R.done){ try{ listen(); }catch(err){ R.on = false; render(); } } };
+  try{ rec.start(); }catch(err){}
+  render();
+}
+function commit(){ if(!R || !R.cur) return; Object.assign(R.marks, R.cur); R.cur = null; R.base = R.p; }
+function nextOpen(i){ while(i < R.units.length && R.units[i].punct) i++; return i; }
+function stop(finished){
+  if(!R) return;
+  R.on = false; try{ R.rec && R.rec.stop(); }catch(e){}
+  commit();
+  if(finished || (R.endAt && Date.now() >= R.endAt)){ R.done = true; clearInterval(R.timer); st.view = "result"; }
+  render();
+}
+function tick(){
+  if(!R) return;
+  const el = $("#tleft"); if(el) el.textContent = timeText();
+  if(R.endAt && Date.now() >= R.endAt && !R.done){ R.done = true; R.on = false; try{ R.rec && R.rec.stop(); }catch(e){} commit(); clearInterval(R.timer); st.view = "result"; render(); }
+}
+function timeText(){
+  if(!R.startedAt) return st.sec ? fmt(st.sec*1000) : "0:00";
+  return R.endAt ? fmt(R.endAt - Date.now()) : fmt(Date.now() - R.startedAt);
+}
+const fmt = ms => { const t = Math.max(0, Math.round(ms/1000)); return Math.floor(t/60) + ":" + String(t%60).padStart(2,"0"); };
+function stats(){
+  const m = {...R.marks, ...(R.cur||{})};
+  const real = R.units.filter(u=>!u.punct).length;
+  const ok = Object.values(m).filter(v=>v==="ok").length, skip = Object.values(m).filter(v=>v==="skip").length;
+  return {real, ok, skip, pct: real ? Math.round(ok/real*100) : 0, unit: R.s.lang==="en" ? "語" : "文字"};
+}
+function paint(){
+  const m = {...R.marks, ...(R.cur||{})}, cur = nextOpen(R.p);
+  document.querySelectorAll(".u").forEach(el => { const i = +el.dataset.i; el.className = "u" + (m[i] ? " " + m[i] : "") + (i===cur && R.on ? " cur" : ""); });
+  const s = stats(); const o = $("#okn"); if(o) o.textContent = s.ok;
+  const h = $("#heard"); if(h) h.textContent = R.heard ? "聞こえた声:" + R.heard : "";
+  const c = document.querySelector(".u.cur"); if(c){ const r = c.getBoundingClientRect(); if(r.bottom > innerHeight - 110 || r.top < 70) scrollBy({top: r.top - innerHeight*0.35, behavior:"smooth"}); }
+}
+
+/* ---- 画面 ---- */
+function render(){
+  const app = $("#app");
+  if(st.view==="read") app.innerHTML = viewRead();
+  else if(st.view==="result") app.innerHTML = viewResult();
+  else app.innerHTML = viewHome();
+  if(st.view==="read") paint();
+}
+function viewHome(){
+  const s = story();
+  return `<h1>🎤 音読チャレンジ <small class="note">試作</small></h1>
+  <p class="note">声に出して読むと、正しく読めたところが緑になっていくよ。どこまで正確に読み進められるかチャレンジ！</p>
+  ${SR ? "" : `<p class="warn">このブラウザでは音声認識が使えません。パソコン・Androidは Chrome、iPhone・iPad は Safari で開いてください。</p>`}
+  <section class="panel">
+    <p class="label">読む文</p>
+    <div class="seg">${STORIES.map(x=>`<button aria-pressed="${st.sid===x.id}" data-act="sid" data-v="${x.id}">${x.lang==="en"?"🇬🇧":"🇯🇵"} ${esc(x.title)}</button>`).join("")}
+      <button aria-pressed="${st.sid==="custom"}" data-act="sid" data-v="custom">✏️ 自分で入れる</button></div>
+    ${st.sid==="custom" ? `<div class="seg"><button aria-pressed="${st.customLang==="en"}" data-act="clang" data-v="en">英語</button><button aria-pressed="${st.customLang==="ja"}" data-act="clang" data-v="ja">日本語</button></div>
+      <textarea id="custom" placeholder="教科書の本文などをここに貼りつけ">${esc(st.custom)}</textarea>`
+      : `<div class="text ${s.lang}" style="font-size:16px;line-height:1.7;max-height:9em;overflow:auto">${esc(s.text)}</div>`}
+    <p class="label">時間</p>
+    <div class="seg">${TIMES.map(([v,l])=>`<button aria-pressed="${st.sec===v}" data-act="sec" data-v="${v}">${l}</button>`).join("")}</div>
+    <button class="primary" data-act="start" style="font-size:18px;padding:12px">はじめる</button>
+  </section>
+  <p class="note">※ 読んだ声は、文字にするためにブラウザの音声認識サービス(Google・Apple)に送られます。静かな場所で、マイクに向かってはっきり読もう。</p>`;
+}
+function viewRead(){
+  const s = stats();
+  const err = R.err==="mic" ? "マイクが使えません。ブラウザの設定でマイクを「許可」にしてください。" : R.err==="nosupport" ? "このブラウザでは音声認識が使えません(Chrome か Safari で開いてね)。" : R.err ? "音声認識でエラーが起きました(" + R.err + ")。もう一度マイクを押してね。" : "";
+  return `<div class="hud"><span>${esc(R.s.title)}</span><span>✅ <b id="okn">${s.ok}</b>${s.unit}　⏱ <span id="tleft">${timeText()}</span></span></div>
+  ${err ? `<p class="warn">${esc(err)}</p>` : ""}
+  <div class="text ${R.s.lang}">${R.units.map((u,i)=>`<span class="u" data-i="${i}">${esc(u.show)}</span>`).join(R.s.lang==="en" ? " " : "")}</div>
+  <p class="heard" id="heard"></p>
+  <div style="display:flex;gap:8px;justify-content:center"><button data-act="finish">おわる</button><button data-act="home">やめる</button></div>
+  <button class="mic ${R.on?"on":"primary"}" data-act="mic">${R.on ? "⏸ ストップ" : R.startedAt ? "🎤 つづきを読む" : "🎤 読みはじめる"}</button>`;
+}
+function viewResult(){
+  const s = stats(), sec = Math.round(((R.endAt && R.endAt < Date.now() ? R.endAt : Date.now()) - R.startedAt)/1000);
+  const pace = sec ? Math.round(s.ok / sec * 60) : 0;
+  return `<section class="panel result">
+    <p class="label">${esc(R.s.title)}</p>
+    <div class="big">${s.ok}<small>${s.unit}</small></div>
+    <p style="margin:0">正確に読めた${s.unit === "語" ? "単語" : "文字"}(全体の <b>${s.pct}%</b>)</p>
+    <p class="note">とばした:${s.skip}${s.unit}　時間:${fmt(sec*1000)}　1分あたり:${pace}${s.unit}</p>
+    <div class="seg" style="justify-content:center"><button class="primary" data-act="again">もう一度</button><button data-act="home">ほかの文をえらぶ</button></div>
+  </section>
+  <div class="text ${R.s.lang}">${R.units.map((u,i)=>`<span class="u ${R.marks[i]||""}">${esc(u.show)}</span>`).join(R.s.lang==="en" ? " " : "")}</div>
+  <p class="note">緑=読めた　オレンジ=とばした　色なし=まだ読んでいない・聞き取れなかった</p>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  const c = $("#custom"); if(c) st.custom = c.value;
+  if(a==="sid"){ st.sid = v; render(); }
+  else if(a==="clang"){ st.customLang = v; render(); }
+  else if(a==="sec"){ st.sec = +v; render(); }
+  else if(a==="start"){ start(); }
+  else if(a==="mic"){ micToggle(); }
+  else if(a==="finish"){ if(R && !R.startedAt){ st.view = "home"; R = null; return render(); } if(R){ R.done = true; clearInterval(R.timer); } stop(true); }
+  else if(a==="home"){ if(R){ R.on = false; R.done = true; try{ R.rec && R.rec.abort(); }catch(err){} clearInterval(R.timer); } R = null; st.view = "home"; render(); }
+  else if(a==="again"){ start(); }
+});
+render();
+</script>
+</body>
+</html>
