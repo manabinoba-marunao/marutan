@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="theme-color" content="#0F5257">
+<title>マルごとフレーズ(試作)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --accent-soft:#DCEBEA; --ok:#2C7A4B; --ok-soft:#DDF0E3; --ng:#B63E32; --ng-soft:#F7E0DC;
+  --en:"Literata", Georgia, serif; --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{--bg:#0F1719;--surface:#172225;--ink:#E6EEEC;--muted:#9AABAF;--line:#2B3B3E;--accent:#5FB3AE;--accent-ink:#0B1517;--accent-soft:#1F3A3C;--ok:#6CC990;--ok-soft:#1C3A28;--ng:#EE8A7E;--ng-soft:#43231F}}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ja);line-height:1.6}
+main{max-width:640px;margin:0 auto;padding:16px 16px 60px;display:flex;flex-direction:column;gap:14px}
+h1{margin:0;font-size:24px;font-weight:900}
+.note{color:var(--muted);font-size:13px;margin:0}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.label{margin:0;font-size:12px;font-weight:700;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.4;cursor:default}
+button.link{border:none;background:none;color:var(--accent);text-decoration:underline;padding:0}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.cat{text-align:left;display:flex;flex-direction:column;gap:2px}
+.cat b{font-size:16px}
+.cat[aria-pressed="true"] .note{color:inherit;opacity:.8}
+.hud{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.sit{font-size:15px;color:var(--muted);margin:0}
+.ask{font-size:clamp(20px,5.5vw,26px);font-weight:700;margin:0}
+.phrase{font-size:clamp(22px,6.2vw,32px);font-weight:700;line-height:1.35;margin:0}
+.phrase.en{font-family:var(--en)}
+.phrase.hidden{color:var(--muted);font-size:18px;font-weight:500;letter-spacing:.1em}
+.phrase .hit{color:var(--ok)}
+.mic{font-size:20px;font-weight:700;padding:14px 30px;border-radius:999px;border:none;background:var(--accent);color:var(--accent-ink)}
+.mic.on{background:var(--ng);color:#fff;animation:p 1.3s ease-in-out infinite}
+@keyframes p{50%{box-shadow:0 0 0 10px rgba(182,62,50,.2)}}
+.msg{min-height:1.5em;font-size:14px;color:var(--muted);margin:0}
+.verdict{font-size:30px;font-weight:900;margin:0}
+.verdict.ok{color:var(--ok)} .verdict.ng{color:var(--ng)}
+.meter{width:100%;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok);transition:width .2s}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.warn{padding:10px 12px;border-radius:10px;background:var(--ng-soft);color:var(--ng);font-size:14px;margin:0}
+.maru{color:var(--ok);font-weight:900}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+/* ============================================================
+   マルごとフレーズ(試作):よく使うフレーズを、口からさっと出せるようにする
+   ・英語版:場面(日本語)を見て、英語のフレーズを声に出す
+   ・日本語版:場面を見て、大人の言い回し(敬語)を声に出す
+   ・「まねして言う」:フレーズとお手本の音声あり → まずは同じように言えるか
+   ・「見ないで言う」:場面だけ → 覚えて言えたら そのフレーズに マル
+   ・判定はブラウザの音声認識(Chrome / iPhoneは Safari)。言葉が合っているかを見る(イントネーションの採点はしない)
+   ============================================================ */
+const DATA = {
+  en: {lang:"en-US", title:"英語フレーズ", cats:[
+    ["教室で", [
+      ["トイレに行ってもいいですか？","May I go to the bathroom?"],
+      ["もう一度言ってもらえますか？","Could you say that again, please?"],
+      ["これは英語で何と言いますか？","How do you say this in English?"],
+      ["わかりません。","I don't understand."],
+      ["質問があります。","I have a question."],
+      ["終わりました。","I'm finished."],
+      ["もう少しゆっくり話してもらえますか？","Could you speak more slowly?"],
+      ["これはどういう意味ですか？","What does this mean?"]]],
+    ["あいさつ・会話", [
+      ["はじめまして。","Nice to meet you."],
+      ["調子はどう？","How are you doing?"],
+      ["何時に起きますか？","What time do you get up?"],
+      ["週末は何をしましたか？","What did you do last weekend?"],
+      ["ひまなときは何をするのが好き？","What do you like to do in your free time?"],
+      ["私は日本の群馬から来ました。","I'm from Gunma, Japan."],
+      ["来てくれてありがとう。","Thank you for coming."],
+      ["またすぐに会おうね。","See you again soon."]]],
+    ["お店・レストラン", [
+      ["これをください(これにします)。","I'll take this one."],
+      ["いくらですか？","How much is it?"],
+      ["お水をもらえますか？","Can I have some water, please?"],
+      ["おすすめは何ですか？","What do you recommend?"],
+      ["見ているだけです。","I'm just looking."],
+      ["お会計をお願いします。","Can I have the check, please?"]]],
+    ["旅行(セブで使える)", [
+      ["空港はどこですか？","Where is the airport?"],
+      ["私たちの写真を撮ってもらえますか？","Could you take a picture of us?"],
+      ["道に迷いました。","I'm lost."],
+      ["これは現地の言葉で何と言いますか？","How do you say this in your language?"],
+      ["ここに座ってもいいですか？","Can I sit here?"],
+      ["一緒に遊ぼう！","Let's play together!"]]],
+    ["気持ちを伝える", [
+      ["気にしないで。","Don't worry about it."],
+      ["がんばって！","Good luck!"],
+      ["それはいい考えだね。","That's a good idea."],
+      ["手伝いましょうか？","Can I help you?"],
+      ["遅れてごめんなさい。","Sorry I'm late."],
+      ["おめでとう！","Congratulations!"],
+      ["本当にありがとう。","Thank you so much."]]]
+  ]},
+  ja: {lang:"ja-JP", title:"日本語フレーズ(大人の言い回し)", cats:[
+    ["お願いする", [
+      ["手間をかけることを頼むとき","お手数ですが、よろしくお願いいたします。"],
+      ["少し待ってもらうとき","少々お待ちいただけますか。"],
+      ["聞き取れなかったとき","恐れ入りますが、もう一度おっしゃっていただけますか。"],
+      ["確認してほしいとき","ご確認いただけますと幸いです。"],
+      ["意見を聞きたいとき","ご意見をお聞かせいただけますか。"],
+      ["先生に質問したいとき","一つ質問してもよろしいでしょうか。"]]],
+    ["お礼を言う", [
+      ["わざわざ来てくれた人に","本日はご足労いただき、ありがとうございます。"],
+      ["手伝ってもらったとき","お力添えいただき、ありがとうございました。"],
+      ["気にかけてもらったとき","お気遣いいただき、ありがとうございます。"],
+      ["いつも関わりのある大人に","いつもお世話になっております。"],
+      ["発表を聞いてもらった最後に","ご清聴ありがとうございました。"],
+      ["集まってくれた人たちに","本日はお集まりいただき、ありがとうございます。"]]],
+    ["ことわる・おわびする", [
+      ["予定が合わないと伝えるとき","あいにく、その日は都合がつきません。"],
+      ["さそいを丁寧にことわるとき","せっかくですが、今回は遠慮させていただきます。"],
+      ["迷惑をかけてしまったとき","ご迷惑をおかけして、申し訳ございません。"],
+      ["返事が遅くなったとき","ご連絡が遅くなり、申し訳ありません。"]]],
+    ["あいさつ・場面", [
+      ["初めて会う大人に","はじめまして。どうぞよろしくお願いいたします。"],
+      ["先に帰るとき","お先に失礼します。"],
+      ["部屋に入るとき","失礼いたします。"],
+      ["忙しそうな人に話しかけるとき","お忙しいところ恐れ入ります。"],
+      ["人の家でごちそうになったとき","大変おいしかったです。ごちそうさまでした。"]]]
+  ]}
+};
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEY = "marugoto-phrase-v1";
+let done = {}; try{ done = JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){}
+const saveDone = () => { try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){} };
+const st = {view:"home", lang:"en", cat:0, mode:"mane"};
+let R = null, rec = null, nextT = 0;
+const pid = (lang, c, i) => `${lang}:${DATA[lang].cats[c][0]}:${DATA[lang].cats[c][1][i][1]}`;
+
+/* ---------- 判定:言葉がどれだけ合っているか ---------- */
+const CONTR = {"i'm":"i am","you're":"you are","it's":"it is","that's":"that is","don't":"do not","doesn't":"does not","didn't":"did not","can't":"cannot","won't":"will not","i'll":"i will","let's":"let us","what's":"what is","isn't":"is not","aren't":"are not","we're":"we are","they're":"they are","i've":"i have","i'd":"i would"};
+function normEn(s){ return String(s).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean).flatMap(w=>(CONTR[w]||w).split(" ")).map(w=>w==="can"?"can":w); }
+const kata2hira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0)-0x60));
+function normJa(s){ return [...kata2hira(String(s).normalize("NFKC")).replace(/[、。,.!?！？「」\s・ー〜]/g,"")]; }
+function lev(a, b){
+  const m = a.length, n = b.length; if(!m) return n; if(!n) return m;
+  let prev = Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){ const cur = [i]; for(let j=1;j<=n;j++) cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1)); prev = cur; }
+  return prev[n];
+}
+function score(target, said, lang){
+  const a = lang==="en" ? normEn(target) : normJa(target), b = lang==="en" ? normEn(said) : normJa(said);
+  if(!a.length) return 0;
+  return Math.max(0, 1 - lev(a, b) / a.length);
+}
+const PASS = {en:.8, ja:.75};
+
+/* ---------- 練習 ---------- */
+function start(){
+  const list = DATA[st.lang].cats[st.cat][1].map((p,i)=>({i, sit:p[0], ph:p[1]}));
+  R = {list: list.sort(()=>Math.random()-.5), k:0, ok:0, best:0, heard:"", result:null, hint:0};
+  st.view = "play"; render();
+}
+const cur = () => R && R.list[R.k];
+function speak(text){
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = DATA[st.lang].lang; u.rate = st.lang==="en" ? .9 : 1; speechSynthesis.speak(u); }catch(e){}
+}
+function stopRec(){ if(rec){ const r = rec; rec = null; try{ r.abort(); }catch(e){} } }
+function listen(){
+  if(!SR){ R.heard = "このブラウザでは音声認識が使えません(Chrome、iPhoneは Safari で開いてね)"; return render(); }
+  if(rec){ stopRec(); return render(); }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const q = cur(), lang = st.lang, r = new SR();
+  r.lang = DATA[lang].lang; r.continuous = false; r.interimResults = true; r.maxAlternatives = 3;
+  rec = r; R.heard = ""; R.best = 0; render();
+  r.onresult = e => {
+    if(rec!==r) return;
+    let txt = "", best = 0;
+    for(let i=0;i<e.results.length;i++){ txt += e.results[i][0].transcript; }
+    for(let i=0;i<e.results.length;i++) for(let k=0;k<e.results[i].length;k++) best = Math.max(best, score(q.ph, e.results[i][k].transcript, lang));
+    best = Math.max(best, score(q.ph, txt, lang));
+    R.heard = txt; R.best = best;
+    const m = $("#meter"); if(m) m.style.width = Math.round(best*100)+"%";
+    const h = $("#heard"); if(h) h.textContent = "聞こえた声:" + txt;
+    if(best >= PASS[lang]) finish(true);                       // 言い終わる前でも、合っていればすぐ正解
+    else if(e.results[e.results.length-1].isFinal) finish(false);
+  };
+  r.onerror = e => { if(rec!==r) return; rec = null; R.heard = (e.error==="not-allowed"||e.error==="service-not-allowed") ? "マイクが使えません。ブラウザの設定でマイクを「許可」にしてね。" : e.error==="no-speech" ? "声が聞こえなかったよ。もう一度！" : "うまく聞き取れなかったよ。もう一度！"; render(); };
+  r.onend = () => { if(rec===r){ rec = null; if(!R.result) render(); } };
+  try{ r.start(); }catch(err){ rec = null; render(); }
+}
+function finish(ok){
+  stopRec();
+  const q = cur(); R.result = ok ? "ok" : "ng";
+  if(ok){
+    R.ok++;
+    const id = pid(st.lang, st.cat, q.i); done[id] = done[id] || {};
+    done[id][st.mode] = true; saveDone();
+  }
+  render();
+  if(ok){ clearTimeout(nextT); nextT = setTimeout(()=>{ if(R && R.result==="ok" && cur()===q) next(); }, 1300); }
+}
+function next(){ clearTimeout(nextT); stopRec(); R.k++; R.heard = ""; R.best = 0; R.result = null; R.hint = 0; if(R.k>=R.list.length){ st.view = "end"; } render(); }
+function retry(){ R.heard = ""; R.best = 0; R.result = null; render(); listen(); }
+
+/* ---------- 画面 ---------- */
+function render(){
+  const app = $("#app");
+  app.innerHTML = st.view==="play" ? viewPlay() : st.view==="end" ? viewEnd() : viewHome();
+}
+function catMaru(lang, c){ const ps = DATA[lang].cats[c][1]; return ps.filter((p,i)=>(done[pid(lang,c,i)]||{}).memo).length + " / " + ps.length; }
+function viewHome(){
+  const D = DATA[st.lang];
+  return `<h1>🗣️ マルごとフレーズ <small class="note">試作</small></h1>
+  <p class="note">よく使うフレーズを声に出して、口からさっと出てくるようにしよう。見ないで言えたら、そのフレーズにマル！</p>
+  ${SR?"":`<p class="warn">このブラウザでは音声認識が使えません。パソコン・Androidは Chrome、iPhone・iPad は Safari で開いてください。</p>`}
+  <section class="panel">
+    <p class="label">ことば</p>
+    <div class="seg"><button aria-pressed="${st.lang==="en"}" data-act="lang" data-v="en">🇬🇧 英語フレーズ</button><button aria-pressed="${st.lang==="ja"}" data-act="lang" data-v="ja">🇯🇵 日本語(大人の言い回し)</button></div>
+    <p class="label">場面(マル=見ないで言えた数)</p>
+    <div class="cats">${D.cats.map((c,i)=>`<button class="cat" aria-pressed="${st.cat===i}" data-act="cat" data-v="${i}"><b>${esc(c[0])}</b><span class="note">${c[1].length}フレーズ　<span class="maru">⭕ ${catMaru(st.lang,i)}</span></span></button>`).join("")}</div>
+    <p class="label">練習のしかた</p>
+    <div class="seg"><button aria-pressed="${st.mode==="mane"}" data-act="mode" data-v="mane">👂 まねして言う(フレーズとお手本あり)</button><button aria-pressed="${st.mode==="memo"}" data-act="mode" data-v="memo">🧠 見ないで言う(場面だけ)</button></div>
+    <button class="primary" data-act="start" style="font-size:18px;padding:12px">はじめる</button>
+  </section>
+  <p class="note">※ 判定は「言葉が合っているか」を見ます(イントネーションの採点はしません)。お手本の音声をよく聞いて、まねして言おう。声は文字にするためにブラウザの音声認識サービス(Google・Apple)に送られます。</p>`;
+}
+function hiddenText(ph, n){
+  if(st.lang==="en"){ const ws = ph.split(" "); return ws.map((w,i)=>i<n?esc(w):w.replace(/[A-Za-z']/g,"_")).join(" "); }
+  const cs = [...ph]; return cs.map((c,i)=>i<n*3||/[、。？！]/.test(c)?esc(c):"○").join("");
+}
+function viewPlay(){
+  const q = cur(), D = DATA[st.lang], en = st.lang==="en", show = st.mode==="mane" || R.result;
+  const on = !!rec, pct = Math.round(R.best*100);
+  const askTxt = en ? q.sit : q.sit;
+  return `<div class="hud"><span>${esc(D.cats[st.cat][0])}</span><span>${R.k+1} / ${R.list.length}　⭕ ${R.ok}</span></div>
+  <div class="card">
+    <p class="sit">${en ? "これを英語で言おう" : "こんなとき、なんて言う？"}</p>
+    <p class="ask">${esc(askTxt)}</p>
+    ${show ? `<p class="phrase ${en?"en":""}">${esc(q.ph)}</p>` : `<p class="phrase hidden ${en?"en":""}">${R.hint?hiddenText(q.ph, R.hint):(en?"( 英語で言ってみよう )":"( 声に出して言ってみよう )")}</p>`}
+    ${show ? `<button data-act="say">🔊 お手本を聞く</button>` : ""}
+    ${R.result ? `<p class="verdict ${R.result}">${R.result==="ok"?"⭕ 言えた！":"もう少し！"}</p>` : ""}
+    <div class="meter"><i id="meter" style="width:${pct}%"></i></div>
+    <p class="msg" id="heard">${R.heard?`聞こえた声:${esc(R.heard)}`:on?"どうぞ！":"マイクを押して言ってみよう"}</p>
+    ${R.result==="ok" ? `<button class="primary" data-act="next">次へ</button>`
+      : R.result==="ng" ? `<div class="row"><button class="primary" data-act="retry">🎤 もう一度</button>${show?"":`<button data-act="say">🔊 答えを聞く</button>`}<button data-act="next">次へ</button></div>`
+      : `<button class="mic ${on?"on":""}" data-act="mic">${on?"🎙️ 聞いてるよ…":"🎤 押して言う"}</button>
+         ${!show?`<button class="link" data-act="hint">💡 ヒント(はじめを見る)</button>`:""}`}
+  </div>
+  <div class="row"><button class="link" data-act="home">やめる</button></div>`;
+}
+function viewEnd(){
+  return `<section class="panel" style="text-align:center">
+    <p class="label">${esc(DATA[st.lang].cats[st.cat][0])}・${st.mode==="mane"?"まねして言う":"見ないで言う"}</p>
+    <p style="font-size:48px;font-weight:900;color:var(--accent);margin:0">⭕ ${R.ok} / ${R.list.length}</p>
+    <p class="note">${st.mode==="mane"?"まねして言えたら、次は「見ないで言う」に挑戦！":"見ないで言えたフレーズには、マルがつきました"}</p>
+    <div class="row"><button class="primary" data-act="start">もう一度</button>${st.mode==="mane"?`<button data-act="tomemo">🧠 見ないで言うに挑戦</button>`:""}<button data-act="home">はじめの画面</button></div>
+  </section>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  if(a==="lang"){ st.lang = v; st.cat = 0; render(); }
+  else if(a==="cat"){ st.cat = +v; render(); }
+  else if(a==="mode"){ st.mode = v; render(); }
+  else if(a==="start"){ start(); }
+  else if(a==="tomemo"){ st.mode = "memo"; start(); }
+  else if(a==="mic"){ listen(); }
+  else if(a==="say"){ speak(cur().ph); }
+  else if(a==="hint"){ R.hint++; render(); }
+  else if(a==="retry"){ retry(); }
+  else if(a==="next"){ next(); }
+  else if(a==="home"){ clearTimeout(nextT); stopRec(); R = null; st.view = "home"; render(); }
+});
+render();
+</script>
+</body>
+</html>
