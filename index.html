@@ -196,6 +196,19 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .spellhint .lt.ng{color:var(--ng);border-color:var(--ng)}
 .spellhint .lt.ok{color:var(--ok);border-color:var(--ok)}
 .spellhint .sp{width:.5em}
+.skmaru{font-size:13px;margin-left:4px}
+.spem{display:block;font-size:44px;line-height:1.1;margin:4px 0}
+.spfrom{margin:2px 0 6px;font-size:15px}
+.spfrom b{font-family:var(--en);font-size:20px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px}
+.tile{font-family:var(--en);font-size:26px;font-weight:700;min-width:50px;height:54px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 3px 0 var(--line);cursor:pointer}
+.tile:active{transform:translateY(2px);box-shadow:none}
+.tile:disabled{opacity:.2;box-shadow:none;cursor:default}
+.rdword{font-family:var(--en);font-size:clamp(34px,10vw,54px);font-weight:700;text-align:center;line-height:1.2;margin:6px 0}
+.rdmic{display:block;margin:14px auto 4px;font-size:20px;font-weight:700;padding:14px 30px;border-radius:999px;border:none;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.rdmic.on{background:var(--ng);color:#fff;animation:rdp 1.3s ease-in-out infinite}
+@keyframes rdp{50%{box-shadow:0 0 0 10px rgba(182,62,50,.2)}}
+.rdmsg{text-align:center;font-size:14px;color:var(--muted);margin:4px 0 0;min-height:1.4em}
 .spellbox{display:flex;gap:8px;align-items:stretch;margin:10px 0}
 .spellin{flex:1;min-width:0;font-family:var(--en);font-size:24px;font-weight:700;padding:10px 14px;border-radius:12px;border:2px solid var(--accent);background:var(--surface);color:var(--ink);outline:none}
 .spellmine{text-align:center;font-family:var(--en);font-size:18px;margin:4px 0 0}
@@ -12380,6 +12393,40 @@ SETS.push(...KIM_SETS);
 SETS.push(...buildFillSets());
 SETS.push(...MORE_SETS);
 SETS.push(...GEO_SETS);
+/* ============================================================
+   フォニックス:短い単語をまず書けるようにする(小学生・英語が苦手な中学生向け)
+   ・文字数別(2〜5文字)/ワードファミリー(-at -ap…:最初の音だけかえる)/1文字かえて変身
+   ・「🔤 ならべる」「✍️ 書く」「🎤 読む」で練習すると、それぞれ別のマルがつく
+   ============================================================ */
+const PHONICS_SETS = (()=>{
+  const W = (str, extra={}) => str.trim().split(/\s*,\s*/).map(x=>{ const [en,ja,pos="名"] = x.split(":"); return {en, ja, pos, ex:"", alt:null, style:"", ...extra}; });
+  const len = [
+    ["ph-len2","2文字の単語","go:行く:動, no:いいえ:副, up:上へ:副, in:〜の中に:前, on:〜の上に:前, at:〜で:前, it:それ:代, is:〜です:動, me:私を:代, we:私たち:代, he:彼:代, my:私の:代, do:する:動, to:〜へ:前, so:だから:接, by:〜のそばに:前, an:1つの:冠, am:〜です:動, us:私たちを:代, be:〜である:動"],
+    ["ph-len3a","3文字の単語 ①","cat:ねこ, dog:いぬ, pen:ペン, cup:カップ, bag:かばん, red:赤:形, sun:太陽, hat:ぼうし, big:大きい:形, bus:バス, box:箱, egg:たまご, fox:キツネ, pig:ブタ, six:6:数"],
+    ["ph-len3b","3文字の単語 ②","ten:10:数, run:走る:動, sit:すわる:動, hot:暑い・熱い:形, map:地図, bed:ベッド, leg:足(脚), net:あみ, jam:ジャム, yes:はい:副, mom:お母さん, dad:お父さん, toy:おもちゃ, eat:食べる:動, see:見る:動"],
+    ["ph-len4a","4文字の単語 ①","book:本, desk:机, milk:牛乳, fish:魚, frog:カエル, ship:船, duck:アヒル, cake:ケーキ, bike:自転車, rain:雨, tree:木, moon:月, star:星, five:5:数, nine:9:数"],
+    ["ph-len4b","4文字の単語 ②","play:遊ぶ:動, jump:とぶ:動, swim:泳ぐ:動, sing:歌う:動, blue:青:形, pink:ピンク:形, hand:手, foot:足(足首から下), door:ドア, home:家, food:食べ物, cold:寒い・冷たい:形, nice:すてきな:形, good:よい:形, look:見る:動"],
+    ["ph-len5a","5文字の単語 ①","apple:りんご, water:水, happy:幸せな:形, house:家, horse:馬, chair:いす, table:テーブル, sheep:ヒツジ, green:緑:形, black:黒:形, white:白:形, seven:7:数, three:3:数, eight:8:数, lunch:昼食"],
+    ["ph-len5b","5文字の単語 ②","sleep:眠る:動, write:書く:動, clean:そうじする:動, music:音楽, phone:電話, train:電車, plant:植物, beach:浜辺, smile:笑顔, night:夜, juice:ジュース, bread:パン, snake:ヘビ, tiger:トラ, teeth:歯(2本以上)"]
+  ].map(([id,title,ws])=>({id, course:"フォニックス", group:"文字数で練習", title, source:"短い単語から書けるようにしよう", words:W(ws)}));
+  const fam = [
+    ["at","cat:ねこ, hat:ぼうし, bat:コウモリ, mat:マット, rat:ネズミ, sat:すわった:動"],
+    ["an","can:缶・〜できる, fan:扇風機, man:男の人, pan:フライパン, van:ワゴン車, ran:走った:動"],
+    ["ap","cap:(つばのある)ぼうし, map:地図, nap:昼寝, tap:軽くたたく:動, lap:ひざ(すわったときのもも), gap:すき間"],
+    ["en","pen:ペン, ten:10:数, hen:めんどり, men:男の人たち, then:そのとき:副"],
+    ["ig","big:大きい:形, pig:ブタ, dig:ほる:動, wig:かつら, fig:イチジク"],
+    ["op","hop:ぴょんととぶ:動, mop:モップ, top:てっぺん, pop:はじける:動, stop:止まる:動, shop:店"],
+    ["ug","bug:虫, hug:だきしめる:動, mug:マグカップ, rug:じゅうたん, jug:水差し"],
+    ["ot","hot:暑い・熱い:形, pot:なべ, dot:点, not:〜ない:副, got:手に入れた:動"],
+    ["ake","cake:ケーキ, lake:湖, make:作る:動, take:取る:動, bake:焼く:動, snake:ヘビ"],
+    ["ight","night:夜, light:光, right:右, fight:戦う:動, bright:明るい:形"]
+  ].map(([f,ws])=>({id:"ph-fam-"+f, course:"フォニックス", group:"ワードファミリー", title:`-${f} のなかま`, source:`最後の「${f}」は同じ。最初の音だけかえると、ちがう単語になる！`, words:W(ws,{fam:f})}));
+  const chain = (id, title, list) => { const ws = W(list); ws.forEach((w,i)=>{ if(i) w.from = ws[i-1].en; }); return {id, course:"フォニックス", group:"1文字かえて変身", title, source:"1文字だけかえると、どんどん別の単語に変身！", words:ws}; };
+  return [...len, ...fam,
+    chain("ph-chain1","変身チェーン ① cap → bus","cap:(つばのある)ぼうし, cup:カップ, cut:切る:動, cat:ねこ, hat:ぼうし, hot:暑い・熱い:形, pot:なべ, pet:ペット, pen:ペン, pin:ピン, pig:ブタ, big:大きい:形, bag:かばん, bug:虫, bus:バス"),
+    chain("ph-chain2","変身チェーン ② sun → toy","sun:太陽, run:走る:動, ran:走った:動, man:男の人, can:缶・〜できる, cat:ねこ, bat:コウモリ, bit:少し, sit:すわる:動, six:6:数, fix:直す:動, fox:キツネ, box:箱, boy:男の子, toy:おもちゃ")];
+})();
+SETS.push(...PHONICS_SETS);
 SETS.forEach(s=>{ s.subject ||= "英語"; s.words = s.words.map(w=>{ if(typeof w!=="string") return w; const [en,pos,ja,ex="",alt=""]=w.split("|"); return {en,pos,ja,ex, alt: alt?alt.split(",").map(x=>x.trim()).filter(Boolean):null, style:s.style||""}; }); });
 
 /* 教科ごとの表示ことば。en2ja = 表→裏、ja2en = 裏→表 */
@@ -12387,7 +12434,7 @@ const TERM_SUBJ = {q:{en2ja:"この用語の意味は？", ja2en:"この説明�
   modes:[["en2ja","用語 → 意味"],["ja2en","意味 → 用語"],["mix","まぜる"]], groupLabel:"単元", unit:"問"};
 const SUBJ = {
   "英語": {q:{en2ja:"この英語の意味は？", ja2en:"この意味の英語は？"},
-    modes:[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"],["spell","✍️ 書く(スペル)"]], groupLabel:"教材・級", en:true, speak:true, unit:"語"},
+    modes:[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]], groupLabel:"教材・級", en:true, speak:true, unit:"語"},
   "国語": {q:{en2ja:"この漢字の読みは？", ja2en:"カタカナの部分を漢字で書くと？"},
     modes:[["en2ja","読み"],["ja2en","書き"],["mix","まぜる"]], groupLabel:"単元", kanji:true, unit:"問"},
   "数学": TERM_SUBJ, "理科": TERM_SUBJ, "社会": TERM_SUBJ, "算数": {...TERM_SUBJ, groupLabel:"ドリル"}
@@ -12455,7 +12502,7 @@ const SKINS = [
   {id:"world", name:"塾長と世界旅行 ✈️", ds:"塾長の旅の写真がいっぱい", sw:["#F4EEDC","#1F5FA8","#C8102E","#FFE08A"], fonts:"family=Rubik:wght@400;600;700&family=M+PLUS+1p:wght@400;700&family=Dela+Gothic+One", gift:"mt_world"}
 ];
 const THEME_COLOR = {owl:"#F5C518", world:"#1F5FA8", base:"#0F5257", mono:"#111111", color:"#E91E63", pop:"#FF9F1C", cute:"#D64A82", neko:"#F0803C", neon:"#0B0420", zoo:"#3E9B4F", gaming:"#07070C"};
-function skinMaru(){ return ui.name ? SETS.filter(setDone).length : 0; }
+function skinMaru(){ return ui.name ? totalMaru() : 0; }
 function skinGifts(){ const u = ui.name && mem.users[ui.name]; return u && Array.isArray(u.gifts) ? u.gifts : []; }
 function skinOpen(s){ if(isTesterName(ui.name)) return true;   // テスト用アカウントは、きせかえをぜんぶ試せる
   if(s.gift) return skinGifts().includes(s.gift); return !s.need || skinMaru() >= s.need; }
@@ -12757,11 +12804,11 @@ function render(){
 function header(){
   if(ui.name && ui.view==="quiz") return `<header class="top slim">
     <div class="brand"><h1>マル単</h1></div>
-    <div class="who"><span class="maru-total"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span></div>
+    <div class="who"><span class="maru-total"><span class="maru sm">マル</span>×${totalMaru()}</span><span><b>${esc(ui.name)}</b> さん</span></div>
   </header>`;
   return `<header class="top">
     <div class="brand"><small>学びの場マル直${JUKU&&JA.jukuName?`　｜　${esc(JA.jukuName)}`:""}</small><h1>マル単</h1><span class="tagline">マル単やって、マルを増やそう！</span></div>
-    <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${SETS.filter(setDone).length}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ${newSkins().length?`<span class="skinnew">NEW</span>`:""}</button>`:""}</div>
+    <div class="who">${ui.name ? `<span class="maru-total" title="ぜんぶ覚えたセットの数"><span class="maru sm">マル</span>×${totalMaru()}</span><span><b>${esc(ui.name)}</b> さん</span><button class="link" data-act="logout">名前を変える</button>`:""}${ui.view==="home"||!ui.name?`<button class="skinbtn" data-act="skinopen"><i></i>きせかえ${newSkins().length?`<span class="skinnew">NEW</span>`:""}</button>`:""}</div>
   </header>`;
 }
 
@@ -12782,14 +12829,24 @@ function viewLoginOld(){
   </section>`;
 }
 
-function setStats(s){
-  const keys = s.words.map(w=>wkey(s.id,w));
+/* ---- 書く・読む:4択とは別にマルがつく「わざ」 ---- */
+const SKILLS = {tiles:{p:"tl:", ic:"🔤", nm:"ならべる"}, spell:{p:"sp:", ic:"✍️", nm:"書く"}, read:{p:"rd:", ic:"🎤", nm:"読む"}};
+const SKILL_ROW = [["tiles","🔤 ならべる"],["spell","✍️ 書く(スペル)"],["read","🎤 読む(声に出す)"]];
+function skillP(){ return ui.subject==="英語" && SKILLS[ui.mode] ? SKILLS[ui.mode].p : ""; }
+const WBYSID = {}; allWords.forEach(w=>(WBYSID[w.sid] ||= []).push(w));
+const SKW = {};
+function skillWords(s){ return SKW[s.id] ||= (s.subject==="英語" ? (WBYSID[s.id]||[]).filter(spellable) : []); }
+function skillMaru(){ let n = 0; for(const k of Object.values(SKILLS)) for(const s of SETS) if(s.subject==="英語" && setDone(s, k.p)) n++; return n; }
+function totalMaru(){ return SETS.filter(s=>setDone(s)).length + (ui.name ? skillMaru() : 0); }
+function setStats(s, p){
+  if(typeof p!=="string") p = skillP();
+  const keys = p ? skillWords(s).map(w=>p+w.key) : s.words.map(w=>wkey(s.id,w));
   const due = keys.filter(isDue).length, done = keys.filter(isMastered).length;
   return {due, done, total:keys.length};
 }
 
-const COURSE_ORDER = ["小学","中学","地図・地名","漢検","高校","英検","英検 第1問","共通テスト","AIE","並び替え"];
-function setDone(s){ const st=setStats(s); return st.total>0 && st.done===st.total; }
+const COURSE_ORDER = ["フォニックス","小学","中学","地図・地名","漢検","高校","英検","英検 第1問","共通テスト","AIE","並び替え"];
+function setDone(s, p){ const st=setStats(s, typeof p==="string" ? p : ""); return st.total>0 && st.done===st.total; }
 /* 選んでいるセットを区分ごとにまとめて表示(区分をまたいで選んでも、何を選んだか一目でわかる) */
 function selBox(S){
   const sel = SETS.filter(s=>ui.selected.has(s.id) && s.subject===ui.subject);
@@ -12852,7 +12909,7 @@ function setRow(s, S){
   return `
         <label class="set ${on?"on":""} ${st.total&&st.done===st.total?"done":""}">
           <input type="checkbox" data-act="sel" data-id="${esc(s.id)}" ${on?"checked":""}>
-          <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}</div>
+          <div><div class="t">${s.sample?'<span class="tag sample">サンプル</span>':""}${esc(s.title)}${s.subject==="英語"&&ui.name?Object.values(SKILLS).filter(k=>setDone(s,k.p)).map(k=>`<span class="skmaru" title="${k.nm}でもマル！">${k.ic}</span>`).join(""):""}</div>
             <div class="m"><span class="tag">${esc(s.course)}</span>${esc(s.source||"")}</div>
             <div class="bar"><i style="width:${st.total?Math.round(st.done/st.total*100):0}%"></i></div></div>
           <div class="stat">${st.total&&st.done===st.total?`<span class="maru" title="ぜんぶ覚えた！">マル</span>`:`${st.total}${isOrderSet(s.id)?"文":isFillSet(s.id)?"問":S.unit}<br>${st.due?`<span class="due">要復習 ${st.due}</span>`:`覚えた ${st.done}`}`}</div>
@@ -12921,7 +12978,7 @@ function viewHome(){
         </div></div>`:""}
         ${onlyForm||selSids.every(x=>isOrderSet(x)||isFillSet(x))?"":`<div><p class="label">出題の向き</p><div class="seg">
           ${modeLabels(S).map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
-        </div></div>`}
+        </div></div>${ui.subject==="英語"?skillRowHtml():""}`}
         <div><p class="label">問題数</p><div class="seg">
           ${[["n10","10問"],["n20","20問"],["all","ぜんぶ"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
         </div></div>
@@ -12956,8 +13013,8 @@ function viewHome(){
         </tbody></table></div>`:`<p class="empty">要復習の語はありません。ぜんぶ克服しています！</p>`}
       <div class="opts">
         <div><p class="label">出題の向き</p><div class="seg">
-          ${[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"],["spell","✍️ 書く(スペル)"]].map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
-        </div></div>
+          ${[["en2ja","英語 → 日本語"],["ja2en","日本語 → 英語"],["mix","まぜる"]].map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
+        </div></div>${ui.subject==="英語"?skillRowHtml():""}
         <div><p class="label">問題数</p><div class="seg">
           ${[["n10","10問"],["n20","20問"],["all","ぜんぶ"]].map(([v,l])=>`<button aria-pressed="${ui.limit===v}" data-act="limit" data-v="${v}">${l}</button>`).join("")}
         </div></div>
@@ -13146,7 +13203,7 @@ function dmgFinish(){
   setTimeout(syncGifts, 2200);
   setTimeout(()=>cloudSync(false), 2800);
   const D = quiz.dmg || {pts:0, crit:false, revive:0, items:0};
-  const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s) && !quiz.doneBefore.has(s.id)).length : 0;
+  const maru = quiz.doneBefore ? SETS.filter(s=>setDone(s, quiz.skillP||"") && !quiz.doneBefore.has(s.id)).length : 0;
   let raw = D.pts + D.revive*DMG.revive + maru*DMG.maru;
   if(D.crit) raw *= 2;
   const qs = quizSubject(), M = qs ? manaLv(qs) : {lv:1};
@@ -13240,7 +13297,7 @@ const ELEM_INFO = {wind:["🌿","木"], thunder:["⚡","金"], water:["💧","�
 /* 陰陽五行:サーバーから来る古い属性名を五行に読みかえる */
 function gogyo(el){ return ({"風":"木","雷":"金","炎":"火","大地":"土"})[el] || el; }
 function gogyoIc(ic){ return ic==="🌀" ? "🌿" : ic; }
-function maruCount(subj){ return SETS.filter(s=>s.subject===subj && setDone(s)).length; }
+function maruCount(subj){ return SETS.filter(s=>s.subject===subj && setDone(s)).length + (subj==="英語" && ui.name ? skillMaru() : 0); }
 function manaLv(subj){
   const n = maruCount(subj); let lv = 1;
   MANA_STEPS.forEach((need,i)=>{ if(n>=need) lv = i+1; });
@@ -13271,7 +13328,7 @@ function badgeList(){
     const tier = done===total ? 3 : r>=0.6 ? 2 : r>=0.3 ? 1 : 0;
     if(tier) out.push({id:"g:"+x.k, name:x.name, icon:BADGE_TIER[tier][0], tier, done, total});
   });
-  const m = SETS.filter(setDone).length;
+  const m = totalMaru();
   MARU_BADGES.forEach(([n,ic])=>{ if(m>=n) out.push({id:"m:"+n, name:"マル"+n, icon:ic, tier:4, done:m, total:n}); });
   const rk = {3:0, 4:1, 2:2, 1:3};   // 金バッジ → マルの数 → 銀 → 銅
   return out.sort((a,b)=>rk[a.tier]-rk[b.tier] || b.total-a.total);
@@ -13284,7 +13341,7 @@ function badgeNext(){
     const r = done/total, goal = r>=0.6 ? total : r>=0.3 ? Math.ceil(total*0.6) : Math.ceil(total*0.3), need = goal-done, tier = r>=0.6?3:r>=0.3?2:1;
     if(done>0 && (!best || need<best.need)) best = {name:x.name, need, tier};
   });
-  const m = SETS.filter(setDone).length, nx = MARU_BADGES.find(([n])=>m<n);
+  const m = totalMaru(), nx = MARU_BADGES.find(([n])=>m<n);
   if(nx && (!best || nx[0]-m < best.need)) best = {name:"マル"+nx[0], need:nx[0]-m, icon:nx[1]};
   return best;
 }
@@ -13445,7 +13502,7 @@ async function syncGifts(){
 async function syncBadges(){
   const u = user(); if(JUKU || !u || !u.sid || badgeSyncing) return;
   const subj = {}; Object.keys(SUBJ_ELEM).forEach(k=>{ const n = maruCount(k); if(n) subj[k] = n; });
-  let badges = badgeList(), maru = SETS.filter(setDone).length, gdone = groupsDone().concat(hatSetsDone());
+  let badges = badgeList(), maru = totalMaru(), gdone = groupsDone().concat(hatSetsDone());
   if(isTesterName(ui.name)){   // テスト用:メダル・マル・単元をぜんぶ持っている扱い(見た目の確認用)
     Object.keys(SUBJ_ELEM).forEach(k=>{ const n = SETS.filter(s=>s.subject===k).length; if(n) subj[k] = n; });
     badges = badgeGroups().map(x=>({id:"g:"+x.k, name:x.name, icon:BADGE_TIER[3][0], tier:3, done:x.sets.length, total:x.sets.length}))
@@ -13658,7 +13715,8 @@ function formFeedback(q, ok, nextLabel){
    大文字・小文字のちがいと、前後・連続の空白は気にしない。A・B や 〜 が入る熟語は4択にもどす */
 function spellable(w){
   const t = String((w && w.en) || "").trim();
-  return !!w && w.subject==="英語" && !mapOf(w) && !isFormSet(w.sid) && t.length<=32 && /^[A-Za-z][A-Za-z' .-]*$/.test(t) && !/\b[AB]\b/.test(t) && !/\b(one's|someone|something|sb|sth)\b/i.test(t);
+  if(w && w._sp!==undefined) return w._sp;
+  return w._sp = (!!w && w.subject==="英語" && !mapOf(w) && !isFormSet(w.sid) && !isOrderSet(w.sid) && !isFillSet(w.sid) && t.length<=32 && t.split(" ").length<=4 && /^[A-Za-z][A-Za-z' .-]*$/.test(t) && !/\b[AB]\b/.test(t) && !/\b(one's|someone|something|sb|sth)\b/i.test(t));
 }
 const spellNorm = s => String(s||"").normalize("NFKC").replace(/[’‘`]/g,"'").replace(/\s+/g," ").trim().toLowerCase();
 function spellCheck(){
@@ -13670,12 +13728,17 @@ function spellCheck(){
 function viewSpellQuiz(q, n){
   const S = sjw(q.w), t = q.w.en.trim(), done = q.picked!==null, mine = spellNorm(q.typed);
   const nextLabel = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
+  const fam = q.w.fam ? t.length - q.w.fam.length : -1, from = q.w.from && q.w.from.length===t.length ? q.w.from : "";
+  let k = 0;
   const letters = [...t].map((c,i)=>{
     if(c===" ") return `<span class="sp"></span>`;
     if(done){ const ok = (mine[i]||"")===c.toLowerCase(); return `<span class="lt ${q.ok?"ok":ok?"":"ng"}">${esc(c)}</span>`; }
-    const show = i===0 || /[^A-Za-z]/.test(c);
+    if(q.tl){ const j = q.placed[k++]; return j==null ? `<span class="lt hole">_</span>` : `<span class="lt">${esc(q.tiles[j])}</span>`; }
+    const show = fam>=0 ? i>=fam : from ? from[i]===c : (i===0 || /[^A-Za-z]/.test(c));
     return `<span class="lt ${show?"":"hole"}">${show?esc(c):"_"}</span>`;
   }).join("");
+  const em = EMOJI[t.toLowerCase()] ? `<span class="spem">${EMOJI[t.toLowerCase()]}</span>` : "";
+  const fromLine = q.w.from ? `<p class="spfrom"><b>${esc(q.w.from)}</b> から <b>1文字</b> かえると…</p>` : "";
   if(done){
     const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
     return header() + quizHead(n) + `<div class="card ans ${q.ok?"ok":"ng"}">
@@ -13689,16 +13752,114 @@ function viewSpellQuiz(q, n){
     </div>`;
   }
   return header() + quizHead(n) + `<div class="card">
-      <span class="dir">この意味の英語を書こう(${[...t.replace(/[^A-Za-z]/g,"")].length}文字)</span>
+      <span class="dir">${q.tl?"カードをならべて英語にしよう":"この意味の英語を書こう"}${q.hint!==false||q.tl?`(${[...t.replace(/[^A-Za-z]/g,"")].length}文字)`:""}</span>
+      ${fromLine}${em}
       <span class="q ${[...q.w.ja].length>14?"long":""}">${esc(q.w.ja)}</span>
       ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
-      <div class="spellhint" aria-hidden="true">${letters}</div>
+      ${q.hint!==false||q.tl||fam>=0||from?`<div class="spellhint" aria-hidden="true">${letters}</div>`:""}
     </div>
+    ${q.tl?`<div class="tiles">${q.tiles.map((c,i)=>`<button class="tile" data-act="tile" data-i="${i}" ${q.placed.includes(i)?"disabled":""}>${esc(c)}</button>`).join("")}</div>
+    <div class="row" style="justify-content:center;gap:8px;margin:6px 0"><button data-act="untile" ${q.placed.length?"":"disabled"}>⌫ 1つもどす</button><button data-act="tclr" ${q.placed.length?"":"disabled"}>やりなおす</button></div>
+    <p class="kbd">${S.speak?`${sayBtn("word","発音を聞く(ヒント)")} 発音ヒント　`:""}<button class="link" data-act="quit">やめる</button></p>`:`
     <div class="spellbox">
       <input id="spellIn" class="spellin" value="${esc(q.typed||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="en" inputmode="latin" enterkeyhint="done" placeholder="半角の英語で入力" aria-label="英語のつづり">
       <button class="primary" data-act="spellok">こたえる</button>
     </div>
-    <p class="kbd">${S.speak?`${sayBtn("word","発音を聞く(ヒント)")} 発音ヒント　`:""}Enter でこたえる　<button class="link" data-act="quit">やめる</button></p>`;
+    <p class="kbd">${S.speak&&q.hint!==false?`${sayBtn("word","発音を聞く(ヒント)")} 発音ヒント　`:""}Enter でこたえる　<button class="link" data-act="quit">やめる</button></p>`}`;
+}
+/* ---- 🔤 ならべる:文字カードをタップして単語を作る(いちばんやさしいスペル練習) ---- */
+function tileShuffle(t){
+  const cs = [...t].filter(c=>c!==" ");
+  if(cs.length<2) return cs;
+  let r = cs; for(let i=0;i<8 && r.join("")===cs.join(""); i++) r = shuffle(cs);
+  return r;
+}
+function tilePut(i){
+  const q = quiz && quiz.qs[quiz.i]; if(!q || !q.tl || q.picked!==null || q.placed.includes(i) || i<0 || i>=q.tiles.length) return;
+  q.placed.push(i);
+  const t = q.w.en.trim(), need = [...t].filter(c=>c!==" ").length;
+  if(q.placed.length < need) return render();
+  // できた文字列を、もとの単語の空白の位置にそろえてから判定
+  let k = 0; q.typed = [...t].map(c=> c===" " ? " " : q.tiles[q.placed[k++]]).join("");
+  judge(q, spellNorm(q.typed)===spellNorm(t), 0);
+}
+/* ---- 🎤 読む:英単語を見て、声に出して読む(ブラウザの音声認識で判定) ---- */
+const SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rdRec = null;
+function rdStop(){ if(rdRec){ const r = rdRec; rdRec = null; try{ r.abort(); }catch(e){} } }
+function rdListen(){
+  const q = quiz && quiz.qs[quiz.i]; if(!q || !q.read || q.picked!==null) return;
+  if(!SRC){ q.heard = "このブラウザでは音声認識が使えません。パソコン・Androidは Chrome、iPhone・iPadは Safari で開いてね。"; q.listening = false; return render(); }
+  if(rdRec){ rdStop(); q.listening = false; return render(); }
+  const r = new SRC();
+  r.lang = "en-US"; r.continuous = false; r.interimResults = false; r.maxAlternatives = 5;
+  rdRec = r; q.listening = true; q.heard = ""; render();
+  r.onresult = e => {
+    const alts = []; for(const res of e.results) for(let i=0;i<res.length;i++) alts.push(res[i].transcript);
+    rdRec = null; q.listening = false; rdCheck(q, alts);
+  };
+  r.onerror = e => {
+    if(rdRec!==r) return;
+    rdRec = null; q.listening = false;
+    q.heard = (e.error==="not-allowed"||e.error==="service-not-allowed") ? "マイクが使えません。ブラウザの設定でマイクを「許可」にしてね。" : e.error==="no-speech" ? "声が聞こえなかったよ。もう一度マイクを押してね。" : "うまく聞き取れなかったよ。もう一度！";
+    if(quiz && quiz.qs[quiz.i]===q && q.picked===null) render();
+  };
+  r.onend = () => { if(rdRec===r){ rdRec = null; q.listening = false; if(quiz && quiz.qs[quiz.i]===q && q.picked===null){ q.heard ||= "声が聞こえなかったよ。もう一度マイクを押してね。"; render(); } } };
+  try{ r.start(); }catch(err){ rdRec = null; q.listening = false; render(); }
+}
+function rdCheck(q, alts){
+  if(!quiz || quiz.qs[quiz.i]!==q || q.picked!==null) return;
+  q.heard = alts[0] || "";
+  if(alts.some(a=>rdMatch(q.w.en, a))) return judge(q, true, 0);
+  q.tries = (q.tries||0) + 1;
+  if(q.tries>=3) return judge(q, false, 0);
+  render();
+}
+/* 同じ音の語(to/two/too など)や数字は同じものとして扱う */
+const HOMO = [["to","two","too","2"],["for","four","4"],["one","won","1"],["no","know"],["right","write"],["see","sea"],["eight","ate","8"],["hear","here"],["by","buy","bye"],["sun","son"],["red","read"],["be","bee"],["i","eye"],["meat","meet"],["flower","flour"],["week","weak"],["blue","blew"],["new","knew"],["hour","our"],["there","their"],["hole","whole"],["tail","tale"],["mail","male"],["pair","pear"],["dear","deer"],["peace","piece"],["nose","knows"],["three","3"],["five","5"],["six","6"],["seven","7"],["nine","9"],["ten","10"],["zero","0"]];
+function rdNorm(x){ return String(x).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g," ").replace(/\s+/g," ").trim().split(" ").map(v=>{ const g = HOMO.find(h=>h.includes(v)); return g ? g[0] : v; }).join(" "); }
+function edit1(a, b){
+  if(Math.abs(a.length-b.length)>1) return false;
+  let i=0, j=0, d=0;
+  while(i<a.length && j<b.length){ if(a[i]===b[j]){ i++; j++; continue; } if(++d>1) return false; if(a.length>b.length) i++; else if(b.length>a.length) j++; else { i++; j++; } }
+  return d + (a.length-i) + (b.length-j) <= 1;
+}
+function rdMatch(target, said){
+  const t = rdNorm(target), s2 = rdNorm(said); if(!t || !s2) return false;
+  if(s2===t || (" "+s2+" ").includes(" "+t+" ")) return true;
+  // 長めの語は、聞き取りの小さなゆれ(1文字ちがい)をゆるす
+  return !t.includes(" ") && t.length>=6 && s2.split(" ").some(v=>edit1(v, t));
+}
+function viewReadQuiz(q, n){
+  const S = sjw(q.w), t = q.w.en.trim(), done = q.picked!==null;
+  const nextLabel = quiz.timed||quiz.i+1<n?"次へ":"結果を見る";
+  const em = EMOJI[t.toLowerCase()] ? `<span class="spem">${EMOJI[t.toLowerCase()]}</span>` : "";
+  if(done){
+    const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+    return header() + quizHead(n) + `<div class="card ans ${q.ok?"ok":"ng"}">
+      <span class="v">${q.ok?"読めた！":"もう少し！"}</span>
+      <div class="rdword">${esc(t)}</div>
+      <div class="wrow">${S.speak?sayBtn("word","お手本を聞く"):""}<span class="note">${esc(q.w.ja)}</span></div>
+      ${q.heard?`<p class="spellmine">聞こえた声:${esc(q.heard)}</p>`:""}
+      ${q.w.ex?`<div class="exrow">${S.speak?sayBtn("ex","例文を聞く"):""}<div class="ex">${ex}</div></div>`:""}<div class="ex-src">出典:${esc(q.w.setTitle)}</div>
+      <button class="primary nextbig" data-act="next" id="nextBtn">${nextLabel}</button>
+    </div>`;
+  }
+  const left = 3 - (q.tries||0);
+  return header() + quizHead(n) + `<div class="card">
+      <span class="dir">この英語を声に出して読もう</span>
+      ${em}<div class="rdword">${esc(t)}</div>
+      ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
+      <button class="rdmic ${q.listening?"on":""}" data-act="rdmic">${q.listening?"🎙️ 聞いてるよ…":"🎤 押して読む"}</button>
+      <p class="rdmsg">${q.heard?`「${esc(q.heard)}」に聞こえたよ。${left<3?`あと${left}回`:""}`:q.listening?"単語だけを、はっきり読もう":`チャンスは3回`}</p>
+    </div>
+    <p class="kbd"><button class="link" data-act="rdpass">わからない(答えを見る)</button>　<button class="link" data-act="quit">やめる</button></p>`;
+}
+function skillRowHtml(){
+  return `<div><p class="label">書く・読む(4択とは別にマルがつく)</p><div class="seg">
+      ${SKILL_ROW.map(([v,l])=>`<button aria-pressed="${ui.mode===v}" data-act="mode" data-v="${v}">${l}</button>`).join("")}
+    </div>${ui.mode==="spell"?`<div class="seg" style="margin-top:6px"><span class="note" style="align-self:center">ヒント:</span><button aria-pressed="${ui.spellHint!==false}" data-act="shint" data-v="on">あり(最初の文字・文字数)</button><button aria-pressed="${ui.spellHint===false}" data-act="shint" data-v="off">なし(上級)</button></div>`:""}
+    ${ui.mode==="read"&&!SRC?`<p class="note" style="color:var(--ng)">このブラウザでは「読む」が使えません。Chrome(iPhoneは Safari)で開いてね。</p>`:""}</div>`;
 }
 function answerBlank(v){
   const q = quiz.qs[quiz.i]; if(!q || q.kind!=="blank" || q.picked!==null) return;
@@ -13714,8 +13875,13 @@ function makeQuestion(w){
   if(isOrderSet(w.sid)) return makeOrderQuestion(w);
   if(w.gen) return makeGenQ(w);
   if(isFillSet(w.sid)) return {w, fill:true, choices: shuffle([w.fill.ans, ...w.fill.ds]), picked:null};
-  if(ui.mode==="spell" && spellable(w)) return {w, spell:true, dir:"ja2en", typed:"", picked:null};
-  const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : ui.mode==="spell" ? "ja2en" : ui.mode;
+  if(SKILLS[ui.mode] && ui.subject==="英語" && spellable(w)){
+    const q = {w, skill:SKILLS[ui.mode].p, dir:"ja2en", typed:"", picked:null};
+    if(ui.mode==="read") q.read = true;
+    else { q.spell = true; if(ui.mode==="tiles"){ q.tl = true; q.placed = []; q.tiles = tileShuffle(w.en.trim()); } else q.hint = ui.spellHint!==false; }
+    return q;
+  }
+  const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : SKILLS[ui.mode] ? "ja2en" : ui.mode;
   const field = mapOf(w) ? "en" : dir==="en2ja" ? "ja" : "en";   // 地図の問題は、名前(または地図)を選ぶ
   const seen = new Set([w[field]]); const distract = [];
   // 答えが「表」の問題で、手書きのまちがい選択肢があれば優先して使う
@@ -13733,7 +13899,7 @@ function startQuiz(words, label, limit=ui.limit){
   const timed = limit.startsWith("t");
   if(limit.startsWith("n")){ const n=+limit.slice(1); if(list.length>n) list=list.slice(0,n); }
   sendState = ["",""];
-  quiz = {label, pool:words, qs:list.map(makeQuestion), i:0, wrong:[], timed, startedAt:Date.now(), doneBefore:new Set(SETS.filter(setDone).map(s=>s.id))};
+  quiz = {label, pool:words, qs:list.map(makeQuestion), i:0, wrong:[], timed, startedAt:Date.now(), skillP:skillP(), doneBefore:new Set(SETS.filter(s=>setDone(s, skillP())).map(s=>s.id))};
   if(timed){
     quiz.sec = +limit.slice(1); quiz.endAt = Date.now()+quiz.sec*1000;
     timerId = setInterval(tick, 250);
@@ -13775,12 +13941,12 @@ function logQuiz(){
       if(!onlyEn && subjs.length===1) return (sjw(quiz.pool[0]).modes.find(m=>m[0]===ui.mode)||[,ui.mode])[1];
       const f=quiz.qs.some(q=>q.form), o=quiz.qs.some(q=>!q.form);
       const fm=({spell:"つづり4択",blank:"1文字うめ",mix:"つづり4択+1文字"})[ui.fmode];
-      const dm=({en2ja:"英→日",ja2en:"日→英",mix:"まぜる",spell:"書く(スペル)"})[ui.mode];
+      const dm=({en2ja:"英→日",ja2en:"日→英",mix:"まぜる",spell:ui.spellHint===false?"書く(ヒントなし)":"書く(スペル)",tiles:"ならべる",read:"読む(音声)"})[ui.mode];
       return f&&o ? dm+"/"+fm : f ? fm : dm; })(),
     limit: quiz.timed ? (quiz.sec/60)+"分チャレンジ" : done.length+"問",
     answered: done.length, correct: done.length - quiz.wrong.length,
     seconds: Math.round((Date.now()-quiz.startedAt)/1000), wrong,
-    maru: SETS.filter(setDone).length
+    maru: totalMaru()
   };
   if(JUKU){ const u=user(); if(!u || !u.jk) return; entry.jk = u.jk; }   // 他塾モード:どの塾のだれの記録か
   setOutbox([...outbox(), entry]);
@@ -13820,6 +13986,7 @@ function viewQuiz(){
   if(q.form) return viewFormQuiz(q, n);
   if(q.order) return viewOrderQuiz(q, n);
   if(q.fill) return viewFillQuiz(q, n);
+  if(q.read) return viewReadQuiz(q, n);
   if(q.spell) return viewSpellQuiz(q, n);
   if(mapOf(q.w)) return viewMapQuiz(q, n);
   const S = sjw(q.w);
@@ -14038,12 +14205,12 @@ function dirLabel(w, en){
 function posName(p){ return ({"名":"名詞","動":"動詞","形":"形容詞","副":"副詞","熟":"熟語・表現","前":"前置詞","接":"接続詞","代":"代名詞","助":"助動詞","冠":"冠詞","疑":"疑問詞","間":"間投詞"})[p]||p; }
 
 function answer(k){
-  const q = quiz.qs[quiz.i]; if(q.picked!==null || q.order || q.spell || !q.choices || k>=q.choices.length) return;
+  const q = quiz.qs[quiz.i]; if(q.picked!==null || q.order || q.spell || q.read || !q.choices || k>=q.choices.length) return;
   judge(q, q.form ? q.choices[k]===q.target : q.fill ? q.choices[k]===(q.f||q.w.fill).ans : q.choices[k].key===q.w.key, k);
 }
 function judge(q, ok, k){
   q.picked = k; q.ok = ok;
-  const r = rec(q.w.key), wasDue = r.due;
+  const r = rec((q.skill||"") + q.w.key), wasDue = r.due;
   if(ok){ r.c++; r.streak++; if(r.streak>=MASTER_STREAK) r.due=false; }
   else { r.w++; r.streak=0; r.due=true; quiz.wrong.push(q.w);
     if(quiz.timed) quiz.qs.splice(quiz.i+4, 0, makeQuestion(q.w)); }
@@ -14624,6 +14791,12 @@ document.addEventListener("click", async e=>{
   else if(a==="glimit"){ ui.glimit=b.dataset.v; render(); }
   else if(a==="gstart"){ const g=ui.glevel||"英検3級"; startQuiz(genPool(g).map(x=>({...x.w, gen:true})), `${g.replace(/^英検/,"")} 空所補充(自動)`, ui.glimit||"n10"); }
   else if(a==="mode"){ ui.mode=b.dataset.v; render(); }
+  else if(a==="shint"){ ui.spellHint = b.dataset.v==="on"; render(); }
+  else if(a==="tile"){ tilePut(+b.dataset.i); }
+  else if(a==="untile"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.tl && q.picked===null){ q.placed.pop(); render(); } }
+  else if(a==="tclr"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.tl && q.picked===null){ q.placed = []; render(); } }
+  else if(a==="rdmic"){ rdListen(); }
+  else if(a==="rdpass"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.read && q.picked===null){ rdStop(); judge(q, false, 0); } }
   else if(a==="fmode"){ ui.fmode=b.dataset.v; render(); }
   else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
   else if(a==="start"){
@@ -14701,6 +14874,8 @@ document.addEventListener("keydown", e=>{
     return;
   }
   const q=quiz.qs[quiz.i];
+  if(q.read && q.picked===null) return;
+  if(q.tl && q.picked===null){ if(e.key==="Backspace"){ e.preventDefault(); q.placed.pop(); render(); } else if(e.key.length===1){ const i = q.tiles.findIndex((c,k)=>c.toLowerCase()===e.key.toLowerCase() && !q.placed.includes(k)); if(i>=0) tilePut(i); } return; }
   if(q.spell && q.picked===null){ if(e.key==="Enter" && !e.isComposing && e.keyCode!==229){ e.preventDefault(); spellCheck(); } return; }
   if((q.kind==="blank"||q.order) && q.picked===null){ if(q.order && e.key==="Enter") orderCheck(); return; }
   if(q.picked===null && /^[1-4]$/.test(e.key) && +e.key<=q.choices.length) answer(+e.key-1);
