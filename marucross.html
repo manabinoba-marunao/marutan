@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="theme-color" content="#0F5257">
+<title>マルクロス(試作)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600;7..72,700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18242B; --muted:#5B6A70; --line:#D9E0DE;
+  --accent:#0F5257; --accent-ink:#FFFFFF; --ok:#2C7A4B; --ok-soft:#DDF0E3; --ng:#B63E32; --ng-soft:#F7E0DC;
+  --cell:#E9EFEC; --tile:#F7E7C1; --tile-ink:#3B2A10; --tile-edge:#C9A35A;
+  --dl:#BFE0F2; --tl:#5BA4D6; --dw:#F5C2C7; --tw:#E0606B; --st:#F5C2C7;
+  --en:"Literata", Georgia, serif; --ja:"Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ja);line-height:1.5}
+main{max-width:1180px;margin:0 auto;padding:12px 12px 40px}
+h1{margin:0;font-size:24px;font-weight:900}
+.note{color:var(--muted);font-size:13px;margin:0}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.label{margin:0;font-size:12px;font-weight:700;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.4;cursor:default}
+button.link{border:none;background:none;color:var(--accent);text-decoration:underline;padding:0}
+input[type=text]{font:inherit;padding:6px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:9em}
+.game{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:900px){.game{grid-template-columns:minmax(0,1fr) 340px;align-items:start}}
+.board{display:grid;grid-template-columns:repeat(11,1fr);gap:2px;background:var(--line);padding:2px;border-radius:10px;width:100%;max-width:min(100%,82vh);margin:0 auto;aspect-ratio:1}
+.cell{position:relative;border:none;border-radius:4px;padding:0;background:var(--cell);font-size:clamp(7px,1.6vw,11px);font-weight:700;color:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;line-height:1;aspect-ratio:1;min-width:0}
+.cell.DL{background:var(--dl)} .cell.TL{background:var(--tl);color:#fff} .cell.DW{background:var(--dw)} .cell.TW{background:var(--tw);color:#fff} .cell.ST{background:var(--st);font-size:clamp(14px,3vw,22px);color:var(--tw)}
+.cell .t,.rtile{font-family:var(--en);text-transform:uppercase;font-weight:700;color:var(--tile-ink)}
+.cell.has{background:var(--tile);box-shadow:inset 0 -3px 0 var(--tile-edge)}
+.cell.has .t{font-size:clamp(14px,3.6vw,30px)}
+.cell.new{background:#FFF3B0;outline:3px solid var(--accent);outline-offset:-3px}
+.cell.last{box-shadow:inset 0 -3px 0 var(--tile-edge), 0 0 0 2px var(--ok)}
+.cell small{position:absolute;right:2px;bottom:1px;font-size:clamp(6px,1.2vw,10px);color:var(--tile-ink);font-family:var(--ja)}
+.cell.tm{border-top:4px solid var(--tc)}
+.rack{display:flex;justify-content:center;gap:6px;flex-wrap:nowrap;padding:10px 6px;border-radius:12px;background:#7B5A2B}
+.rtile{position:relative;width:clamp(38px,11vw,54px);height:clamp(42px,12vw,58px);border-radius:8px;border:none;background:var(--tile);font-size:clamp(22px,6.5vw,30px);box-shadow:0 4px 0 var(--tile-edge);padding:0}
+.rtile small{position:absolute;right:4px;bottom:2px;font-size:11px;font-family:var(--ja)}
+.rtile.sel{transform:translateY(-6px);box-shadow:0 0 0 3px var(--accent),0 6px 0 var(--tile-edge)}
+.rtile.used{opacity:.15;box-shadow:none}
+.rtile.hid{background:#D9C391;color:transparent}
+.rtile.hid small{display:none}
+.rtile.xsel{outline:3px dashed var(--ng);outline-offset:2px}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ctrl .go{font-size:18px;padding:10px 22px}
+.teams{display:flex;flex-direction:column;gap:6px}
+.team{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:10px;border:2px solid transparent;background:var(--bg)}
+.team.cur{border-color:var(--tc);background:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.team b{font-size:24px;font-variant-numeric:tabular-nums}
+.turn{padding:10px 12px;border-radius:12px;color:#fff;font-weight:900;text-align:center;font-size:18px}
+.prev{font-size:14px;min-height:1.5em;text-align:center}
+.prev .w{font-family:var(--en);font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:6px;background:var(--ok-soft);color:var(--ok);margin:0 2px;display:inline-block}
+.prev .w.bad{background:var(--ng-soft);color:var(--ng);text-decoration:line-through}
+.prev .err{color:var(--ng);font-weight:700}
+.log{max-height:220px;overflow:auto;font-size:13px;display:flex;flex-direction:column;gap:3px}
+.log .w{font-family:var(--en);font-weight:700;text-transform:uppercase}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:3px}
+.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:28px;font-weight:900;padding:14px 28px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:10;animation:pop 1.6s ease forwards;pointer-events:none;text-align:center}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,10px) scale(.9)}15%{opacity:1;transform:translate(-50%,0) scale(1.05)}80%{opacity:1}100%{opacity:0}}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main id="app"><p class="loading">辞書を読みこみ中…</p></main>
+<script>
+/* ============================================================
+   マルクロス(試作):盤面に単語をクロスさせて置いていく、チーム対戦の英単語ゲーム
+   ・教室のテレビやタブレット1台に盤を映して、2〜4チームが順番に置く
+   ・置いた単語(たて・横にできる単語すべて)が英単語として辞書にあればOK
+     辞書:SCOWL(英語の単語リスト、約7.8万語、dict.txt)。辞書にない正しい語は「先生OK」で通せる
+   ・途中で閉じても、この端末に自動で保存して続きから遊べる
+   ============================================================ */
+const N = 11, C = 5;
+const PTS = {a:1,e:1,i:1,o:1,u:1,l:1,n:1,r:1,s:1,t:1,d:2,g:2,b:3,c:3,m:3,p:3,f:4,h:4,v:4,w:4,y:4,k:5,j:8,x:8,q:10,z:10};
+const BAG = {a:8,b:2,c:2,d:3,e:10,f:2,g:2,h:2,i:7,j:1,k:1,l:3,m:2,n:5,o:7,p:2,q:1,r:5,s:4,t:5,u:3,v:1,w:2,x:1,y:2,z:1};
+const ALL_BONUS = 30;   // 7枚ぜんぶ使ったとき
+const TEAM_DEF = [["🔴 あか","#D64545"],["🔵 あお","#2F6FD6"],["🟢 みどり","#2E9E5B"],["🟡 きいろ","#D4A017"]];
+/* マスの色(左右上下対称) TW=単語3倍 DW=単語2倍 TL=文字3倍 DL=文字2倍 ST=スタート(単語2倍) */
+const BONUS = (()=>{
+  const b = Array.from({length:N},()=>Array(N).fill(""));
+  const put = (t, list) => list.forEach(([r,c])=>{ for(const [y,x] of [[r,c],[c,r],[N-1-r,c],[r,N-1-c],[N-1-r,N-1-c],[N-1-c,r],[c,N-1-r],[N-1-c,N-1-r]]) b[y][x] = t; });
+  put("TW", [[0,0],[0,5]]);
+  put("DW", [[1,1],[2,2]]);
+  put("TL", [[1,5],[3,3]]);
+  put("DL", [[0,3],[2,5],[4,4]]);
+  b[C][C] = "ST";
+  return b;
+})();
+const BONUS_LABEL = {TW:"単語×3", DW:"単語×2", TL:"文字×3", DL:"文字×2", ST:"★"};
+const SAVE_KEY = "marucross-v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let DICT = null;
+let G = null;
+const setup = {n:2, names:TEAM_DEF.map(t=>t[0])};
+let ui = {sel:null, xmode:false, xsel:new Set(), hide:false, toast:""};
+
+/* ---------- ゲームの準備 ---------- */
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+function newGame(){
+  const bag = shuffle(Object.entries(BAG).flatMap(([c,n])=>Array(n).fill(c)));
+  const teams = Array.from({length:setup.n},(_,i)=>({name:(setup.names[i]||TEAM_DEF[i][0]).trim()||TEAM_DEF[i][0], color:TEAM_DEF[i][1], score:0, rack:[]}));
+  teams.forEach(t=>{ t.rack = bag.splice(0,7); });
+  G = {teams, cur:0, bag, board:Array.from({length:N},()=>Array(N).fill(null)), pending:[], log:[], passes:0, over:false, last:[]};
+  ui = {sel:null, xmode:false, xsel:new Set(), hide:false, toast:""};
+  save(); render();
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G)); }catch(e){} }
+function load(){ try{ const g = JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); if(g && g.teams) return g; }catch(e){} return null; }
+const team = () => G.teams[G.cur];
+
+/* ---------- 置いたカードを調べて、できる単語と点数を出す ---------- */
+function evaluate(){
+  const P = G.pending;
+  if(!P.length) return {err:""};
+  const at = (r,c) => (r<0||c<0||r>=N||c>=N) ? null : (G.board[r][c] ? G.board[r][c].ch : (P.find(p=>p.r===r&&p.c===c)||{}).ch || null);
+  const isNew = (r,c) => P.some(p=>p.r===r&&p.c===c);
+  const empty = G.board.every(row=>row.every(x=>!x));
+  const rows = new Set(P.map(p=>p.r)), cols = new Set(P.map(p=>p.c));
+  let dir = null;
+  if(P.length>1){ if(rows.size===1) dir = "h"; else if(cols.size===1) dir = "v"; else return {err:"カードは、たて か 横 の1列にならべてね"}; }
+  else { const p = P[0]; dir = (at(p.r,p.c-1)||at(p.r,p.c+1)) ? "h" : "v"; }
+  if(empty && !isNew(C,C)) return {err:"さいしょの単語は ★ のマスを通るように置いてね"};
+  const [dr,dc] = dir==="h" ? [0,1] : [1,0];
+  const line = P.map(p=>dir==="h"?p.c:p.r), fixed = dir==="h"?P[0].r:P[0].c;
+  for(let k=Math.min(...line); k<=Math.max(...line); k++){ const [r,c] = dir==="h"?[fixed,k]:[k,fixed]; if(!at(r,c)) return {err:"あいだに すき間 があるよ"}; }
+  const wordAt = (r,c,dr,dc) => { while(at(r-dr,c-dc)){ r-=dr; c-=dc; } const cells = []; while(at(r,c)){ cells.push([r,c]); r+=dr; c+=dc; } return cells; };
+  const words = [];
+  const main = wordAt(P[0].r, P[0].c, dr, dc); if(main.length>=2) words.push(main);
+  for(const p of P){ const cr = wordAt(p.r, p.c, dc, dr); if(cr.length>=2) words.push(cr); }
+  if(!words.length) return {err:"2文字以上の単語になるように置いてね"};
+  if(!empty && !words.some(w=>w.some(([r,c])=>!isNew(r,c)))) return {err:"もう置いてある文字に つながる ように置いてね"};
+  let total = 0; const list = [];
+  for(const w of words){
+    let s = 0, mult = 1;
+    for(const [r,c] of w){
+      const v = PTS[at(r,c)] || 0;
+      if(isNew(r,c)){ const b = BONUS[r][c]; if(b==="DL") s += v*2; else if(b==="TL") s += v*3; else { s += v; if(b==="DW"||b==="ST") mult *= 2; if(b==="TW") mult *= 3; } }
+      else s += v;
+    }
+    const str = w.map(([r,c])=>at(r,c)).join("");
+    list.push({w:str, pts:s*mult, ok:!!(DICT && DICT.has(str))}); total += s*mult;
+  }
+  const all7 = P.length===7;
+  if(all7) total += ALL_BONUS;
+  return {list, total, all7, bad:list.filter(x=>!x.ok)};
+}
+
+/* ---------- 操作 ---------- */
+function tapRack(i){
+  if(G.over) return;
+  if(ui.xmode){ ui.xsel.has(i) ? ui.xsel.delete(i) : ui.xsel.add(i); return render(); }
+  if(G.pending.some(p=>p.ri===i)) return;
+  ui.sel = ui.sel===i ? null : i; render();
+}
+function tapCell(r,c){
+  if(G.over || ui.xmode) return;
+  const pi = G.pending.findIndex(p=>p.r===r&&p.c===c);
+  if(pi>=0){ G.pending.splice(pi,1); ui.sel = null; return render(); }   // 置いたカードをタップ → 手札にもどす
+  if(G.board[r][c]) return;
+  if(ui.sel==null){ // 選んでいなければ、まだ使っていない左のカードを置く
+    const free = team().rack.findIndex((ch,i)=>!G.pending.some(p=>p.ri===i));
+    if(free<0) return; ui.sel = free;
+  }
+  G.pending.push({r, c, ch:team().rack[ui.sel], ri:ui.sel});
+  ui.sel = null; render();
+}
+function recall(){ G.pending = []; ui.sel = null; render(); }
+function shuffleRack(){ if(G.pending.length) recall(); team().rack = shuffle(team().rack); ui.sel = null; save(); render(); }
+function draw(t){ while(t.rack.length<7 && G.bag.length) t.rack.push(G.bag.pop()); }
+function commit(force){
+  const ev = evaluate(); if(!G.pending.length || ev.err) return;
+  if(ev.bad.length && !force) return;
+  const t = team();
+  for(const p of G.pending) G.board[p.r][p.c] = {ch:p.ch, team:G.cur};
+  const used = new Set(G.pending.map(p=>p.ri));
+  t.rack = t.rack.filter((_,i)=>!used.has(i));
+  t.score += ev.total;
+  G.log.unshift({team:G.cur, words:ev.list.map(x=>x.w), pts:ev.total, all7:ev.all7, force:!!force && ev.bad.length>0});
+  G.last = G.pending.map(p=>[p.r,p.c]);
+  G.pending = []; G.passes = 0;
+  draw(t);
+  ui.toast = ev.all7 ? `🎉 ぜんぶ使った！ +${ev.total}点` : `${ev.list.map(x=>x.w.toUpperCase()).join("・")} +${ev.total}点`;
+  if(!t.rack.length && !G.bag.length) return endGame();
+  nextTurn();
+}
+function nextTurn(){ G.cur = (G.cur+1) % G.teams.length; ui.sel = null; ui.xmode = false; ui.xsel = new Set(); save(); render(); }
+function pass(){ recall(); G.passes++; G.log.unshift({team:G.cur, pass:true}); if(G.passes >= G.teams.length*2) return endGame(); nextTurn(); }
+function exchange(){
+  if(!ui.xmode){ recall(); ui.xmode = true; ui.xsel = new Set(); return render(); }
+  const t = team(), idx = [...ui.xsel];
+  if(!idx.length){ ui.xmode = false; return render(); }
+  if(G.bag.length < idx.length){ ui.toast = "袋の中のカードが足りないよ"; ui.xmode = false; return render(); }
+  const out = idx.map(i=>t.rack[i]);
+  t.rack = t.rack.filter((_,i)=>!ui.xsel.has(i));
+  draw(t); G.bag = shuffle(G.bag.concat(out));
+  G.log.unshift({team:G.cur, swap:out.length}); G.passes++;
+  nextTurn();
+}
+function endGame(){ G.over = true; G.pending = []; save(); render(); }
+
+/* ---------- 画面 ---------- */
+function render(){
+  const app = $("#app");
+  if(!DICT){ app.innerHTML = `<p class="loading">辞書を読みこみ中…</p>`; return; }
+  app.innerHTML = G ? viewGame() : viewSetup();
+  if(ui.toast){ const d = document.createElement("div"); d.className = "toast"; d.textContent = ui.toast; document.body.appendChild(d); setTimeout(()=>d.remove(), 1700); ui.toast = ""; }
+}
+function viewSetup(){
+  const saved = load();
+  return `<h1>🧩 マルクロス <small class="note">試作</small></h1>
+  <p class="note">盤に英単語をクロスさせて置いていく、チーム対戦ゲーム。教室のテレビやタブレット1台を囲んで、順番に置こう！</p>
+  ${saved && !saved.over ? `<section class="panel"><p class="label">つづきから</p><p class="note" style="margin:0">${saved.teams.map(t=>`${esc(t.name)} ${t.score}点`).join("　")}</p><button class="primary" data-act="resume">前のゲームのつづきをする</button></section>` : ""}
+  <section class="panel">
+    <p class="label">チームの数</p>
+    <div class="seg">${[2,3,4].map(n=>`<button aria-pressed="${setup.n===n}" data-act="n" data-v="${n}">${n}チーム</button>`).join("")}</div>
+    <p class="label">チームの名前</p>
+    <div class="seg">${Array.from({length:setup.n},(_,i)=>`<input type="text" class="tname" data-i="${i}" value="${esc(setup.names[i])}" maxlength="12">`).join("")}</div>
+    <button class="primary" data-act="start" style="font-size:18px;padding:12px">はじめる</button>
+  </section>
+  <section class="panel">
+    <p class="label">ルール</p>
+    <ul class="note" style="margin:0;padding-left:1.2em">
+      <li>手札のカード(7枚)を盤に置いて英単語を作る。たて か 横 の1列に置く</li>
+      <li>さいしょの単語は ★ を通す。そのあとは、もう置いてある文字に つなげる</li>
+      <li>置いたことで、たて・横にできた単語ぜんぶが英単語として正しければOK。できた単語ぜんぶの点が入る</li>
+      <li>色のマスは点が増える:<b>文字×2・×3</b>はその文字だけ、<b>単語×2・×3</b>は単語ぜんぶ。★は単語×2</li>
+      <li>7枚ぜんぶ使うと <b>+${ALL_BONUS}点</b>！ 置けないときは「こうかん」か「パス」</li>
+      <li>袋のカードがなくなって、だれかの手札がなくなったら(または全チームが2回ずつパスしたら)終わり</li>
+    </ul>
+  </section>`;
+}
+function viewGame(){
+  const t = team(), ev = evaluate(), pend = new Map(G.pending.map(p=>[p.r+","+p.c, p]));
+  const last = new Set((G.last||[]).map(([r,c])=>r+","+c));
+  const cells = [];
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const b = G.board[r][c], p = pend.get(r+","+c), bn = BONUS[r][c];
+    if(b) cells.push(`<button class="cell has ${last.has(r+","+c)?"last":""}" data-act="cell" data-r="${r}" data-c="${c}" style="--tc:${G.teams[b.team].color}"><span class="t">${esc(b.ch)}</span><small>${PTS[b.ch]}</small></button>`);
+    else if(p) cells.push(`<button class="cell has new" data-act="cell" data-r="${r}" data-c="${c}"><span class="t">${esc(p.ch)}</span><small>${PTS[p.ch]}</small></button>`);
+    else cells.push(`<button class="cell ${bn}" data-act="cell" data-r="${r}" data-c="${c}" aria-label="${bn?BONUS_LABEL[bn]:"マス"}">${bn?BONUS_LABEL[bn].replace("単語","単").replace("文字","字"):""}</button>`);
+  }
+  const prev = !G.pending.length ? `<span class="note">${ui.xmode?"こうかんするカードをタップして選んで、もう一度「こうかん」":"手札のカードをタップ → 盤のマスをタップで置く(置いたカードをタップすると もどる)"}</span>`
+    : ev.err ? `<span class="err">${esc(ev.err)}</span>`
+    : `${ev.list.map(x=>`<span class="w ${x.ok?"":"bad"}">${esc(x.w)}</span>${x.pts}`).join("　")}${ev.all7?`　＋ぜんぶ使った${ALL_BONUS}`:""}　→ <b>${ev.total}点</b>${ev.bad.length?`<br><span class="err">「${ev.bad.map(x=>esc(x.w.toUpperCase())).join("」「")}」は辞書にないよ</span>`:""}`;
+  const canGo = G.pending.length && !ev.err;
+  if(G.over){
+    const rank = G.teams.map((tm,i)=>({...tm,i})).sort((a,b)=>b.score-a.score);
+    return `<h1>🏆 けっか発表</h1>
+    <section class="panel">${rank.map((tm,k)=>`<div class="team cur" style="--tc:${tm.color}"><span>${k===0?"🥇":k===1?"🥈":k===2?"🥉":""} ${esc(tm.name)}</span><b>${tm.score}点</b></div>`).join("")}
+      <div class="ctrl"><button class="primary" data-act="newgame">もう一度あそぶ</button></div></section>
+    <div class="game"><div class="board">${cells.join("")}</div>${sideHtml()}</div>`;
+  }
+  return `<div class="game">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="turn" style="background:${t.color}">${esc(t.name)} の番</div>
+      <div class="board">${cells.join("")}</div>
+      <p class="prev">${prev}</p>
+      <div class="rack">${t.rack.map((ch,i)=>{ const used = G.pending.some(p=>p.ri===i); return `<button class="rtile ${ui.hide?"hid":""} ${ui.sel===i?"sel":""} ${used?"used":""} ${ui.xsel.has(i)?"xsel":""}" data-act="rack" data-i="${i}" ${used&&!ui.xmode?"disabled":""}>${esc(ch)}<small>${PTS[ch]}</small></button>`; }).join("")}</div>
+      <div class="ctrl">
+        <button class="primary go" data-act="go" ${canGo&&!ev.bad.length?"":"disabled"}>けってい！</button>
+        <button data-act="recall" ${G.pending.length?"":"disabled"}>もどす</button>
+        <button data-act="shuf">🔀 まぜる</button>
+        <button data-act="swap" ${ui.xmode?'aria-pressed="true"':""}>${ui.xmode?`こうかんする(${ui.xsel.size}枚)`:"こうかん"}</button>
+        <button data-act="pass">パス</button>
+        <button data-act="hide" aria-pressed="${ui.hide}">${ui.hide?"手札を見せる":"手札をかくす"}</button>
+      </div>
+      ${canGo&&ev.bad.length?`<div class="ctrl"><button class="link" data-act="force">辞書にないけど、先生OKで決定する</button></div>`:""}
+    </div>
+    ${sideHtml()}
+  </div>`;
+}
+function sideHtml(){
+  return `<div style="display:flex;flex-direction:column;gap:10px">
+    <section class="panel"><p class="label">とくてん　<span style="font-weight:500">袋の残り ${G.bag.length}枚</span></p>
+      <div class="teams">${G.teams.map((tm,i)=>`<div class="team ${i===G.cur&&!G.over?"cur":""}" style="--tc:${tm.color}"><span>${esc(tm.name)}</span><b>${tm.score}</b></div>`).join("")}</div></section>
+    <section class="panel"><p class="label">これまでの単語</p>
+      <div class="log">${G.log.map(l=>`<div><span style="color:${G.teams[l.team].color}">●</span> ${esc(G.teams[l.team].name)}:${l.pass?"パス":l.swap?`${l.swap}枚こうかん`:`<span class="w">${l.words.map(esc).join(" / ")}</span> +${l.pts}${l.all7?" 🎉":""}${l.force?" (先生OK)":""}`}</div>`).join("") || `<span class="note">まだないよ</span>`}</div></section>
+    <div class="legend"><span><i style="background:var(--tw)"></i>単語×3</span><span><i style="background:var(--dw)"></i>単語×2</span><span><i style="background:var(--tl)"></i>文字×3</span><span><i style="background:var(--dl)"></i>文字×2</span></div>
+    ${G.over?"":`<div class="ctrl"><button class="link" data-act="end">ここでゲームを終わる</button>　<button class="link" data-act="quit">はじめの画面へ</button></div>`}
+  </div>`;
+}
+document.addEventListener("input", e => { if(e.target.classList.contains("tname")) setup.names[+e.target.dataset.i] = e.target.value; });
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a==="n"){ setup.n = +b.dataset.v; render(); }
+  else if(a==="start" || a==="newgame"){ newGame(); }
+  else if(a==="resume"){ G = load(); render(); }
+  else if(a==="quit"){ save(); G = null; render(); }
+  else if(a==="cell"){ tapCell(+b.dataset.r, +b.dataset.c); }
+  else if(a==="rack"){ tapRack(+b.dataset.i); }
+  else if(a==="go"){ commit(false); }
+  else if(a==="force"){ if(confirm("辞書にない単語ですが、先生の判断でOKにしますか？")) commit(true); }
+  else if(a==="recall"){ recall(); }
+  else if(a==="shuf"){ shuffleRack(); }
+  else if(a==="swap"){ exchange(); }
+  else if(a==="pass"){ if(confirm(`${team().name} はパスしますか？`)) pass(); }
+  else if(a==="hide"){ ui.hide = !ui.hide; render(); }
+  else if(a==="end"){ if(confirm("ここでゲームを終わって、けっか発表にしますか？")) endGame(); }
+});
+/* キーボード:文字キーで手札を選ぶ、Enterで決定、Escでもどす */
+document.addEventListener("keydown", e => {
+  if(!G || G.over || e.target.tagName==="INPUT") return;
+  if(e.key==="Enter"){ e.preventDefault(); commit(false); }
+  else if(e.key==="Escape"){ recall(); }
+  else if(/^[a-z]$/i.test(e.key)){ const i = team().rack.findIndex((ch,k)=>ch===e.key.toLowerCase() && !G.pending.some(p=>p.ri===k)); if(i>=0){ ui.sel = i; render(); } }
+});
+fetch("dict.txt").then(r=>r.text()).then(t=>{ DICT = new Set(t.split("\n").filter(Boolean)); render(); })
+  .catch(()=>{ $("#app").innerHTML = `<p class="loading">辞書が読みこめませんでした。ページを開きなおしてください。</p>`; });
+</script>
+</body>
+</html>
