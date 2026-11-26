@@ -68,6 +68,15 @@ input[type=text]{font:inherit;padding:6px 10px;border-radius:10px;border:1.5px s
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:3px}
 .toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:28px;font-weight:900;padding:14px 28px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:10;animation:pop 1.6s ease forwards;pointer-events:none;text-align:center}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,10px) scale(.9)}15%{opacity:1;transform:translate(-50%,0) scale(1.05)}80%{opacity:1}100%{opacity:0}}
+.cell.ghost{background:#FFF8D6;outline:3px dashed var(--accent);outline-offset:-3px}
+.cell.ghost .t{font-size:clamp(14px,3.6vw,30px);opacity:.55}
+.hintp{border-color:#E0A526;background:#FFFBEA}
+.hints{display:flex;flex-wrap:wrap;gap:6px}
+.hchip{display:flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:999px;border:1.5px solid #E0C46A;background:#fff}
+.hchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hchip .w{font-family:var(--en);font-weight:700;text-transform:uppercase;font-size:17px}
+.hchip .ja{font-size:12px}
+.hchip .pt{font-size:11px;opacity:.75}
 .loading{text-align:center;padding:40px;color:var(--muted)}
 </style>
 </head>
@@ -121,8 +130,8 @@ function load(){ try{ const g = JSON.parse(localStorage.getItem(SAVE_KEY)||"null
 const team = () => G.teams[G.cur];
 
 /* ---------- 置いたカードを調べて、できる単語と点数を出す ---------- */
-function evaluate(){
-  const P = G.pending;
+function evaluate(){ return evalPlay(G.pending); }
+function evalPlay(P){
   if(!P.length) return {err:""};
   const at = (r,c) => (r<0||c<0||r>=N||c>=N) ? null : (G.board[r][c] ? G.board[r][c].ch : (P.find(p=>p.r===r&&p.c===c)||{}).ch || null);
   const isNew = (r,c) => P.some(p=>p.r===r&&p.c===c);
@@ -157,6 +166,61 @@ function evaluate(){
   return {list, total, all7, bad:list.filter(x=>!x.ok)};
 }
 
+/* ---------- 💡 ヒント:いまの手札と盤から、置ける単語をさがす ----------
+   ヒントに出すのは、よく使う単語とマル単の単語(hint.json、約6,400語)だけ。意味がわかる語には日本語もつける */
+let HINT = null;   // {word: 日本語の意味}
+fetch("hint.json").then(r=>r.json()).then(h=>{ HINT = h; }).catch(()=>{});
+const canMake = (w, pool) => { const c = {}; for(const ch of pool) c[ch] = (c[ch]||0)+1; for(const ch of w){ if(!c[ch]) return false; c[ch]--; } return true; };
+function findMoves(){
+  if(!HINT) return null;
+  const rack = team().rack, boardLetters = G.board.flat().filter(Boolean).map(x=>x.ch);
+  const cand = Object.keys(HINT).filter(w=>canMake(w, rack.concat(boardLetters)));
+  const empty = !boardLetters.length, found = new Map();
+  for(const dir of ["h","v"]) for(let line=0; line<N; line++) for(const w of cand){
+    const L = w.length;
+    for(let st=0; st+L<=N; st++){
+      const pos = k => dir==="h" ? [line, st+k] : [st+k, line];
+      const [br,bc] = pos(-1), [ar,ac] = pos(L);
+      if(st>0 && G.board[br][bc]) continue;
+      if(st+L<N && G.board[ar][ac]) continue;
+      const left = {}; rack.forEach(ch=>left[ch]=(left[ch]||0)+1);
+      const P = []; let ok = true, touch = false;
+      for(let k=0; k<L; k++){
+        const [r,c] = pos(k), b = G.board[r][c];
+        if(b){ if(b.ch!==w[k]){ ok = false; break; } touch = true; continue; }
+        if(!left[w[k]]){ ok = false; break; }
+        left[w[k]]--;
+        const ri = rack.findIndex((ch,i)=>ch===w[k] && !P.some(p=>p.ri===i));
+        P.push({r, c, ch:w[k], ri});
+        if(!touch) touch = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(([y,x])=>y>=0&&x>=0&&y<N&&x<N&&G.board[y][x]);
+      }
+      if(!ok || !P.length || (!empty && !touch)) continue;
+      const ev = evalPlay(P);
+      if(ev.err || ev.bad.length) continue;
+      const key = w + "@" + P.map(p=>p.r+","+p.c).join(";");
+      if(!found.has(key)) found.set(key, {w, P, pts:ev.total, words:ev.list.map(x=>x.w)});
+    }
+  }
+  // 同じ単語は点の高い置き方だけ残して、点の高い順に
+  const best = new Map();
+  for(const m of found.values()){ const o = best.get(m.w); if(!o || m.pts>o.pts) best.set(m.w, m); }
+  return [...best.values()].sort((a,b)=>b.pts-a.pts || b.w.length-a.w.length);
+}
+function showHint(){
+  if(!HINT){ ui.toast = "ヒントを読みこみ中…もう一度押してね"; return render(); }
+  recall();
+  const ms = findMoves() || [];
+  // 点の高いものだけでなく、短くて覚えやすい単語もまぜて見せる
+  const top = ms.slice(0, 4), easy = ms.filter(m=>!top.includes(m) && HINT[m.w]).sort((a,b)=>a.w.length-b.w.length).slice(0, 4);
+  ui.hint = {list: top.concat(easy).slice(0, 8), pick:null, none:!ms.length};
+  render();
+}
+function hintPick(i){ if(!ui.hint) return; ui.hint.pick = ui.hint.pick===i ? null : i; render(); }
+function hintPlace(){
+  const m = ui.hint && ui.hint.list[ui.hint.pick]; if(!m) return;
+  G.pending = m.P.map(p=>({...p})); ui.hint = null; ui.sel = null; render();
+}
+
 /* ---------- 操作 ---------- */
 function tapRack(i){
   if(G.over) return;
@@ -173,7 +237,7 @@ function tapCell(r,c){
     const free = team().rack.findIndex((ch,i)=>!G.pending.some(p=>p.ri===i));
     if(free<0) return; ui.sel = free;
   }
-  G.pending.push({r, c, ch:team().rack[ui.sel], ri:ui.sel});
+  G.pending.push({r, c, ch:team().rack[ui.sel], ri:ui.sel}); ui.hint = null;
   ui.sel = null; render();
 }
 function recall(){ G.pending = []; ui.sel = null; render(); }
@@ -195,7 +259,7 @@ function commit(force){
   if(!t.rack.length && !G.bag.length) return endGame();
   nextTurn();
 }
-function nextTurn(){ G.cur = (G.cur+1) % G.teams.length; ui.sel = null; ui.xmode = false; ui.xsel = new Set(); save(); render(); }
+function nextTurn(){ G.cur = (G.cur+1) % G.teams.length; ui.sel = null; ui.hint = null; ui.xmode = false; ui.xsel = new Set(); save(); render(); }
 function pass(){ recall(); G.passes++; G.log.unshift({team:G.cur, pass:true}); if(G.passes >= G.teams.length*2) return endGame(); nextTurn(); }
 function exchange(){
   if(!ui.xmode){ recall(); ui.xmode = true; ui.xsel = new Set(); return render(); }
@@ -236,7 +300,7 @@ function viewSetup(){
       <li>さいしょの単語は ★ を通す。そのあとは、もう置いてある文字に つなげる</li>
       <li>置いたことで、たて・横にできた単語ぜんぶが英単語として正しければOK。できた単語ぜんぶの点が入る</li>
       <li>色のマスは点が増える:<b>文字×2・×3</b>はその文字だけ、<b>単語×2・×3</b>は単語ぜんぶ。★は単語×2</li>
-      <li>7枚ぜんぶ使うと <b>+${ALL_BONUS}点</b>！ 置けないときは「こうかん」か「パス」</li>
+      <li>7枚ぜんぶ使うと <b>+${ALL_BONUS}点</b>！ 困ったら「💡 ヒント」で置けそうな単語と場所が見られる。置けないときは「こうかん」か「パス」</li>
       <li>袋のカードがなくなって、だれかの手札がなくなったら(または全チームが2回ずつパスしたら)終わり</li>
     </ul>
   </section>`;
@@ -244,11 +308,14 @@ function viewSetup(){
 function viewGame(){
   const t = team(), ev = evaluate(), pend = new Map(G.pending.map(p=>[p.r+","+p.c, p]));
   const last = new Set((G.last||[]).map(([r,c])=>r+","+c));
+  const hm = ui.hint && ui.hint.pick!=null ? ui.hint.list[ui.hint.pick] : null;
+  const ghost = new Map(hm ? hm.P.map(p=>[p.r+","+p.c, p.ch]) : []);
   const cells = [];
   for(let r=0;r<N;r++) for(let c=0;c<N;c++){
     const b = G.board[r][c], p = pend.get(r+","+c), bn = BONUS[r][c];
     if(b) cells.push(`<button class="cell has ${last.has(r+","+c)?"last":""}" data-act="cell" data-r="${r}" data-c="${c}" style="--tc:${G.teams[b.team].color}"><span class="t">${esc(b.ch)}</span><small>${PTS[b.ch]}</small></button>`);
     else if(p) cells.push(`<button class="cell has new" data-act="cell" data-r="${r}" data-c="${c}"><span class="t">${esc(p.ch)}</span><small>${PTS[p.ch]}</small></button>`);
+    else if(ghost.has(r+","+c)) cells.push(`<button class="cell ghost" data-act="hplace"><span class="t">${esc(ghost.get(r+","+c))}</span></button>`);
     else cells.push(`<button class="cell ${bn}" data-act="cell" data-r="${r}" data-c="${c}" aria-label="${bn?BONUS_LABEL[bn]:"マス"}">${bn?BONUS_LABEL[bn].replace("単語","単").replace("文字","字"):""}</button>`);
   }
   const prev = !G.pending.length ? `<span class="note">${ui.xmode?"こうかんするカードをタップして選んで、もう一度「こうかん」":"手札のカードをタップ → 盤のマスをタップで置く(置いたカードをタップすると もどる)"}</span>`
@@ -267,12 +334,14 @@ function viewGame(){
       <div class="turn" style="background:${t.color}">${esc(t.name)} の番</div>
       <div class="board">${cells.join("")}</div>
       <p class="prev">${prev}</p>
+      ${ui.hint?hintHtml():""}
       <div class="rack">${t.rack.map((ch,i)=>{ const used = G.pending.some(p=>p.ri===i); return `<button class="rtile ${ui.hide?"hid":""} ${ui.sel===i?"sel":""} ${used?"used":""} ${ui.xsel.has(i)?"xsel":""}" data-act="rack" data-i="${i}" ${used&&!ui.xmode?"disabled":""}>${esc(ch)}<small>${PTS[ch]}</small></button>`; }).join("")}</div>
       <div class="ctrl">
         <button class="primary go" data-act="go" ${canGo&&!ev.bad.length?"":"disabled"}>けってい！</button>
         <button data-act="recall" ${G.pending.length?"":"disabled"}>もどす</button>
         <button data-act="shuf">🔀 まぜる</button>
         <button data-act="swap" ${ui.xmode?'aria-pressed="true"':""}>${ui.xmode?`こうかんする(${ui.xsel.size}枚)`:"こうかん"}</button>
+        <button data-act="hint">💡 ヒント</button>
         <button data-act="pass">パス</button>
         <button data-act="hide" aria-pressed="${ui.hide}">${ui.hide?"手札を見せる":"手札をかくす"}</button>
       </div>
@@ -280,6 +349,13 @@ function viewGame(){
     </div>
     ${sideHtml()}
   </div>`;
+}
+function hintHtml(){
+  const h = ui.hint;
+  if(h.none) return `<section class="panel hintp"><p class="label">💡 ヒント</p><p style="margin:0">いまの手札では、置ける単語が見つからなかったよ。「こうかん」してみよう！</p></section>`;
+  return `<section class="panel hintp"><p class="label">💡 ヒント:置けそうな単語(タップすると盤に場所が出るよ)</p>
+    <div class="hints">${h.list.map((m,i)=>`<button class="hchip ${h.pick===i?"on":""}" data-act="hpick" data-i="${i}"><span class="w">${esc(m.w)}</span>${HINT[m.w]?`<span class="ja">${esc(HINT[m.w])}</span>`:""}<span class="pt">${m.pts}点</span></button>`).join("")}</div>
+    ${h.pick!=null?`<div class="ctrl"><button class="primary" data-act="hplace">この場所に置いてみる</button><button data-act="hclose">ヒントをとじる</button></div>`:`<div class="ctrl"><button class="link" data-act="hclose">ヒントをとじる</button></div>`}</section>`;
 }
 function sideHtml(){
   return `<div style="display:flex;flex-direction:column;gap:10px">
@@ -307,6 +383,10 @@ document.addEventListener("click", e => {
   else if(a==="shuf"){ shuffleRack(); }
   else if(a==="swap"){ exchange(); }
   else if(a==="pass"){ if(confirm(`${team().name} はパスしますか？`)) pass(); }
+  else if(a==="hint"){ showHint(); }
+  else if(a==="hpick"){ hintPick(+b.dataset.i); }
+  else if(a==="hplace"){ hintPlace(); }
+  else if(a==="hclose"){ ui.hint = null; render(); }
   else if(a==="hide"){ ui.hide = !ui.hide; render(); }
   else if(a==="end"){ if(confirm("ここでゲームを終わって、けっか発表にしますか？")) endGame(); }
 });
