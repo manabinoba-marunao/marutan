@@ -209,6 +209,9 @@ h2{font-size:18px;margin:0 0 10px;text-wrap:balance}
 .rdmic.on{background:var(--ng);color:#fff;animation:rdp 1.3s ease-in-out infinite}
 @keyframes rdp{50%{box-shadow:0 0 0 10px rgba(182,62,50,.2)}}
 .rdmsg{text-align:center;font-size:14px;color:var(--muted);margin:4px 0 0;min-height:1.4em}
+.sphow{text-align:center;font-size:13px;color:var(--muted);margin:8px 0 0}
+.spellin.onset{flex:0 0 3.2em;text-align:center}
+.rime{align-self:center;font-family:var(--en);font-size:30px;font-weight:700;margin-right:auto;letter-spacing:.04em}
 .spellbox{display:flex;gap:8px;align-items:stretch;margin:10px 0}
 .spellin{flex:1;min-width:0;font-family:var(--en);font-size:24px;font-weight:700;padding:10px 14px;border-radius:12px;border:2px solid var(--accent);background:var(--surface);color:var(--ink);outline:none}
 .spellmine{text-align:center;font-family:var(--en);font-size:18px;margin:4px 0 0}
@@ -12780,6 +12783,7 @@ function peekBtn(){
 /* ---------- views ---------- */
 function render(){
   const app = $("#app");
+  if(rdRec && !rdCur()) rdStop();
   applySkin();
   document.body.classList.toggle("quizzing", !!ui.name && ui.view==="quiz");
   peekBtn();
@@ -13723,6 +13727,8 @@ function spellCheck(){
   const q = quiz && quiz.qs[quiz.i]; if(!q || !q.spell || q.picked!==null) return;
   const el = $("#spellIn"); if(el) q.typed = el.value;
   if(!spellNorm(q.typed)){ el && el.focus(); return; }
+  // ワードファミリーは「最初の音」だけ入れる(うしろの -at などはもう書いてある)
+  if(q.w.fam && !spellNorm(q.typed).endsWith(q.w.fam)) q.typed = q.typed.trim() + q.w.fam;
   judge(q, spellNorm(q.typed)===spellNorm(q.w.en), 0);
 }
 function viewSpellQuiz(q, n){
@@ -13733,12 +13739,14 @@ function viewSpellQuiz(q, n){
   const letters = [...t].map((c,i)=>{
     if(c===" ") return `<span class="sp"></span>`;
     if(done){ const ok = (mine[i]||"")===c.toLowerCase(); return `<span class="lt ${q.ok?"ok":ok?"":"ng"}">${esc(c)}</span>`; }
+    if(fam>=0 && i>=fam) return `<span class="lt">${esc(c)}</span>`;
     if(q.tl){ const j = q.placed[k++]; return j==null ? `<span class="lt hole">_</span>` : `<span class="lt">${esc(q.tiles[j])}</span>`; }
     const show = fam>=0 ? i>=fam : from ? from[i]===c : (i===0 || /[^A-Za-z]/.test(c));
     return `<span class="lt ${show?"":"hole"}">${show?esc(c):"_"}</span>`;
   }).join("");
   const em = EMOJI[t.toLowerCase()] ? `<span class="spem">${EMOJI[t.toLowerCase()]}</span>` : "";
-  const fromLine = q.w.from ? `<p class="spfrom"><b>${esc(q.w.from)}</b> から <b>1文字</b> かえると…</p>` : "";
+  const fromLine = q.w.from ? `<p class="spfrom"><b>${esc(q.w.from)}</b> から <b>1文字</b> かえると…</p>` : fam>=0 ? `<p class="spfrom">うしろの <b>${esc(q.w.fam)}</b> はそのまま。<b>最初の音</b>だけ考えよう！</p>` : "";
+  const how = fam>=0 ? `最初の音(_ のところ)だけ入れよう` : from ? `※ 1文字かえたあとの単語を、ぜんぶ書こう` : q.hint!==false ? `※ 最初の文字「${esc(t[0])}」も入れて、単語をぜんぶ書こう` : `※ 単語をぜんぶ書こう(ヒントなし)`;
   if(done){
     const ex = esc(q.w.ex||"").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
     return header() + quizHead(n) + `<div class="card ans ${q.ok?"ok":"ng"}">
@@ -13752,7 +13760,7 @@ function viewSpellQuiz(q, n){
     </div>`;
   }
   return header() + quizHead(n) + `<div class="card">
-      <span class="dir">${q.tl?"カードをならべて英語にしよう":"この意味の英語を書こう"}${q.hint!==false||q.tl?`(${[...t.replace(/[^A-Za-z]/g,"")].length}文字)`:""}</span>
+      <span class="dir">${q.tl?(fam>=0?"カードをえらんで単語を作ろう":"カードをならべて英語にしよう"):"この意味の英語を書こう"}${fam<0&&(q.hint!==false||q.tl)?`(${[...t.replace(/[^A-Za-z]/g,"")].length}文字)`:""}</span>
       ${fromLine}${em}
       <span class="q ${[...q.w.ja].length>14?"long":""}">${esc(q.w.ja)}</span>
       ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
@@ -13761,8 +13769,9 @@ function viewSpellQuiz(q, n){
     ${q.tl?`<div class="tiles">${q.tiles.map((c,i)=>`<button class="tile" data-act="tile" data-i="${i}" ${q.placed.includes(i)?"disabled":""}>${esc(c)}</button>`).join("")}</div>
     <div class="row" style="justify-content:center;gap:8px;margin:6px 0"><button data-act="untile" ${q.placed.length?"":"disabled"}>⌫ 1つもどす</button><button data-act="tclr" ${q.placed.length?"":"disabled"}>やりなおす</button></div>
     <p class="kbd">${S.speak?`${sayBtn("word","発音を聞く(ヒント)")} 発音ヒント　`:""}<button class="link" data-act="quit">やめる</button></p>`:`
+    <p class="sphow">${how}</p>
     <div class="spellbox">
-      <input id="spellIn" class="spellin" value="${esc(q.typed||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="en" inputmode="latin" enterkeyhint="done" placeholder="半角の英語で入力" aria-label="英語のつづり">
+      <input id="spellIn" class="spellin${fam>=0?" onset":""}" value="${esc(q.typed||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="en" inputmode="latin" enterkeyhint="done" placeholder="${fam>=0?"?":"半角の英語で入力"}" aria-label="英語のつづり">${fam>=0?`<span class="rime">${esc(q.w.fam)}</span>`:""}
       <button class="primary" data-act="spellok">こたえる</button>
     </div>
     <p class="kbd">${S.speak&&q.hint!==false?`${sayBtn("word","発音を聞く(ヒント)")} 発音ヒント　`:""}Enter でこたえる　<button class="link" data-act="quit">やめる</button></p>`}`;
@@ -13774,46 +13783,70 @@ function tileShuffle(t){
   let r = cs; for(let i=0;i<8 && r.join("")===cs.join(""); i++) r = shuffle(cs);
   return r;
 }
+function famTiles(w){
+  const on = w.en.slice(0, w.en.length - w.fam.length);
+  const pool = shuffle([..."bcdfghjlmnprstw"].filter(c=>!on.includes(c))).slice(0, Math.max(2, 5 - on.length));
+  return shuffle([...on, ...pool]);
+}
 function tilePut(i){
   const q = quiz && quiz.qs[quiz.i]; if(!q || !q.tl || q.picked!==null || q.placed.includes(i) || i<0 || i>=q.tiles.length) return;
   q.placed.push(i);
-  const t = q.w.en.trim(), need = [...t].filter(c=>c!==" ").length;
+  const t = q.w.en.trim(), need = q.w.fam ? t.length - q.w.fam.length : [...t].filter(c=>c!==" ").length;
   if(q.placed.length < need) return render();
+  if(q.w.fam){ q.typed = q.placed.map(j=>q.tiles[j]).join("") + q.w.fam; return judge(q, spellNorm(q.typed)===spellNorm(t), 0); }
   // できた文字列を、もとの単語の空白の位置にそろえてから判定
   let k = 0; q.typed = [...t].map(c=> c===" " ? " " : q.tiles[q.placed[k++]]).join("");
   judge(q, spellNorm(q.typed)===spellNorm(t), 0);
 }
 /* ---- 🎤 読む:英単語を見て、声に出して読む(ブラウザの音声認識で判定) ---- */
 const SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rdRec = null;
-function rdStop(){ if(rdRec){ const r = rdRec; rdRec = null; try{ r.abort(); }catch(e){} } }
+/* テンポよく読めるように:
+   ・マイクは一度押したら、つぎの問題でも聞きっぱなし(問題ごとに押し直さない)
+   ・言い終わるのを待たず、途中の聞き取り(interim)で合っていたら、すぐ正解
+   ・正解したら 0.6 秒で自動的に次の問題へ */
+let rdRec = null, rdWant = false, rdLen = 0, rdNextT = 0;
+function rdCur(){ const q = quiz && ui.view==="quiz" && quiz.qs[quiz.i]; return q && q.read ? q : null; }
+function rdStop(){ rdWant = false; clearTimeout(rdNextT); if(rdRec){ const r = rdRec; rdRec = null; try{ r.abort(); }catch(e){} } }
+function rdMsg(txt){ const el = $("#rdmsg"); if(el) el.textContent = txt; }
 function rdListen(){
-  const q = quiz && quiz.qs[quiz.i]; if(!q || !q.read || q.picked!==null) return;
-  if(!SRC){ q.heard = "このブラウザでは音声認識が使えません。パソコン・Androidは Chrome、iPhone・iPadは Safari で開いてね。"; q.listening = false; return render(); }
-  if(rdRec){ rdStop(); q.listening = false; return render(); }
+  const q = rdCur(); if(!q || q.picked!==null) return;
+  if(!SRC){ q.heard = "このブラウザでは音声認識が使えません。パソコン・Androidは Chrome、iPhone・iPadは Safari で開いてね。"; return render(); }
+  if(rdRec){ rdStop(); return render(); }
+  rdWant = true; rdStart(); render();
+}
+function rdStart(){
   const r = new SRC();
-  r.lang = "en-US"; r.continuous = false; r.interimResults = false; r.maxAlternatives = 5;
-  rdRec = r; q.listening = true; q.heard = ""; render();
+  r.lang = "en-US"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 5;
+  rdRec = r; rdLen = 0;
+  const q0 = rdCur(); if(q0) q0.rdFrom = 0;
   r.onresult = e => {
-    const alts = []; for(const res of e.results) for(let i=0;i<res.length;i++) alts.push(res[i].transcript);
-    rdRec = null; q.listening = false; rdCheck(q, alts);
+    rdLen = e.results.length;
+    const q = rdCur(); if(!q || q.picked!==null) return;
+    if(q.rdFrom==null) q.rdFrom = e.resultIndex;
+    for(let i = Math.max(e.resultIndex, q.rdFrom); i < e.results.length; i++){
+      const res = e.results[i], alts = [];
+      for(let k=0; k<res.length; k++) alts.push(res[k].transcript);
+      if(alts.some(a=>rdMatch(q.w.en, a))){ q.rdFrom = e.results.length; q.heard = alts.find(a=>rdMatch(q.w.en,a)) || alts[0]; return rdHit(q); }
+      if(res.isFinal && alts[0].trim()){
+        q.rdFrom = i + 1; q.heard = alts[0].trim(); q.tries = (q.tries||0) + 1;
+        if(q.tries>=3) return judge(q, false, 0);
+        render(); return;
+      }
+      if(!res.isFinal) rdMsg("…" + alts[0].trim());
+    }
   };
   r.onerror = e => {
     if(rdRec!==r) return;
-    rdRec = null; q.listening = false;
-    q.heard = (e.error==="not-allowed"||e.error==="service-not-allowed") ? "マイクが使えません。ブラウザの設定でマイクを「許可」にしてね。" : e.error==="no-speech" ? "声が聞こえなかったよ。もう一度マイクを押してね。" : "うまく聞き取れなかったよ。もう一度！";
-    if(quiz && quiz.qs[quiz.i]===q && q.picked===null) render();
+    if(e.error==="not-allowed" || e.error==="service-not-allowed"){ rdWant = false; const q = rdCur(); if(q){ q.heard = "マイクが使えません。ブラウザの設定でマイクを「許可」にしてね。"; render(); } }
   };
-  r.onend = () => { if(rdRec===r){ rdRec = null; q.listening = false; if(quiz && quiz.qs[quiz.i]===q && q.picked===null){ q.heard ||= "声が聞こえなかったよ。もう一度マイクを押してね。"; render(); } } };
-  try{ r.start(); }catch(err){ rdRec = null; q.listening = false; render(); }
+  // しばらく黙っていると認識が止まるので、読んでいる間は自動でつなぎなおす
+  r.onend = () => { if(rdRec!==r) return; rdRec = null; if(rdWant && rdCur()){ try{ rdStart(); }catch(err){ rdWant = false; render(); } } else { rdWant = false; render(); } };
+  try{ r.start(); }catch(err){ rdRec = null; rdWant = false; }
 }
-function rdCheck(q, alts){
-  if(!quiz || quiz.qs[quiz.i]!==q || q.picked!==null) return;
-  q.heard = alts[0] || "";
-  if(alts.some(a=>rdMatch(q.w.en, a))) return judge(q, true, 0);
-  q.tries = (q.tries||0) + 1;
-  if(q.tries>=3) return judge(q, false, 0);
-  render();
+function rdHit(q){
+  judge(q, true, 0);
+  clearTimeout(rdNextT);
+  rdNextT = setTimeout(()=>{ if(quiz && quiz.qs[quiz.i]===q && ui.view==="quiz"){ next(); const nq = rdCur(); if(nq) nq.rdFrom = rdLen; } }, 600);
 }
 /* 同じ音の語(to/two/too など)や数字は同じものとして扱う */
 const HOMO = [["to","two","too","2"],["for","four","4"],["one","won","1"],["no","know"],["right","write"],["see","sea"],["eight","ate","8"],["hear","here"],["by","buy","bye"],["sun","son"],["red","read"],["be","bee"],["i","eye"],["meat","meet"],["flower","flour"],["week","weak"],["blue","blew"],["new","knew"],["hour","our"],["there","their"],["hole","whole"],["tail","tale"],["mail","male"],["pair","pear"],["dear","deer"],["peace","piece"],["nose","knows"],["three","3"],["five","5"],["six","6"],["seven","7"],["nine","9"],["ten","10"],["zero","0"]];
@@ -13846,12 +13879,14 @@ function viewReadQuiz(q, n){
     </div>`;
   }
   const left = 3 - (q.tries||0);
+  if(q.rdFrom==null && rdRec) q.rdFrom = rdLen;
+  const on = !!rdRec;
   return header() + quizHead(n) + `<div class="card">
       <span class="dir">この英語を声に出して読もう</span>
       ${em}<div class="rdword">${esc(t)}</div>
       ${q.w.pos?`<span class="pos">${esc(posName(q.w.pos))}</span>`:""}
-      <button class="rdmic ${q.listening?"on":""}" data-act="rdmic">${q.listening?"🎙️ 聞いてるよ…":"🎤 押して読む"}</button>
-      <p class="rdmsg">${q.heard?`「${esc(q.heard)}」に聞こえたよ。${left<3?`あと${left}回`:""}`:q.listening?"単語だけを、はっきり読もう":`チャンスは3回`}</p>
+      <button class="rdmic ${on?"on":""}" data-act="rdmic">${on?"🎙️ 聞いてるよ(押すと止まる)":"🎤 押して読む"}</button>
+      <p class="rdmsg" id="rdmsg">${q.heard?`「${esc(q.heard)}」に聞こえたよ。${left<3?`あと${left}回`:""}`:on?"どうぞ！ 単語を読もう":`一度押せば、つぎの問題も聞きっぱなし`}</p>
     </div>
     <p class="kbd"><button class="link" data-act="rdpass">わからない(答えを見る)</button>　<button class="link" data-act="quit">やめる</button></p>`;
 }
@@ -13878,7 +13913,7 @@ function makeQuestion(w){
   if(SKILLS[ui.mode] && ui.subject==="英語" && spellable(w)){
     const q = {w, skill:SKILLS[ui.mode].p, dir:"ja2en", typed:"", picked:null};
     if(ui.mode==="read") q.read = true;
-    else { q.spell = true; if(ui.mode==="tiles"){ q.tl = true; q.placed = []; q.tiles = tileShuffle(w.en.trim()); } else q.hint = ui.spellHint!==false; }
+    else { q.spell = true; if(ui.mode==="tiles"){ q.tl = true; q.placed = []; q.tiles = w.fam ? famTiles(w) : tileShuffle(w.en.trim()); } else q.hint = ui.spellHint!==false; }
     return q;
   }
   const dir = ui.mode==="mix" ? (Math.random()<.5?"en2ja":"ja2en") : SKILLS[ui.mode] ? "ja2en" : ui.mode;
@@ -14796,7 +14831,7 @@ document.addEventListener("click", async e=>{
   else if(a==="untile"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.tl && q.picked===null){ q.placed.pop(); render(); } }
   else if(a==="tclr"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.tl && q.picked===null){ q.placed = []; render(); } }
   else if(a==="rdmic"){ rdListen(); }
-  else if(a==="rdpass"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.read && q.picked===null){ rdStop(); judge(q, false, 0); } }
+  else if(a==="rdpass"){ const q = quiz && quiz.qs[quiz.i]; if(q && q.read && q.picked===null){ judge(q, false, 0); } }
   else if(a==="fmode"){ ui.fmode=b.dataset.v; render(); }
   else if(a==="limit"){ ui.limit=b.dataset.v; render(); }
   else if(a==="start"){
